@@ -1,0 +1,95 @@
+version: '3.8'
+
+x-mariami-api-common-prod: &mariami-api-common-prod
+    env_file:
+        - .env.prod
+    entrypoint: scripts/entrypoint.sh
+    build:
+        context: .
+        dockerfile: Dockerfile
+    volumes:
+        - .:/usr/src/mariami
+    networks:
+        - mariami_server
+    depends_on:
+        mariami-db-prod:
+            condition: service_healthy
+        mariami-redis-prod:
+            condition: service_healthy
+
+services:
+
+    mariami-db-prod:
+        container_name: mariami-db-prod
+        env_file:
+            - .env.prod
+        image: postgres:latest
+        volumes:
+            - ./postgres-data:/var/lib/postgresql/data
+        networks:
+            - mariami_server
+        healthcheck:
+            test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+            timeout: 5s
+            retries: 20
+
+    mariami-redis-prod:
+        container_name: mariami-redis-prod
+        env_file:
+            - .env.prod
+        image: redis:7.0.4-alpine
+        volumes:
+            - redis-data:/usr/src/mariami/storage/redis/data
+        networks:
+            - mariami_server
+        healthcheck:
+            test: [ 'CMD-SHELL', 'redis-cli ping | grep PONG' ]
+            timeout: 5s
+            retries: 20
+
+    mariami-api-prod:
+        <<: *mariami-api-common-prod
+        container_name: mariami-api-prod
+        command: api-deploy
+        expose:
+            - '8000'
+        labels:
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.mariami-api-prod.rule=Host(`mariami.net`) && PathPrefix(`/api`)'
+            - 'traefik.http.routers.mariami-api-prod.entrypoints=websecure'
+            - 'traefik.http.routers.mariami-api-prod.tls.certresolver=myresolver'
+            - 'traefik.http.routers.mariami-api-prod.service=mariami-api-prod'
+            - 'traefik.http.services.mariami-api-prod.loadbalancer.server.port=8000'
+
+    mariami-daphne-prod:
+        <<: *mariami-api-common-prod
+        container_name: mariami-daphne-prod
+        command: daphne
+        expose:
+            - '10000'
+        labels:
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.mariami-daphne-prod.rule=Host(`mariami.net`) && PathPrefix(`/ws`)'
+            - 'traefik.http.routers.mariami-daphne-prod.entrypoints=websecure'
+            - 'traefik.http.routers.mariami-daphne-prod.tls.certresolver=myresolver'
+            - 'traefik.http.routers.mariami-daphne-prod.service=mariami-daphne-prod'
+            - 'traefik.http.services.mariami-daphne-prod.loadbalancer.server.port=10000'
+
+    mariami-celery-worker-prod:
+        <<: *mariami-api-common-prod
+        container_name: mariami-celery-worker-prod
+        command: celery-worker
+
+    mariami-celery-beat-prod:
+        <<: *mariami-api-common-prod
+        container_name: mariami-celery-beat-prod
+        command: celery-beat
+
+networks:
+    mariami_server:
+        external: true
+
+volumes:
+    redis-data:
+    minio-data:
+    pgadmin-data:

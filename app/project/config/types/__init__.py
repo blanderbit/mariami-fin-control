@@ -1,0 +1,1 @@
+BULK_RESPONSE = dict[str, list[int]]
