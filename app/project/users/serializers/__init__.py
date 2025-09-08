@@ -7,6 +7,3 @@ from users.serializers.update_user_serializer import (
 from users.serializers.user_updated_serializer import (
     UserUpdatedSerializer as UserUpdatedSerializer
 )
-from users.serializers.user_win_chance_serializer import (
-    UserWinChanceSerializer as UserWinChanceSerializer
-)

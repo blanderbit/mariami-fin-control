@@ -7,4 +7,4 @@ from rest_framework.serializers import (
 class GetMyProfileSerializer(ModelSerializer):
     class Meta:
         model: UserModel = UserModel
-        fields = ["id", "email", "is_verified", "is_admin", "balance", "country"]
+        exclude = ["password"]

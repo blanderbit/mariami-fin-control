@@ -18,4 +18,3 @@ from authentication.views.code_confirm_view import CodeConfirmView as CodeConfir
 from authentication.views.validate_reset_password_code_view import (
     ValidateResetPasswordCodeView as ValidateResetPasswordCodeView,
 )
-from authentication.views.auth_analytics import AuthAnalyticsView as AuthAnalyticsView
