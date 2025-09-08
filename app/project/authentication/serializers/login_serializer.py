@@ -1,7 +1,6 @@
 from collections import OrderedDict
 from typing import Union
 
-from authentication.models import LoginAnalytics
 from users.models import UserModel
 from rest_framework.serializers import (
     CharField,
@@ -38,7 +37,6 @@ class LoginSerializer(ModelSerializer):
         user: UserModel = auth.authenticate(email=email, password=password)
         if not user:
             raise ValidationError(INVALID_CREDENTIALS_ERROR, HTTP_400_BAD_REQUEST)
-        LoginAnalytics.objects.create()
         return {"email": user.email, "tokens": user.tokens}
 
         return super().validate(attrs)

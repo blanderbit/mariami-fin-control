@@ -4,20 +4,15 @@ from rest_framework.serializers import (
     Serializer,
     IntegerField,
 )
-from users.serializers.user_win_chance_serializer import UserWinChanceSerializer
 
 
 class UserNewDataSerializer(ModelSerializer):
-    win_chance = UserWinChanceSerializer()
 
     class Meta:
         model: UserModel = UserModel
         fields = [
             "is_verified",
             "is_admin",
-            "win_chance",
-            "account_type",
-            "balance",
             "country",
         ]
 

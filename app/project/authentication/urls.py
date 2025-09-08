@@ -8,7 +8,6 @@ from authentication.views import (
     ConfirmResetPassword,
     CodeConfirmView,
     ValidateResetPasswordCodeView,
-    AuthAnalyticsView,
 )
 from django.urls import path
 
@@ -36,11 +35,6 @@ urlpatterns = [
     path(
         "client/validate/reset/password/confirmation/code",
         ValidateResetPasswordCodeView.as_view(),
-        name="validate-reset-password-confirmation-code",
-    ),
-    path(
-        "admin/auth/analytics",
-        AuthAnalyticsView.as_view(),
         name="validate-reset-password-confirmation-code",
     ),
 ]

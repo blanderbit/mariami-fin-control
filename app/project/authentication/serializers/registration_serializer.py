@@ -1,17 +1,9 @@
 from collections import OrderedDict
 from typing import Any
 from users.models import UserModel
-from authentication.constants.errors import (
-    PASSWORDS_DO_NOT_MATCH_ERROR,
-)
-from authentication.models import RegisterAnalytics
 from rest_framework.serializers import (
     CharField,
     ModelSerializer,
-    ValidationError,
-)
-from rest_framework.status import (
-    HTTP_400_BAD_REQUEST,
 )
 
 
@@ -21,7 +13,7 @@ class RegistrationSerializer(ModelSerializer):
 
     class Meta:
         model: UserModel = UserModel
-        fields = ["email", "password", "re_password", "country"]
+        fields = ["email", "password", "re_password", "country", "name", "last_name"]
 
     def validate(self, attrs: OrderedDict[str, Any]) -> OrderedDict[str, Any]:
         # password: str = attrs.get("password", "")
@@ -33,5 +25,5 @@ class RegistrationSerializer(ModelSerializer):
 
     def create(self, validated_data: dict[str, Any]) -> UserModel:
         validated_data.pop("re_password")
-        RegisterAnalytics.objects.create()
+
         return UserModel.objects.create_user(**validated_data)
