@@ -16,3 +16,8 @@
 ## Run project
 
 In the main directory `BE_MariaMi/project` run the command `sudo docker-compose up` or `sudo docker-compose up -d` this command will start the project without taking up your console
+
+
+## Swagger 
+
+Swagger can be accessed locally by this url  - http://0.0.0.0:8000/api/v1/swagger/
