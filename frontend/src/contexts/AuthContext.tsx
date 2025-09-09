@@ -1,17 +1,21 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { loginRequest, logoutRequest } from '../api/auth';
+import { getActiveStorageType, setTokenStorage, TokenStorage } from '../api/http';
 
 interface User {
-    id: string;
-    name: string;
+    id: number;
+    name?: string | null;
+    last_name?: string | null;
     email: string;
+    is_admin?: boolean;
     avatar?: string;
 }
 
 interface AuthContextType {
     user: User | null;
-    login: (email: string, password: string) => Promise<void>;
-    logout: () => void;
+    login: (email: string, password: string, remember?: boolean) => Promise<void>;
+    logout: (suppressRedirect?: boolean) => void;
     loading: boolean;
     error: string | null;
 }
@@ -26,38 +30,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Check if user is already logged in on mount
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
         setLoading(false);
     }, []);
 
-    // Mock login function - in a real app, this would call an API
-    const login = async (email: string, password: string) => {
+    const login = async (email: string, password: string, remember: boolean = true) => {
         setLoading(true);
         setError(null);
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 800));
+            const storage: TokenStorage = remember ? 'local' : 'session';
+            setTokenStorage(storage);
+            const profile = await loginRequest(email, password, storage);
+            if (!profile) throw new Error('Failed to fetch profile');
 
-            // For demo purposes, accept any non-empty credentials
-            if (!email || !password) {
-                throw new Error('Please enter both email and password');
-            }
-
-            // Mock user data
             const userData: User = {
-                id: '1',
-                name: email.split('@')[0],
-                email,
-                avatar: 'https://i.pravatar.cc/150?u=' + email,
+                id: profile.id,
+                name: profile.name,
+                last_name: profile.last_name,
+                email: profile.email,
+                is_admin: profile.is_admin,
             };
 
             setUser(userData);
-            localStorage.setItem('user', JSON.stringify(userData));
-            navigate('/dashboard');
+            if (remember) {
+                localStorage.setItem('user', JSON.stringify(userData));
+            } else {
+                sessionStorage.setItem('user', JSON.stringify(userData));
+            }
+            navigate('/revenues');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
@@ -65,10 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const logout = () => {
+    const logout = async (suppressRedirect: boolean = false) => {
+        await logoutRequest();
         setUser(null);
         localStorage.removeItem('user');
-        navigate('/login');
+        sessionStorage.removeItem('user');
+        if (!suppressRedirect) {
+            navigate('/login');
+        }
     };
 
     return (

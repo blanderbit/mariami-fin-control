@@ -1,41 +1,36 @@
-import { useEffect } from 'react';
-import { Route, Routes, useLocation, Navigate } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
-
-// Layouts
-import AuthLayout from './layouts/AuthLayout';
-
-// Pages
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import Layout from './components/Layout';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 
-// Components
-import ProtectedRoute from './components/ProtectedRoute';
-import NotFound from './pages/NotFound';
+// Protected Route Component
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+};
+
+// Public Route Component (redirect to dashboard if already authenticated)
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    return !isAuthenticated ? <>{children}</> : <Navigate to="/dashboard" replace />;
+};
 
 function App() {
-    const location = useLocation();
-    const { user } = useAuth();
-
-    // Scroll to top on route change
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [location.pathname]);
-
     return (
-        <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            {/* Auth Routes */}
-            <Route element={<AuthLayout />}>
-                <Route path="/login" element={<Login />} />
-            </Route>
+        <Router>
+            <Routes>
+                <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
 
-            {/*<Route element={<ProtectedRoute />}>*/}
+                <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                    <Route index element={<Navigate to="/dashboard" replace />} />
+                </Route>
 
-            {/*</Route>*/}
-
-            {/* 404 Page */}
-            <Route path="*" element={<NotFound />} />
-        </Routes>
+                {/* Default redirect to login */}
+                <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+        </Router>
     );
 }
 
