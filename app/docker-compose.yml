@@ -72,16 +72,24 @@ services:
 
     mariami-pgadmin-dev:
         container_name: mariami-pgadmin-dev
-        env_file:
-            - .env
+        environment:
+          PGADMIN_DEFAULT_EMAIL: admin@gmail.com
+          PGADMIN_DEFAULT_PASSWORD: admin
+          PGADMIN_LISTEN_PORT: 49299
+          PGADMIN_CONFIG_SERVER_MODE: 'False'
+          PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
         image: dpage/pgadmin4:latest
         restart: always
         volumes:
-            - pgadmin-data:/usr/src/mariami/storage/pgadmin/data
+            - pgadmin-data:/var/lib/pgadmin
+            - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+            - ./pgadmin/pgpass:/pgpass:ro
         networks:
             - mariami-network-dev
         ports:
             - 49280:49299
+        depends_on:
+            - mariami-db-dev
 
 networks:
     mariami-network-dev:
