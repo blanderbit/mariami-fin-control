@@ -25,19 +25,20 @@ class UserModelManager(BaseUserManager):
 @final
 class UserModel(AbstractBaseUser):
 
-    class AccountType(models.TextChoices):
-        WINNING: str = "winning"
-        LOSING: str = "losing"
-
     email: str = models.EmailField(max_length=255, unique=True, db_index=True)
     is_verified: bool = models.BooleanField(default=False)
     is_admin: bool = models.BooleanField(default=False)
+    is_onboarded: bool = models.BooleanField(default=False)
     created_at: str = models.DateTimeField(auto_now_add=True)
     updated_at: str = models.DateTimeField(auto_now=True)
-    country: str = models.CharField(max_length=255, null=True, blank=True)
-    name: str = models.CharField(max_length=255, db_index=True, null=True, blank=True)
-    last_name: str = models.CharField(
-        max_length=255, db_index=True, null=True, blank=True
+    
+    # Link to profile
+    profile = models.OneToOneField(
+        'profile.ProfileModel',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='user'
     )
 
     USERNAME_FIELD: str = "email"
@@ -68,6 +69,14 @@ class UserModel(AbstractBaseUser):
         refresh: RefreshToken = RefreshToken.for_user(self)
         access: AccessToken = AccessToken.for_user(self)
         return {"refresh": str(refresh), "access": str(access)}
+
+    def update_onboarding_status(self) -> None:
+        """
+        Update the onboarding status based on profile completion
+        """
+        if self.profile and self.profile.is_onboarding_complete():
+            self.is_onboarded = True
+            self.save()
 
     class Meta:
         # the name of the table in the database for this model
