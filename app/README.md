@@ -20,4 +20,8 @@ In the main directory `BE_MariaMi/project` run the command `sudo docker-compose 
 
 ## Swagger 
 
-Swagger can be accessed locally by this url  - http://0.0.0.0:8000/api/v1/swagger/
+Swagger can be accessed locally by this url  - http://0.0.0.0:8000/swagger
+
+PgAdmin to access the database locally can be found on - http://localhost:49280/
+
+PgAdmin local credenditals are 
