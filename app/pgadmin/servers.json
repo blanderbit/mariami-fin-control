@@ -1,0 +1,15 @@
+{
+    "Servers": {
+        "1": {
+            "Name": "Mariami DB",
+            "Group": "Servers",
+            "Host": "mariami-db-dev",
+            "Port": 5432,
+            "MaintenanceDB": "postgres",
+            "Username": "postgres",
+            "PassFile": "/pgpass",
+            "SSLMode": "prefer",
+            "Favorite": true
+        }
+    }
+}

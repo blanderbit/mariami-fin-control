@@ -26,7 +26,7 @@ urlpatterns = [
         name="schema-json",
     ),
     path(
-        "api/v1/swagger/",
+        "swagger/",
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
