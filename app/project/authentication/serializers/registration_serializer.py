@@ -4,7 +4,9 @@ from users.models import UserModel
 from rest_framework.serializers import (
     CharField,
     ModelSerializer,
+    ValidationError,
 )
+from rest_framework.status import HTTP_400_BAD_REQUEST
 
 
 class RegistrationSerializer(ModelSerializer):
@@ -13,17 +15,20 @@ class RegistrationSerializer(ModelSerializer):
 
     class Meta:
         model: UserModel = UserModel
-        fields = ["email", "password", "re_password", "country", "name", "last_name"]
+        fields = ["email", "password", "re_password"]
 
     def validate(self, attrs: OrderedDict[str, Any]) -> OrderedDict[str, Any]:
-        # password: str = attrs.get("password", "")
-        # re_password: str = attrs.get("re_password", "")
+        password: str = attrs.get("password", "")
+        re_password: str = attrs.get("re_password", "")
 
-        # if password != re_password:
-        #     raise ValidationError(PASSWORDS_DO_NOT_MATCH_ERROR, HTTP_400_BAD_REQUEST)
+        if password != re_password:
+            raise ValidationError(
+                {"password": "Passwords do not match"}, 
+                HTTP_400_BAD_REQUEST
+            )
         return attrs
 
     def create(self, validated_data: dict[str, Any]) -> UserModel:
         validated_data.pop("re_password")
-
-        return UserModel.objects.create_user(**validated_data)
+        user = UserModel.objects.create_user(**validated_data)
+        return user
