@@ -1,22 +1,25 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import { ProtectedRoute, PublicRoute } from './routes';
+import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
 
 function App() {
     return (
         <Router>
             <Routes>
-                <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-                <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+                <Route path="/login" element={<Login/>}/>
+                <Route path="/signup" element={<Signup/>}/>
 
-                <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-                    <Route index element={<Navigate to="/dashboard" replace />} />
+                <Route element={<ProtectedRoute/>}>
+                    <Route element={<Layout/>}>
+                        <Route path="/" element={<Dashboard />} />
+                    </Route>
                 </Route>
 
-                <Route path="*" element={<Navigate to="/login" replace />} />
+                <Route path="*" element={<Navigate to="/login" replace/>}/>
             </Routes>
         </Router>
     );

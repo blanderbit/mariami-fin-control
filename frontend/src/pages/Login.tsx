@@ -13,8 +13,8 @@ const Login: React.FC = () => {
     const { login, clearAuthState } = useAuth();
 
     const [formData, setFormData] = useState({
-        email: '',
-        password: ''
+        email: 'd.utyuzh@codeska.com',
+        password: 'stringst123'
     });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [isLoading, setIsLoading] = useState(false);
@@ -53,19 +53,20 @@ const Login: React.FC = () => {
         if (!validateForm()) return;
 
         setIsLoading(true);
+        setErrors({});
 
         try {
             await login(formData.email, formData.password, true);
-            setIsLoading(false);
-            navigate('/dashboard');
+            debugger
+            navigate('/');
         } catch (err) {
             setErrors({ general: err instanceof Error ? err.message : 'Login failed' });
+        } finally {
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        debugger
         clearAuthState();
     }, []);
 
