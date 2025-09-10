@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useState, useEffect, useCallback} from 'react';
-import {loginRequest, logoutRequest} from '../api/auth';
+import {loginRequest, logoutRequest, registerRequest} from '../api/auth';
 import {setTokenStorage, TokenStorage} from '../api/http';
 
 interface User {
@@ -14,6 +14,7 @@ interface User {
 interface AuthContextType {
     user: User | null;
     login: (email: string, password: string, remember?: boolean) => Promise<void>;
+    register: (email: string, password: string, re_password: string, name?: string, last_name?: string) => Promise<void>;
     logout: (suppressRedirect?: boolean) => void;
     clearAuthState: () => void;
     loading: boolean;
@@ -37,22 +38,64 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
     }, []);
 
     // Логин
-    const login = useCallback(async (email: string, password: string) => {
+    const login = useCallback(async (email: string, password: string, remember: boolean = true) => {
         setLoading(true);
         setError(null);
 
         try {
+            const storage: TokenStorage = remember ? 'local' : 'session';
+            setTokenStorage(storage);
+            
             // Выполняем логин и получаем профиль
-            const profile = await loginRequest(email, password);
+            const profile = await loginRequest(email, password, storage);
             if (!profile) throw new Error('Failed to fetch profile');
 
             setUser(profile);
 
             // Сохраняем профиль пользователя в выбранный storage
-            localStorage.setItem('user', JSON.stringify(profile));
+            if (storage === 'local') {
+                localStorage.setItem('user', JSON.stringify(profile));
+            } else {
+                sessionStorage.setItem('user', JSON.stringify(profile));
+            }
 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
+            throw err; // Re-throw для обработки в компоненте
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    // Регистрация
+    const register = useCallback(async (email: string, password: string, re_password: string, name?: string, last_name?: string) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            // Выполняем регистрацию
+            await registerRequest({
+                email,
+                password,
+                re_password,
+                name,
+                last_name
+            });
+
+            // После успешной регистрации автоматически логинимся
+            const storage: TokenStorage = 'local';
+            setTokenStorage(storage);
+            
+            const profile = await loginRequest(email, password, storage);
+            if (!profile) throw new Error('Failed to fetch profile after registration');
+
+            setUser(profile);
+
+            // Сохраняем профиль пользователя
+            localStorage.setItem('user', JSON.stringify(profile));
+
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Registration failed');
             throw err; // Re-throw для обработки в компоненте
         } finally {
             setLoading(false);
@@ -84,7 +127,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{user, login, logout, clearAuthState, loading, error}}>
+        <AuthContext.Provider value={{user, login, register, logout, clearAuthState, loading, error}}>
             {children}
         </AuthContext.Provider>
     );

@@ -57,7 +57,6 @@ const Login: React.FC = () => {
 
         try {
             await login(formData.email, formData.password, true);
-            debugger
             navigate('/');
         } catch (err) {
             setErrors({ general: err instanceof Error ? err.message : 'Login failed' });

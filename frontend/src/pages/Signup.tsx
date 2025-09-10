@@ -4,11 +4,12 @@ import {Brain, Mail, Lock, Building, ArrowRight, AlertCircle, CheckCircle, Sun, 
 import {useTheme} from "../contexts/ThemeContext.tsx";
 import {motion} from 'framer-motion';
 import Logo from "../assets/FinclAI Logo Blue.png";
-import { registerRequest, loginRequest } from '../api/auth';
+import { useAuth } from '../contexts/AuthContext';
 
 const Signup: React.FC = () => {
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
+    const { register } = useAuth();
 
     const [formData, setFormData] = useState({
         companyName: '',
@@ -71,17 +72,20 @@ const Signup: React.FC = () => {
         if (!validateForm()) return;
 
         setIsLoading(true);
+        setErrors({});
 
         try {
-            // Backend registration requires email/password/re_password; optional fields can be mapped later
-            await registerRequest({
-                email: formData.email,
-                password: formData.password,
-                re_password: formData.confirmPassword,
-            });
-            // Auto-login after successful registration via direct request
-            await loginRequest(formData.email, formData.password, 'local');
-            navigate('/onboarding');
+            // Используем register из AuthContext
+            await register(
+                formData.email,
+                formData.password,
+                formData.confirmPassword,
+                formData.companyName, // используем companyName как name
+                '' // last_name пока не заполняем
+            );
+
+            // После успешной регистрации и автологина редиректим на главную
+            navigate('/');
         } catch (err: any) {
             setErrors({ general: err?.message || 'Signup failed' });
         } finally {
@@ -218,6 +222,13 @@ const Signup: React.FC = () => {
                             </label>
                         </div>
                         {errors.acceptTerms && <p className="text-sm text-red-600 dark:text-red-400">{errors.acceptTerms}</p>}
+
+                        {errors.general && (
+                            <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 text-sm">
+                                <AlertCircle className="w-4 h-4" />
+                                <span>{errors.general}</span>
+                            </div>
+                        )}
 
                         <button
                             type="submit"

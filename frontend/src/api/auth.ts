@@ -39,7 +39,6 @@ export async function loginRequest(email: string, password: string) {
 
     // fetch profile
     const me = await api.profile.profileOnboardingStatusList() as any;
-    debugger
     const user = me.data?.data || null;
     return user as AuthUser | null;
 }
