@@ -15,8 +15,7 @@ export type AuthUser = {
     is_admin?: boolean;
 };
 
-export async function loginRequest(email: string, password: string, storage: TokenStorage = 'local') {
-    setTokenStorage(storage);
+export async function loginRequest(email: string, password: string) {
     const res = await api.auth.authLoginCreate({ email, password }) as any;
     const tokensField: any = res.data?.data?.tokens;
 
@@ -40,6 +39,7 @@ export async function loginRequest(email: string, password: string, storage: Tok
 
     // fetch profile
     const me = await api.profile.profileOnboardingStatusList() as any;
+    debugger
     const user = me.data?.data || null;
     return user as AuthUser | null;
 }

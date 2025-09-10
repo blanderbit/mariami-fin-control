@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { loginRequest, logoutRequest } from '../api/auth';
-import { setTokenStorage, TokenStorage } from '../api/http';
+import React, {createContext, useContext, useState, useEffect, useCallback} from 'react';
+import {loginRequest, logoutRequest} from '../api/auth';
+import {setTokenStorage, TokenStorage} from '../api/http';
 
 interface User {
     id: number;
@@ -22,7 +22,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({children}: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -37,35 +37,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     // Логин
-    const login = useCallback(async (email: string, password: string, remember: boolean = true) => {
+    const login = useCallback(async (email: string, password: string) => {
         setLoading(true);
         setError(null);
 
         try {
-            const storage: TokenStorage = remember ? 'local' : 'session';
-            setTokenStorage(storage);
-            const profile = await loginRequest(email, password, storage);
+            // Выполняем логин и получаем профиль
+            const profile = await loginRequest(email, password);
             if (!profile) throw new Error('Failed to fetch profile');
 
-            const userData: User = {
-                id: profile.id,
-                name: profile.name,
-                last_name: profile.last_name,
-                email: profile.email,
-                is_admin: profile.is_admin,
-            };
+            setUser(profile);
 
-            setUser(userData);
-
-            // сохраняем юзера в выбранный storage
-            if (storage === 'local') {
-                localStorage.setItem('user', JSON.stringify(userData));
-            } else {
-                sessionStorage.setItem('user', JSON.stringify(userData));
-            }
+            // Сохраняем профиль пользователя в выбранный storage
+            localStorage.setItem('user', JSON.stringify(profile));
 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
+            throw err; // Re-throw для обработки в компоненте
         } finally {
             setLoading(false);
         }
@@ -96,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, clearAuthState, loading, error }}>
+        <AuthContext.Provider value={{user, login, logout, clearAuthState, loading, error}}>
             {children}
         </AuthContext.Provider>
     );

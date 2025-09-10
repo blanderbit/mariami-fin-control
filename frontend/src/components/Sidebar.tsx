@@ -13,6 +13,9 @@ import {
     Settings,
     Brain
 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+
+import Logo from '../assets/FinclAI Logo Blue.png';
 
 const navigationItems = [
     { name: 'Business Overview', path: '/overview', icon: LayoutDashboard },
@@ -29,14 +32,17 @@ const navigationItems = [
 ];
 
 const Sidebar: React.FC = () => {
+    const { theme } = useTheme();
+
     return (
-        <div className="w-64 bg-white border-r border-gray-200 shadow-sm">
+        <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm">
             <div className="p-6">
-                <div className="flex items-center space-x-2">
-                    <Brain className="w-8 h-8 text-indigo-600" />
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                        FinCl AI
-                    </h1>
+                <div className="flex items-center justify-center space-x-2">
+                    <img src={Logo} alt="FinclAI Logo" className="w-20 h-20 object-contain"/>
+
+                    {/*<h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">*/}
+                    {/*    FinCl AI*/}
+                    {/*</h1>*/}
                 </div>
             </div>
 
@@ -49,8 +55,8 @@ const Sidebar: React.FC = () => {
                             className={({ isActive }) =>
                                 `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
                                     isActive
-                                        ? 'bg-indigo-100 text-indigo-700 border-r-2 border-indigo-600'
-                                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-r-2 border-indigo-600 dark:border-indigo-400'
+                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100'
                                 }`
                             }
                         >
