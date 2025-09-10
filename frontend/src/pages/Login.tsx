@@ -1,14 +1,16 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
-import {Brain, Mail, Lock, ArrowRight, AlertCircle, Sun, Moon} from 'lucide-react';
+import {Mail, Lock, ArrowRight, AlertCircle, Sun, Moon} from 'lucide-react';
 import {motion} from 'framer-motion';
 import {useTheme} from "../contexts/ThemeContext.tsx";
+import { useAuth } from '../contexts/AuthContext';
 
 import Logo from '../assets/FinclAI Logo Blue.png';
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
     const {theme, toggleTheme} = useTheme();
+    const { login, clearAuthState } = useAuth();
 
     const [formData, setFormData] = useState({
         email: '',
@@ -52,19 +54,20 @@ const Login: React.FC = () => {
 
         setIsLoading(true);
 
-        // Demo login logic - simulate API call
-        setTimeout(() => {
-            // Demo validation - accept any email/password that meets requirements
-            if (formData.email && formData.password.length >= 8) {
-                localStorage.setItem('isAuthenticated', 'true');
-                localStorage.setItem('userEmail', formData.email);
-                navigate('/dashboard');
-            } else {
-                setErrors({general: 'Invalid credentials'});
-            }
+        try {
+            await login(formData.email, formData.password, true);
             setIsLoading(false);
-        }, 1000);
+            navigate('/dashboard');
+        } catch (err) {
+            setErrors({ general: err instanceof Error ? err.message : 'Login failed' });
+            setIsLoading(false);
+        }
     };
+
+    useEffect(() => {
+        debugger
+        clearAuthState();
+    }, []);
 
     return (
         <motion.div

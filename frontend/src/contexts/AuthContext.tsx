@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { loginRequest, logoutRequest } from '../api/auth';
-import { getActiveStorageType, setTokenStorage, TokenStorage } from '../api/http';
+import { setTokenStorage, TokenStorage } from '../api/http';
 
 interface User {
     id: number;
@@ -16,6 +15,7 @@ interface AuthContextType {
     user: User | null;
     login: (email: string, password: string, remember?: boolean) => Promise<void>;
     logout: (suppressRedirect?: boolean) => void;
+    clearAuthState: () => void;
     loading: boolean;
     error: string | null;
 }
@@ -26,9 +26,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const navigate = useNavigate();
 
-    // Check if user is already logged in on mount
+    // Загружаем юзера из storage при маунте
     useEffect(() => {
         const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
         if (storedUser) {
@@ -37,7 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
     }, []);
 
-    const login = async (email: string, password: string, remember: boolean = true) => {
+    // Логин
+    const login = useCallback(async (email: string, password: string, remember: boolean = true) => {
         setLoading(true);
         setError(null);
 
@@ -56,31 +56,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             };
 
             setUser(userData);
-            if (remember) {
+
+            // сохраняем юзера в выбранный storage
+            if (storage === 'local') {
                 localStorage.setItem('user', JSON.stringify(userData));
             } else {
                 sessionStorage.setItem('user', JSON.stringify(userData));
             }
-            navigate('/revenues');
+
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const logout = async (suppressRedirect: boolean = false) => {
-        await logoutRequest();
+    // Логаут (с API-запросом)
+    const logout = useCallback(async () => {
+        try {
+            await logoutRequest();
+        } catch (e) {
+            console.warn('Logout request failed', e);
+        }
+
         setUser(null);
         localStorage.removeItem('user');
         sessionStorage.removeItem('user');
-        if (!suppressRedirect) {
-            navigate('/login');
-        }
-    };
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+    }, []);
+
+    // Полная очистка без редиректа (для Login useEffect)
+    const clearAuthState = useCallback(() => {
+        setUser(null);
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('user');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+    }, []);
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading, error }}>
+        <AuthContext.Provider value={{ user, login, logout, clearAuthState, loading, error }}>
             {children}
         </AuthContext.Provider>
     );

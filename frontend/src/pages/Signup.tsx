@@ -4,6 +4,7 @@ import {Brain, Mail, Lock, Building, ArrowRight, AlertCircle, CheckCircle, Sun, 
 import {useTheme} from "../contexts/ThemeContext.tsx";
 import {motion} from 'framer-motion';
 import Logo from "../assets/FinclAI Logo Blue.png";
+import { registerRequest, loginRequest } from '../api/auth';
 
 const Signup: React.FC = () => {
     const navigate = useNavigate();
@@ -71,25 +72,21 @@ const Signup: React.FC = () => {
 
         setIsLoading(true);
 
-        // Demo signup logic - simulate API call
-        setTimeout(() => {
-            // Create demo company object
-            const company = {
-                id: Date.now().toString(),
-                name: formData.companyName,
+        try {
+            // Backend registration requires email/password/re_password; optional fields can be mapped later
+            await registerRequest({
                 email: formData.email,
-                createdAt: new Date().toISOString(),
-                profile: {} // Will be filled during onboarding
-            };
-
-            // Store in localStorage for demo
-            localStorage.setItem('company', JSON.stringify(company));
-            localStorage.setItem('isAuthenticated', 'true');
-            localStorage.setItem('userEmail', formData.email);
-
+                password: formData.password,
+                re_password: formData.confirmPassword,
+            });
+            // Auto-login after successful registration via direct request
+            await loginRequest(formData.email, formData.password, 'local');
             navigate('/onboarding');
+        } catch (err: any) {
+            setErrors({ general: err?.message || 'Signup failed' });
+        } finally {
             setIsLoading(false);
-        }, 1000);
+        }
     };
 
     return (

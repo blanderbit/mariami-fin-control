@@ -17,7 +17,7 @@ export type AuthUser = {
 
 export async function loginRequest(email: string, password: string, storage: TokenStorage = 'local') {
     setTokenStorage(storage);
-    const res = await api.auth.authClientLoginCreate({ email, password }) as any;
+    const res = await api.auth.authLoginCreate({ email, password }) as any;
     const tokensField: any = res.data?.data?.tokens;
 
 
@@ -39,7 +39,7 @@ export async function loginRequest(email: string, password: string, storage: Tok
     setTokens({ access, refresh });
 
     // fetch profile
-    const me = await api.profile.profileClientMyProfileList() as any;
+    const me = await api.profile.profileOnboardingStatusList() as any;
     const user = me.data?.data || null;
     return user as AuthUser | null;
 }
@@ -48,7 +48,7 @@ export async function logoutRequest() {
     const tokens = getTokens();
     if (tokens?.refresh) {
         try {
-            await api.auth.authClientLogoutCreate({ refresh: tokens.refresh });
+            await api.auth.authLogoutCreate({ refresh: tokens.refresh });
         } catch (_) {
             // ignore logout errors
         }
@@ -59,7 +59,7 @@ export async function logoutRequest() {
 export async function refreshTokens() {
     const tokens = getTokens();
     if (!tokens?.refresh) throw new Error('No refresh token');
-    const res = await api.auth.authClientRefreshTokensCreate({ refresh: tokens.refresh });
+    const res = await api.auth.authRefreshCreate({ refresh: tokens.refresh });
     const access = (res.data as any).access as string;
     const refresh = ((res.data as any).refresh as string) || tokens.refresh;
     setTokens({ access, refresh });
@@ -67,7 +67,7 @@ export async function refreshTokens() {
 }
 
 export async function registerRequest(data: { email: string; password: string; re_password: string; country?: string; name?: string; last_name?: string; }) {
-    await api.auth.authClientRegistrationCreate(data);
+    await api.auth.authRegistrationCreate(data);
 }
 
 

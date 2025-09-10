@@ -19,13 +19,7 @@ export interface CodeConfirm {
   verify_code: string;
 }
 
-export interface ResetPassword {
-  /**
-   * New password
-   * @minLength 8
-   * @maxLength 68
-   */
-  new_password: string;
+export interface ValidateResetPasswordCode {
   /**
    * Verify code
    * @minLength 5
@@ -58,6 +52,46 @@ export interface Logout {
    * @minLength 1
    */
   refresh: string;
+}
+
+export interface RequestChangePassword {
+  /**
+   * New password
+   * @minLength 8
+   * @maxLength 68
+   */
+  new_password: string;
+  /**
+   * Old password
+   * @minLength 8
+   * @maxLength 68
+   */
+  old_password: string;
+}
+
+export interface RequestPasswordReset {
+  /**
+   * Email
+   * @format email
+   * @minLength 3
+   * @maxLength 255
+   */
+  email: string;
+}
+
+export interface ResetPassword {
+  /**
+   * New password
+   * @minLength 8
+   * @maxLength 68
+   */
+  new_password: string;
+  /**
+   * Verify code
+   * @minLength 5
+   * @maxLength 5
+   */
+  verify_code: string;
 }
 
 export interface TokenRefresh {
@@ -93,60 +127,70 @@ export interface Registration {
    * @maxLength 68
    */
   re_password: string;
-  /**
-   * Country
-   * @maxLength 255
-   */
-  country?: string | null;
+}
+
+export interface Onboarding {
   /**
    * Name
    * @maxLength 255
    */
-  name?: string | null;
+  name?: string;
   /**
    * Last name
    * @maxLength 255
    */
-  last_name?: string | null;
-}
-
-export interface RequestChangePassword {
+  last_name?: string;
   /**
-   * New password
-   * @minLength 8
-   * @maxLength 68
-   */
-  new_password: string;
-  /**
-   * Old password
-   * @minLength 8
-   * @maxLength 68
-   */
-  old_password: string;
-}
-
-export interface RequestPasswordReset {
-  /**
-   * Email
-   * @format email
-   * @minLength 3
+   * Country
    * @maxLength 255
    */
-  email: string;
-}
-
-export interface ValidateResetPasswordCode {
+  country?: string;
   /**
-   * Verify code
-   * @minLength 5
-   * @maxLength 5
+   * Company name
+   * @maxLength 255
    */
-  verify_code: string;
+  company_name?: string;
+  /** Employees count */
+  employees_count?: number | null;
+  /**
+   * Industry
+   * @maxLength 255
+   */
+  industry?: string;
+  /**
+   * Currency
+   * @maxLength 10
+   */
+  currency?: string;
+  /**
+   * Fiscal year start
+   * Fiscal year start date
+   * @format date
+   */
+  fiscal_year_start?: string | null;
+  /** Update frequency */
+  update_frequency?: "daily" | "weekly" | "monthly";
+  /** Primary focus */
+  primary_focus?: "cash" | "profit" | "growth";
+  /**
+   * Business model
+   * @maxLength 255
+   */
+  business_model?: string;
+  /** Multicurrency */
+  multicurrency?: boolean;
+  /**
+   * Capital reserve target
+   * @format decimal
+   */
+  capital_reserve_target?: string | null;
 }
 
 export interface GetMyProfile {
   /** ID */
   id?: number;
+  /** Profile */
+  profile?: string;
   /**
    * Last login
    * @format date-time
@@ -163,6 +207,8 @@ export interface GetMyProfile {
   is_verified?: boolean;
   /** Is admin */
   is_admin?: boolean;
+  /** Is onboarded */
+  is_onboarded?: boolean;
   /**
    * Created at
    * @format date-time
@@ -173,21 +219,6 @@ export interface GetMyProfile {
    * @format date-time
    */
   updated_at?: string;
-  /**
-   * Country
-   * @maxLength 255
-   */
-  country?: string | null;
-  /**
-   * Name
-   * @maxLength 255
-   */
-  name?: string | null;
-  /**
-   * Last name
-   * @maxLength 255
-   */
-  last_name?: string | null;
 }
 
 export interface UsersList {
@@ -209,6 +240,8 @@ export interface UsersList {
   is_verified?: boolean;
   /** Is admin */
   is_admin?: boolean;
+  /** Is onboarded */
+  is_onboarded?: boolean;
   /**
    * Created at
    * @format date-time
@@ -219,21 +252,8 @@ export interface UsersList {
    * @format date-time
    */
   updated_at?: string;
-  /**
-   * Country
-   * @maxLength 255
-   */
-  country?: string | null;
-  /**
-   * Name
-   * @maxLength 255
-   */
-  name?: string | null;
-  /**
-   * Last name
-   * @maxLength 255
-   */
-  last_name?: string | null;
+  /** Profile */
+  profile?: number | null;
 }
 
 import type {
@@ -424,170 +444,14 @@ export class Api<
      * @description This endpoint allows the user to: confirm changing the password,, email, account verification, as well as deleting the account using the previously received code that comes to the mail
      *
      * @tags auth
-     * @name AuthClientCodeConfirmCreate
+     * @name AuthCodeConfirmCreate
      * @summary Сode confirmations
-     * @request POST:/auth/client/code/confirm
+     * @request POST:/auth/code/confirm
      * @secure
      */
-    authClientCodeConfirmCreate: (
-      data: CodeConfirm,
-      params: RequestParams = {},
-    ) =>
+    authCodeConfirmCreate: (data: CodeConfirm, params: RequestParams = {}) =>
       this.request<CodeConfirm, any>({
-        path: `/auth/client/code/confirm`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description This class makes it possible to confirm a password reset request using the code that was sent to the mail after the request was sent.
-     *
-     * @tags auth
-     * @name AuthClientConfirmPasswordResetCreate
-     * @summary Confirm password reset
-     * @request POST:/auth/client/confirm/password/reset
-     * @secure
-     */
-    authClientConfirmPasswordResetCreate: (
-      data: ResetPassword,
-      params: RequestParams = {},
-    ) =>
-      this.request<ResetPassword, any>({
-        path: `/auth/client/confirm/password/reset`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description This endpoint allows a previously registered user to log in to the system.
-     *
-     * @tags auth
-     * @name AuthClientLoginCreate
-     * @summary Login
-     * @request POST:/auth/client/login
-     * @secure
-     */
-    authClientLoginCreate: (data: Login, params: RequestParams = {}) =>
-      this.request<Login, any>({
-        path: `/auth/client/login`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description This endpoint allows a previously registered user to logout from the system
-     *
-     * @tags auth
-     * @name AuthClientLogoutCreate
-     * @summary Logout
-     * @request POST:/auth/client/logout
-     * @secure
-     */
-    authClientLogoutCreate: (data: Logout, params: RequestParams = {}) =>
-      this.request<Logout, any>({
-        path: `/auth/client/logout`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Refresh jwt tokens
-     *
-     * @tags auth
-     * @name AuthClientRefreshTokensCreate
-     * @request POST:/auth/client/refresh/tokens
-     * @secure
-     */
-    authClientRefreshTokensCreate: (
-      data: TokenRefresh,
-      params: RequestParams = {},
-    ) =>
-      this.request<TokenRefresh, any>({
-        path: `/auth/client/refresh/tokens`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Registration This endpoint allows any user to register on the site.
-     *
-     * @tags auth
-     * @name AuthClientRegistrationCreate
-     * @request POST:/auth/client/registration
-     * @secure
-     */
-    authClientRegistrationCreate: (
-      data: Registration,
-      params: RequestParams = {},
-    ) =>
-      this.request<Registration, any>({
-        path: `/auth/client/registration`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description This class allows an authorized user to request a password change. After submitting the application, a confirmation code will be sent. to the email address provided by the user.
-     *
-     * @tags auth
-     * @name AuthClientRequestPasswordChangeCreate
-     * @summary Request change password
-     * @request POST:/auth/client/request/password/change
-     * @secure
-     */
-    authClientRequestPasswordChangeCreate: (
-      data: RequestChangePassword,
-      params: RequestParams = {},
-    ) =>
-      this.request<RequestChangePassword, any>({
-        path: `/auth/client/request/password/change`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description This class allows an unauthorized user to request a password reset. After submitting the application, a confirmation code will be sent to the email specified by the user.
-     *
-     * @tags auth
-     * @name AuthClientRequestPasswordResetCreate
-     * @summary Request password reset
-     * @request POST:/auth/client/request/password/reset
-     * @secure
-     */
-    authClientRequestPasswordResetCreate: (
-      data: RequestPasswordReset,
-      params: RequestParams = {},
-    ) =>
-      this.request<RequestPasswordReset, any>({
-        path: `/auth/client/request/password/reset`,
+        path: `/auth/code/confirm`,
         method: "POST",
         body: data,
         secure: true,
@@ -600,17 +464,164 @@ export class Api<
      * @description This endpoint allows the user to check the password reset code for validity before using it
      *
      * @tags auth
-     * @name AuthClientValidateResetPasswordConfirmationCodeCreate
+     * @name AuthConfirmationCodeValidateCreate
      * @summary Validate reset password code
-     * @request POST:/auth/client/validate/reset/password/confirmation/code
+     * @request POST:/auth/confirmation/code/validate
      * @secure
      */
-    authClientValidateResetPasswordConfirmationCodeCreate: (
+    authConfirmationCodeValidateCreate: (
       data: ValidateResetPasswordCode,
       params: RequestParams = {},
     ) =>
       this.request<ValidateResetPasswordCode, any>({
-        path: `/auth/client/validate/reset/password/confirmation/code`,
+        path: `/auth/confirmation/code/validate`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description This endpoint allows a previously registered user to log in to the system.
+     *
+     * @tags auth
+     * @name AuthLoginCreate
+     * @summary Login
+     * @request POST:/auth/login
+     * @secure
+     */
+    authLoginCreate: (data: Login, params: RequestParams = {}) =>
+      this.request<Login, any>({
+        path: `/auth/login`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description This endpoint allows a previously registered user to logout from the system
+     *
+     * @tags auth
+     * @name AuthLogoutCreate
+     * @summary Logout
+     * @request POST:/auth/logout
+     * @secure
+     */
+    authLogoutCreate: (data: Logout, params: RequestParams = {}) =>
+      this.request<Logout, any>({
+        path: `/auth/logout`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description This class allows an authorized user to request a password change. After submitting the application, a confirmation code will be sent. to the email address provided by the user.
+     *
+     * @tags auth
+     * @name AuthPasswordChangeCreate
+     * @summary Request change password
+     * @request POST:/auth/password/change
+     * @secure
+     */
+    authPasswordChangeCreate: (
+      data: RequestChangePassword,
+      params: RequestParams = {},
+    ) =>
+      this.request<RequestChangePassword, any>({
+        path: `/auth/password/change`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description This class allows an unauthorized user to request a password reset. After submitting the application, a confirmation code will be sent to the email specified by the user.
+     *
+     * @tags auth
+     * @name AuthPasswordResetCreate
+     * @summary Request password reset
+     * @request POST:/auth/password/reset
+     * @secure
+     */
+    authPasswordResetCreate: (
+      data: RequestPasswordReset,
+      params: RequestParams = {},
+    ) =>
+      this.request<RequestPasswordReset, any>({
+        path: `/auth/password/reset`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description This class makes it possible to confirm a password reset request using the code that was sent to the mail after the request was sent.
+     *
+     * @tags auth
+     * @name AuthPasswordResetConfirmCreate
+     * @summary Confirm password reset
+     * @request POST:/auth/password/reset/confirm
+     * @secure
+     */
+    authPasswordResetConfirmCreate: (
+      data: ResetPassword,
+      params: RequestParams = {},
+    ) =>
+      this.request<ResetPassword, any>({
+        path: `/auth/password/reset/confirm`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Refresh jwt tokens
+     *
+     * @tags auth
+     * @name AuthRefreshCreate
+     * @request POST:/auth/refresh
+     * @secure
+     */
+    authRefreshCreate: (data: TokenRefresh, params: RequestParams = {}) =>
+      this.request<TokenRefresh, any>({
+        path: `/auth/refresh`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Registration This endpoint allows any user to register on the site.
+     *
+     * @tags auth
+     * @name AuthRegistrationCreate
+     * @request POST:/auth/registration
+     * @secure
+     */
+    authRegistrationCreate: (data: Registration, params: RequestParams = {}) =>
+      this.request<Registration, any>({
+        path: `/auth/registration`,
         method: "POST",
         body: data,
         secure: true,
@@ -621,15 +632,71 @@ export class Api<
   };
   profile = {
     /**
+     * @description Update profile data during onboarding process
+     *
+     * @tags profile
+     * @name ProfileOnboardingPartialUpdate
+     * @request PATCH:/profile/onboarding
+     * @secure
+     */
+    profileOnboardingPartialUpdate: (
+      data: Onboarding,
+      params: RequestParams = {},
+    ) =>
+      this.request<Onboarding, any>({
+        path: `/profile/onboarding`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get current onboarding status and profile data
+     *
+     * @tags profile
+     * @name ProfileOnboardingStatusList
+     * @request GET:/profile/onboarding/status
+     * @secure
+     */
+    profileOnboardingStatusList: (
+      query?: {
+        /** A page number within the paginated result set. */
+        page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          count: number;
+          /** @format uri */
+          next?: string | null;
+          /** @format uri */
+          previous?: string | null;
+          results: Onboarding[];
+        },
+        any
+      >({
+        path: `/profile/onboarding/status`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description This endpoint allows an authorized user to get detailed information about their profile,
      *
      * @tags profile
-     * @name ProfileClientMyProfileList
+     * @name ProfileProfileList
      * @summary User personal profile
-     * @request GET:/profile/client/my/profile
+     * @request GET:/profile/profile
      * @secure
      */
-    profileClientMyProfileList: (
+    profileProfileList: (
       query?: {
         /** A page number within the paginated result set. */
         page?: number;
@@ -647,28 +714,11 @@ export class Api<
         },
         any
       >({
-        path: `/profile/client/my/profile`,
+        path: `/profile/profile`,
         method: "GET",
         query: query,
         secure: true,
         format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description This endpoint allows the user to send a request to delete their account.
-     *
-     * @tags profile
-     * @name ProfileClientRequestDeleteMyProfileDelete
-     * @summary Request delete profile
-     * @request DELETE:/profile/client/request/delete/my/profile
-     * @secure
-     */
-    profileClientRequestDeleteMyProfileDelete: (params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/profile/client/request/delete/my/profile`,
-        method: "DELETE",
-        secure: true,
         ...params,
       }),
   };
