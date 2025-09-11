@@ -46,7 +46,7 @@ const Sidebar: React.FC = () => {
                 </div>
             </div>
 
-            <nav className="mt-6 px-4">
+            <nav className="px-4">
                 <div className="space-y-2">
                     {navigationItems.map((item) => (
                         <NavLink
