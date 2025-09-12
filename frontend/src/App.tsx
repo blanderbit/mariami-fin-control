@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
+import DataImport from "./pages/DataImport.tsx";
 
 function App() {
     return (
@@ -15,7 +16,8 @@ function App() {
 
                 <Route element={<ProtectedRoute/>}>
                     <Route element={<Layout/>}>
-                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/" element={<Dashboard/>}/>
+                        <Route path="data-import" element={<DataImport/>}/>
                     </Route>
                 </Route>
 
