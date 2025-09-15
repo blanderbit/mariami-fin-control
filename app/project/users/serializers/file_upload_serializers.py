@@ -1,0 +1,80 @@
+from rest_framework import serializers
+
+from config.utils.file_validators import FileFormatValidator
+from users.constants.file_upload_errors import (
+    FILE_SIZE_EXCEEDED,
+    NO_FILES_PROVIDED
+)
+
+
+class UserDataFileSerializer(serializers.Serializer):
+    """Serializer for user uploaded files information"""
+
+    template_type = serializers.CharField()
+    original_filename = serializers.CharField()
+    stored_filename = serializers.CharField()
+    file_path = serializers.CharField()
+    file_size = serializers.IntegerField()
+    upload_time = serializers.DateTimeField()
+    is_active = serializers.BooleanField()
+
+
+class UploadUserDataSerializer(serializers.Serializer):
+    """Serializer for file upload validation"""
+
+    pnl_file = serializers.FileField(
+        required=False,
+        help_text="P&L template file"
+    )
+    transactions_file = serializers.FileField(
+        required=False,
+        help_text="Transactions template file"
+    )
+    invoices_file = serializers.FileField(
+        required=False,
+        help_text="Invoices template file"
+    )
+
+    def validate(self, attrs):
+        """Validate uploaded files"""
+        uploaded_files = []
+        max_file_size = 20 * 1024 * 1024  # 20 MB in bytes
+
+        # Collect uploaded files and validate size
+        for field_name, file in attrs.items():
+            if file:
+                # Check file size
+                if file.size > max_file_size:
+                    raise serializers.ValidationError(FILE_SIZE_EXCEEDED)
+                uploaded_files.append(file)
+
+        if not uploaded_files:
+            raise serializers.ValidationError(NO_FILES_PROVIDED)
+
+        # Validate file formats
+        is_valid, error_message, file_template_mapping = (
+            FileFormatValidator.validate_multiple_files(uploaded_files)
+        )
+
+        if not is_valid:
+            raise serializers.ValidationError(error_message)
+
+        # Store validation results for use in view
+        attrs["_uploaded_files"] = uploaded_files
+        attrs["_file_template_mapping"] = file_template_mapping
+
+        return attrs
+
+
+class UploadUserDataResponseSerializer(serializers.Serializer):
+    """Serializer for file upload response"""
+
+    success = serializers.BooleanField()
+    message = serializers.CharField()
+    uploaded_files = serializers.ListField(
+        child=serializers.DictField(), required=False
+    )
+    errors = serializers.ListField(
+        child=serializers.CharField(),
+        required=False
+    )

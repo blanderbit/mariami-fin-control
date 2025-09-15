@@ -95,3 +95,5 @@ qa.txt
 .mypy_cache/
 
 .vscode/
+
+local-data/
