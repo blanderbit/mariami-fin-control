@@ -17,7 +17,7 @@ urlpatterns = [
         name="is-user-admin",
     ),
     path(
-        "upload/data-files/",
+        "upload/data-files",
         UploadUserDataAPIView.as_view(),
         name="upload-data-files"
     ),
