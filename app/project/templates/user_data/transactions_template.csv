@@ -1,0 +1,3 @@
+Date,Type,Category,Amount,Client_Supplier,Memo
+2025-01-05,Income,Sales,5000,Client A,Invoice INV-001
+2025-01-08,Expense,Payroll,1500,Staff,January payroll

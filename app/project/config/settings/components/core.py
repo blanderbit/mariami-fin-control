@@ -23,6 +23,7 @@ INSTALLED_APPS: list[str] = [
     "django_filters",
     "channels",
     "storages",
+    "config.apps.ConfigConfig",
     "users.apps.UsersConfig",
     "authentication.apps.AuthenticationConfig",
     "profile.apps.ProfileConfig",

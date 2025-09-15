@@ -16,6 +16,8 @@ x-mariami-api-common-prod: &mariami-api-common-prod
             condition: service_healthy
         mariami-redis-prod:
             condition: service_healthy
+        mariami-minio-prod:
+            condition: service_healthy
 
 services:
 
@@ -84,6 +86,33 @@ services:
         <<: *mariami-api-common-prod
         container_name: mariami-celery-beat-prod
         command: celery-beat
+
+    mariami-minio-prod:
+        container_name: mariami-minio-prod
+        image: minio/minio:latest
+        environment:
+            MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+        command: server /data --console-address ":9001"
+        volumes:
+            - minio-data:/data
+        networks:
+            - mariami_server
+        expose:
+            - "9000"
+            - "9001"
+        labels:
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.mariami-minio-prod.rule=Host(`minio.mariami.net`)'
+            - 'traefik.http.routers.mariami-minio-prod.entrypoints=websecure'
+            - 'traefik.http.routers.mariami-minio-prod.tls.certresolver=myresolver'
+            - 'traefik.http.routers.mariami-minio-prod.service=mariami-minio-prod'
+            - 'traefik.http.services.mariami-minio-prod.loadbalancer.server.port=9000'
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+            interval: 30s
+            timeout: 20s
+            retries: 3
 
 networks:
     mariami_server:
