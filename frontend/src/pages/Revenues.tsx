@@ -675,47 +675,47 @@ const Revenues: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue Streaks</h3>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Revenue Streaks</h3>
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
                                     <TrendingUp className="w-4 h-4 text-green-600" />
-                                    <span className="text-sm text-gray-600">Growth Streak</span>
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Growth Streak</span>
                                 </div>
-                                <span className="text-sm font-medium text-gray-900">{revenueStreaks.growth} days</span>
+                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{revenueStreaks.growth} days</span>
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
                                     <Activity className="w-4 h-4 text-red-600" />
-                                    <span className="text-sm text-gray-600">Decline Streak</span>
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Decline Streak</span>
                                 </div>
-                                <span className="text-sm font-medium text-gray-900">{revenueStreaks.decline} days</span>
+                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{revenueStreaks.decline} days</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Stats</h3>
                         <div className="space-y-3">
                             <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Total Invoices</span>
-                                <span className="text-sm font-medium text-gray-900">{tableData.length}</span>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Total Invoices</span>
+                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{tableData.length}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Paid</span>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Paid</span>
                                 <span className="text-sm font-medium text-green-600">
                   {tableData.filter(r => r.status === 'paid').length}
                 </span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Overdue</span>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Overdue</span>
                                 <span className="text-sm font-medium text-red-600">
                   {overdueInvoices.length}
                 </span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Outliers</span>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Outliers</span>
                                 <span className="text-sm font-medium text-yellow-600">
                   {tableData.filter(r => r.isOutlier).length}
                 </span>
