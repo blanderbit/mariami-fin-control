@@ -369,14 +369,14 @@ const Revenues: React.FC = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="w-full space-y-6">
             {/* Alerts */}
             <div className="space-y-2">
                 {overdueInvoices.length > 0 && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                         <div className="flex items-center space-x-2">
                             <AlertTriangle className="w-5 h-5 text-red-600" />
-                            <span className="font-medium text-red-800">
+                            <span className="font-medium text-red-800 dark:text-red-300">
                 {overdueInvoices.length} overdue invoice{overdueInvoices.length > 1 ? 's' : ''} requiring attention
               </span>
                         </div>
@@ -384,10 +384,10 @@ const Revenues: React.FC = () => {
                 )}
 
                 {revenueVsPlan.variance < -10 && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                         <div className="flex items-center space-x-2">
                             <AlertTriangle className="w-5 h-5 text-yellow-600" />
-                            <span className="font-medium text-yellow-800">
+                            <span className="font-medium text-yellow-800 dark:text-yellow-300">
                 Revenue MTD is {Math.abs(revenueVsPlan.variance).toFixed(1)}% below plan
                 ({formatCurrency(revenueVsPlan.actual)} vs {formatCurrency(revenueVsPlan.plan)})
               </span>
@@ -726,43 +726,43 @@ const Revenues: React.FC = () => {
             </div>
 
             {/* Invoices Table */}
-            <div className="bg-white rounded-lg shadow">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-xl font-semibold text-gray-900">Invoices</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Invoices</h2>
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice #</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Channel</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Invoice #</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Customer</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Project</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Product</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Channel</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Due Date</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                         </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         {tableData.slice(0, 50).map((invoice) => (
                             <tr
                                 key={invoice.id}
-                                className={`hover:bg-gray-50 cursor-pointer ${
-                                    invoice.status === 'overdue' ? 'bg-red-50' : ''
+                                className={`hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${
+                                    invoice.status === 'overdue' ? 'bg-red-50 dark:bg-red-900/20' : ''
                                 }`}
                                 onClick={() => setSelectedInvoice(invoice)}
                             >
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                     {format(parseISO(invoice.date), 'MMM dd, yyyy')}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                                     {invoice.invoice_id}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -773,38 +773,38 @@ const Revenues: React.FC = () => {
                                         {invoice.customerName}
                                     </button>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleFilterClick('project', invoice.project_id);
                                         }}
-                                        className="text-indigo-600 hover:text-indigo-900"
+                                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
                                     >
                                         {invoice.projectName}
                                     </button>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleFilterClick('product', invoice.product_code);
                                         }}
-                                        className="text-indigo-600 hover:text-indigo-900"
+                                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
                                     >
                                         {invoice.productName}
                                     </button>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                    <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-full">
                       {invoice.channel}
                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                     <div className="flex items-center space-x-2">
                                         <span>{formatCurrency(invoice.amount, invoice.currency)}</span>
                                         {invoice.currency !== baseCurrency && (
-                                            <span className="text-xs text-gray-500">
+                                            <span className="text-xs text-gray-500 dark:text-gray-400">
                           ({formatCurrency(invoice.amountBase)})
                         </span>
                                         )}
@@ -826,11 +826,11 @@ const Revenues: React.FC = () => {
                       {invoice.status === 'overdue' ? 'Overdue' : invoice.status}
                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                     {format(parseISO(invoice.due_date), 'MMM dd, yyyy')}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <button className="text-indigo-600 hover:text-indigo-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    <button className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
                                         <Eye className="w-4 h-4" />
                                     </button>
                                 </td>
@@ -844,13 +844,13 @@ const Revenues: React.FC = () => {
             {/* Invoice Details Drawer */}
             {selectedInvoice && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end z-50">
-                    <div className="bg-white w-full max-w-md h-full overflow-y-auto">
+                    <div className="bg-white dark:bg-gray-800 w-full max-w-md h-full overflow-y-auto">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-lg font-semibold text-gray-900">Invoice Details</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Invoice Details</h3>
                                 <button
                                     onClick={() => setSelectedInvoice(null)}
-                                    className="p-2 hover:bg-gray-100 rounded-lg"
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -858,31 +858,31 @@ const Revenues: React.FC = () => {
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Invoice Number</label>
-                                    <p className="text-sm text-gray-900">{selectedInvoice.invoice_id}</p>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Invoice Number</label>
+                                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedInvoice.invoice_id}</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Customer</label>
-                                    <p className="text-sm text-gray-900">{selectedInvoice.customerName}</p>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Customer</label>
+                                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedInvoice.customerName}</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Project</label>
-                                    <p className="text-sm text-gray-900">{selectedInvoice.projectName}</p>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Project</label>
+                                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedInvoice.projectName}</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Product</label>
-                                    <p className="text-sm text-gray-900">{selectedInvoice.productName}</p>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Product</label>
+                                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedInvoice.productName}</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Amount</label>
-                                    <p className="text-sm text-gray-900">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>
+                                    <p className="text-sm text-gray-900 dark:text-gray-100">
                                         {formatCurrency(selectedInvoice.amount, selectedInvoice.currency)}
                                         {selectedInvoice.currency !== baseCurrency && (
-                                            <span className="text-gray-500 ml-2">
+                                            <span className="text-gray-500 dark:text-gray-400 ml-2">
                         ({formatCurrency(selectedInvoice.amountBase)})
                       </span>
                                         )}
@@ -890,42 +890,42 @@ const Revenues: React.FC = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                                     <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                                        selectedInvoice.status === 'paid' ? 'bg-green-100 text-green-800' :
-                                            selectedInvoice.status === 'overdue' ? 'bg-red-100 text-red-800' :
-                                                selectedInvoice.status === 'unpaid' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-gray-100 text-gray-800'
+                                        selectedInvoice.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                                            selectedInvoice.status === 'overdue' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                                                selectedInvoice.status === 'unpaid' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                                                    'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
                                     }`}>
                     {selectedInvoice.status}
                   </span>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Channel</label>
-                                    <p className="text-sm text-gray-900">{selectedInvoice.channel}</p>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Channel</label>
+                                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedInvoice.channel}</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Date</label>
-                                    <p className="text-sm text-gray-900">{format(parseISO(selectedInvoice.date), 'PPP')}</p>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
+                                    <p className="text-sm text-gray-900 dark:text-gray-100">{format(parseISO(selectedInvoice.date), 'PPP')}</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Due Date</label>
-                                    <p className="text-sm text-gray-900">{format(parseISO(selectedInvoice.due_date), 'PPP')}</p>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Due Date</label>
+                                    <p className="text-sm text-gray-900 dark:text-gray-100">{format(parseISO(selectedInvoice.due_date), 'PPP')}</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">FX Rate</label>
-                                    <p className="text-sm text-gray-900">{selectedInvoice.fx_rate}</p>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">FX Rate</label>
+                                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedInvoice.fx_rate}</p>
                                 </div>
 
                                 {selectedInvoice.isOutlier && (
-                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
                                         <div className="flex items-center space-x-2">
                                             <AlertTriangle className="w-4 h-4 text-yellow-600" />
-                                            <span className="text-sm text-yellow-800">Outlier vs period mean</span>
+                                            <span className="text-sm text-yellow-800 dark:text-yellow-300">Outlier vs period mean</span>
                                         </div>
                                     </div>
                                 )}
