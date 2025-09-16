@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
+import { refreshTokens } from './auth';
 
 type Tokens = { access: string; refresh: string };
 
@@ -92,7 +93,10 @@ export const createHttpClient = (): AxiosInstance => {
                     return new Promise((resolve, reject) => {
                         pendingQueue.push({ resolve, reject });
                     })
-                        .then(() => {
+                        .then(async () => {
+                            // Добавляем задержку для запросов в очереди
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                            
                             const tokens = getTokens();
                             originalRequest.headers = originalRequest.headers ?? {};
                             if (tokens?.access) {
@@ -107,18 +111,12 @@ export const createHttpClient = (): AxiosInstance => {
                 isRefreshing = true;
 
                 try {
-                    const tokens = getTokens();
-                    if (!tokens?.refresh) throw new Error('No refresh token');
-
-                    const resp = await axios.post('/api/v1/auth/client/refresh/tokens', {
-                        refresh: tokens.refresh,
-                    });
-
-                    const newAccess = (resp.data?.access as string) || '';
-                    const newRefresh = (resp.data?.refresh as string) || tokens.refresh;
-                    setTokens({ access: newAccess, refresh: newRefresh });
+                    const { access: newAccess } = await refreshTokens();
                     processQueue(null, newAccess);
                     isRefreshing = false;
+
+                    // Добавляем задержку перед повторным запросом
+                    await new Promise(resolve => setTimeout(resolve, 500));
 
                     originalRequest.headers = originalRequest.headers ?? {};
                     originalRequest.headers.Authorization = `Bearer ${newAccess}`;
@@ -127,6 +125,10 @@ export const createHttpClient = (): AxiosInstance => {
                     processQueue(refreshError);
                     isRefreshing = false;
                     clearTokens();
+                    
+                    // Отправляем событие о неудачном обновлении токенов
+                    window.dispatchEvent(new CustomEvent('tokenRefreshFailed'));
+                    
                     return Promise.reject(refreshError);
                 }
             }

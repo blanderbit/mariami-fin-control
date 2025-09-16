@@ -59,14 +59,25 @@ export async function refreshTokens() {
     const tokens = getTokens();
     if (!tokens?.refresh) throw new Error('No refresh token');
     const res = await api.auth.authRefreshCreate({ refresh: tokens.refresh });
-    const access = (res.data as any).access as string;
-    const refresh = ((res.data as any).refresh as string) || tokens.refresh;
+    const access = (res.data.data as any).access as string;
+    const refresh = ((res.data.data as any).refresh as string) || tokens.refresh;
     setTokens({ access, refresh });
     return { access, refresh };
 }
 
 export async function registerRequest(data: { email: string; password: string; re_password: string; country?: string; name?: string; last_name?: string; }) {
     await api.auth.authRegistrationCreate(data);
+}
+
+export async function getProfileRequest(): Promise<AuthUser | null> {
+    try {
+        const res = await api.profile.profileProfileList() as any;
+        const profile = res.data?.results?.[0] || res.data;
+        return profile as AuthUser | null;
+    } catch (error) {
+        console.error('Failed to fetch profile:', error);
+        return null;
+    }
 }
 
 

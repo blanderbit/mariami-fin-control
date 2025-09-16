@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useState, useEffect, useCallback} from 'react';
-import {loginRequest, logoutRequest, registerRequest} from '../api/auth';
-import {setTokenStorage, TokenStorage} from '../api/http';
+import {loginRequest, logoutRequest, registerRequest, getProfileRequest} from '../api/auth';
+import {setTokenStorage, TokenStorage, clearTokens, getTokens} from '../api/http';
 
 interface User {
     id: number;
@@ -17,6 +17,7 @@ interface AuthContextType {
     register: (email: string, password: string, re_password: string, name?: string, last_name?: string) => Promise<void>;
     logout: (suppressRedirect?: boolean) => void;
     clearAuthState: () => void;
+    refreshProfile: () => Promise<void>;
     loading: boolean;
     error: string | null;
 }
@@ -28,13 +29,72 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Загружаем юзера из storage при маунте
+    // Загружаем юзера из storage при маунте и обновляем с бэкенда
     useEffect(() => {
-        const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-        setLoading(false);
+        const initializeAuth = async () => {
+            try {
+                // Проверяем наличие токенов
+                const tokens = getTokens();
+                if (!tokens?.access) {
+                    setLoading(false);
+                    return;
+                }
+
+                // Загружаем сохраненного пользователя для быстрого отображения
+                const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+                if (storedUser) {
+                    setUser(JSON.parse(storedUser));
+                }
+
+                // Получаем актуальный профиль с бэкенда
+                const profile = await getProfileRequest();
+                if (profile) {
+                    setUser(profile);
+                    
+                    // Обновляем сохраненный профиль
+                    const storage = localStorage.getItem('user') ? 'local' : 'session';
+                    if (storage === 'local') {
+                        localStorage.setItem('user', JSON.stringify(profile));
+                    } else {
+                        sessionStorage.setItem('user', JSON.stringify(profile));
+                    }
+                } else {
+                    // Если не удалось получить профиль, очищаем данные
+                    setUser(null);
+                    localStorage.removeItem('user');
+                    sessionStorage.removeItem('user');
+                    clearTokens();
+                }
+            } catch (error) {
+                console.error('Failed to initialize auth:', error);
+                // При ошибке очищаем данные
+                setUser(null);
+                localStorage.removeItem('user');
+                sessionStorage.removeItem('user');
+                clearTokens();
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        initializeAuth();
+    }, []);
+
+    // Глобальный обработчик для автоматического logout при неудачном refresh
+    useEffect(() => {
+        const handleTokenRefreshFailure = () => {
+            setUser(null);
+            localStorage.removeItem('user');
+            sessionStorage.removeItem('user');
+            clearTokens();
+        };
+
+        // Слушаем события неудачного обновления токенов
+        window.addEventListener('tokenRefreshFailed', handleTokenRefreshFailure);
+        
+        return () => {
+            window.removeEventListener('tokenRefreshFailed', handleTokenRefreshFailure);
+        };
     }, []);
 
     // Логин
@@ -126,8 +186,28 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
         localStorage.removeItem('refresh_token');
     }, []);
 
+    // Обновление профиля пользователя
+    const refreshProfile = useCallback(async () => {
+        try {
+            const profile = await getProfileRequest();
+            if (profile) {
+                setUser(profile);
+                
+                // Обновляем сохраненный профиль
+                const storage = localStorage.getItem('user') ? 'local' : 'session';
+                if (storage === 'local') {
+                    localStorage.setItem('user', JSON.stringify(profile));
+                } else {
+                    sessionStorage.setItem('user', JSON.stringify(profile));
+                }
+            }
+        } catch (error) {
+            console.error('Failed to refresh profile:', error);
+        }
+    }, []);
+
     return (
-        <AuthContext.Provider value={{user, login, register, logout, clearAuthState, loading, error}}>
+        <AuthContext.Provider value={{user, login, register, logout, clearAuthState, refreshProfile, loading, error}}>
             {children}
         </AuthContext.Provider>
     );
