@@ -544,9 +544,9 @@ const Onboarding: React.FC = () => {
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                    <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center mb-8">
                         {[1, 2, 3].map((step) => (
-                            <div key={step} className="flex items-center">
+                            <React.Fragment key={step}>
                                 <div
                                     className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
                                         step <= currentStep
@@ -557,13 +557,15 @@ const Onboarding: React.FC = () => {
                                     {step < currentStep ? <Check className="w-5 h-5" /> : step}
                                 </div>
                                 {step < 3 && (
-                                    <div
-                                        className={`w-16 h-1 mx-2 ${
-                                            step < currentStep ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'
-                                        }`}
-                                    />
+                                    <div className="flex-1 mx-4">
+                                        <div
+                                            className={`h-1 ${
+                                                step < currentStep ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'
+                                            }`}
+                                        />
+                                    </div>
                                 )}
-                            </div>
+                            </React.Fragment>
                         ))}
                     </div>
 
