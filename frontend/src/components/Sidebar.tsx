@@ -11,7 +11,8 @@ import {
     GitBranch,
     Bot,
     Settings,
-    Brain
+    Brain,
+    Database
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -25,6 +26,7 @@ const navigationItems = [
     { name: 'Unit Economics', path: '/unit-economics', icon: Calculator },
     { name: 'Financial Statements', path: '/statements', icon: FileText },
     { name: 'Goals', path: '/goals', icon: Target },
+    { name: 'Data Import', path: '/data-import', icon: Database },
     { name: 'Market & Strategic Intelligence', path: '/market-intel', icon: Brain },
     { name: 'Scenario Planning', path: '/scenarios', icon: GitBranch },
     { name: 'AI Assistant', path: '/assistant', icon: Bot },

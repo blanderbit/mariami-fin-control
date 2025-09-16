@@ -29,3 +29,5 @@ export const useModal = (initialState: boolean = false): UseModalReturn => {
     toggle,
   };
 };
+
+

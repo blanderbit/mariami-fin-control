@@ -114,23 +114,23 @@ const DataImport: React.FC = () => {
     return (
         <div className="max-w-7xl mx-auto space-y-8">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Data Import</h1>
-                <p className="text-gray-600">Upload your data to see analytics and market insights</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Data Import</h1>
+                <p className="text-gray-600 dark:text-gray-400">Upload your data to see analytics and market insights</p>
             </div>
 
             {/* Step 1 - P&L */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-6">
                 <div className="flex items-start space-x-4">
                     <FileText className="w-6 h-6 text-blue-600 mt-1" />
                     <div className="flex-1">
-                        <h4 className="text-lg font-medium text-gray-900 mb-2">Step 1 — Profit & Loss (P&L)</h4>
-                        <p className="text-gray-600 mb-2">📂 Upload P&L (CSV/Excel template)</p>
-                        <p className="text-sm text-gray-500 mb-4">Export from QuickBooks/Xero or copy your Excel into our template.</p>
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Step 1 — Profit & Loss (P&L)</h4>
+                        <p className="text-gray-600 dark:text-gray-400 mb-2">📂 Upload P&L (CSV/Excel template)</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">Export from QuickBooks/Xero or copy your Excel into our template.</p>
 
                         <div className="flex space-x-3 mb-4">
                             <button
                                 onClick={() => downloadTemplate('pnl')}
-                                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
                             >
                                 <Download className="w-4 h-4 mr-2" />
                                 Download P&L template
@@ -149,7 +149,7 @@ const DataImport: React.FC = () => {
                         </div>
 
                         {uploadedFiles.pnl && (
-                            <div className="flex items-center space-x-2 text-green-600 bg-green-50 p-3 rounded-lg">
+                            <div className="flex items-center space-x-2 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
                                 <CheckCircle className="w-5 h-5" />
                                 <span className="text-sm">
                   {uploadedFiles.pnl.name} ({formatFileSize(uploadedFiles.pnl.size)}) uploaded successfully
@@ -158,7 +158,7 @@ const DataImport: React.FC = () => {
                         )}
 
                         {uploadErrors.pnl && (
-                            <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
+                            <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
                                 <AlertTriangle className="w-5 h-5" />
                                 <span className="text-sm">{uploadErrors.pnl}</span>
                             </div>
@@ -168,18 +168,18 @@ const DataImport: React.FC = () => {
             </div>
 
             {/* Step 2 - Transactions */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-6">
                 <div className="flex items-start space-x-4">
                     <CreditCard className="w-6 h-6 text-green-600 mt-1" />
                     <div className="flex-1">
-                        <h4 className="text-lg font-medium text-gray-900 mb-2">Step 2 — Transactions</h4>
-                        <p className="text-gray-600 mb-2">📂 Upload Transactions (CSV/Excel template)</p>
-                        <p className="text-sm text-gray-500 mb-4">Income/Expense rows with categories.</p>
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Step 2 — Transactions</h4>
+                        <p className="text-gray-600 dark:text-gray-400 mb-2">📂 Upload Transactions (CSV/Excel template)</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">Income/Expense rows with categories.</p>
 
                         <div className="flex space-x-3 mb-4">
                             <button
                                 onClick={() => downloadTemplate('transactions')}
-                                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
                             >
                                 <Download className="w-4 h-4 mr-2" />
                                 Download Transactions template
@@ -198,7 +198,7 @@ const DataImport: React.FC = () => {
                         </div>
 
                         {uploadedFiles.transactions && (
-                            <div className="flex items-center space-x-2 text-green-600 bg-green-50 p-3 rounded-lg">
+                            <div className="flex items-center space-x-2 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
                                 <CheckCircle className="w-5 h-5" />
                                 <span className="text-sm">
                   {uploadedFiles.transactions.name} ({formatFileSize(uploadedFiles.transactions.size)}) uploaded successfully
@@ -207,7 +207,7 @@ const DataImport: React.FC = () => {
                         )}
 
                         {uploadErrors.transactions && (
-                            <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
+                            <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
                                 <AlertTriangle className="w-5 h-5" />
                                 <span className="text-sm">{uploadErrors.transactions}</span>
                             </div>
@@ -217,18 +217,18 @@ const DataImport: React.FC = () => {
             </div>
 
             {/* Step 3 - Invoices */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-6">
                 <div className="flex items-start space-x-4">
                     <Calendar className="w-6 h-6 text-purple-600 mt-1" />
                     <div className="flex-1">
-                        <h4 className="text-lg font-medium text-gray-900 mb-2">Step 3 — Invoices (A/R)</h4>
-                        <p className="text-gray-600 mb-2">📂 Upload Invoices (CSV/Excel template)</p>
-                        <p className="text-sm text-gray-500 mb-4">Issued/Due dates and Status are important for cash forecasting.</p>
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Step 3 — Invoices (A/R)</h4>
+                        <p className="text-gray-600 dark:text-gray-400 mb-2">📂 Upload Invoices (CSV/Excel template)</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">Issued/Due dates and Status are important for cash forecasting.</p>
 
                         <div className="flex space-x-3 mb-4">
                             <button
                                 onClick={() => downloadTemplate('invoices')}
-                                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
                             >
                                 <Download className="w-4 h-4 mr-2" />
                                 Download Invoices template
@@ -247,7 +247,7 @@ const DataImport: React.FC = () => {
                         </div>
 
                         {uploadedFiles.invoices && (
-                            <div className="flex items-center space-x-2 text-green-600 bg-green-50 p-3 rounded-lg">
+                            <div className="flex items-center space-x-2 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
                                 <CheckCircle className="w-5 h-5" />
                                 <span className="text-sm">
                   {uploadedFiles.invoices.name} ({formatFileSize(uploadedFiles.invoices.size)}) uploaded successfully
@@ -256,7 +256,7 @@ const DataImport: React.FC = () => {
                         )}
 
                         {uploadErrors.invoices && (
-                            <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
+                            <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
                                 <AlertTriangle className="w-5 h-5" />
                                 <span className="text-sm">{uploadErrors.invoices}</span>
                             </div>
@@ -266,13 +266,13 @@ const DataImport: React.FC = () => {
             </div>
 
             {/* Step 4 - Current Cash Balance */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-6">
                 <div className="flex items-start space-x-4">
                     <DollarSign className="w-6 h-6 text-yellow-600 mt-1" />
                     <div className="flex-1">
-                        <h4 className="text-lg font-medium text-gray-900 mb-2">Step 4 — Current Cash Balance</h4>
-                        <p className="text-gray-600 mb-2">Optional: enter your current bank balance</p>
-                        <p className="text-sm text-gray-500 mb-4">Used to calculate Ending Cash. If empty, we will show only Net Cash Flow.</p>
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Step 4 — Current Cash Balance</h4>
+                        <p className="text-gray-600 dark:text-gray-400 mb-2">Optional: enter your current bank balance</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">Used to calculate Ending Cash. If empty, we will show only Net Cash Flow.</p>
 
                         <div className="max-w-xs">
                             <div className="relative">
@@ -281,10 +281,10 @@ const DataImport: React.FC = () => {
                                     min="0"
                                     value={currentCashBalance || ''}
                                     onChange={(e) => setCurrentCashBalance(parseFloat(e.target.value) || 0)}
-                                    className="w-full pl-4 pr-16 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    className="w-full pl-4 pr-16 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-900 dark:text-gray-100"
                                     placeholder="e.g. 12,500"
                                 />
-                                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
                   {baseCurrency}
                 </span>
                             </div>
@@ -294,9 +294,9 @@ const DataImport: React.FC = () => {
             </div>
 
             {/* Validation Notes */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h5 className="font-medium text-blue-900 mb-2">Validation & Normalization</h5>
-                <ul className="text-sm text-blue-800 space-y-1">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h5 className="font-medium text-blue-900 dark:text-blue-200 mb-2">Validation & Normalization</h5>
+                <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
                     <li>• Required columns must be present (use provided templates)</li>
                     <li>• Dates should use YYYY-MM-DD format</li>
                     <li>• Amounts must be numeric values</li>

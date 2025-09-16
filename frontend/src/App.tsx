@@ -6,6 +6,7 @@ import Signup from './pages/Signup';
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import DataImport from "./pages/DataImport.tsx";
+import Revenues from "./pages/Revenues.tsx";
 
 function App() {
     return (
@@ -18,6 +19,7 @@ function App() {
                     <Route element={<Layout/>}>
                         <Route path="/" element={<Dashboard/>}/>
                         <Route path="data-import" element={<DataImport/>}/>
+                        <Route path="revenues" element={<Revenues />} />
                     </Route>
                 </Route>
 
