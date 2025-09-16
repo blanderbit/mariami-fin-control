@@ -37,7 +37,7 @@ const Sidebar: React.FC = () => {
     const { theme } = useTheme();
 
     return (
-        <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="w-64 h-screen flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm flex flex-col">
             <div className="p-6">
                 <div className="flex items-center justify-center space-x-2">
                     <img src={Logo} alt="FinclAI Logo" className="w-20 h-20 object-contain"/>
@@ -48,7 +48,7 @@ const Sidebar: React.FC = () => {
                 </div>
             </div>
 
-            <nav className="px-4">
+            <nav className="px-4 flex-1">
                 <div className="space-y-2">
                     {navigationItems.map((item) => (
                         <NavLink

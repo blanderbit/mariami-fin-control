@@ -14,6 +14,7 @@ import {
     Target,
     Activity
 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 import {
     ComposedChart,
     Bar,
@@ -61,6 +62,7 @@ interface InvoiceDrawerData extends Revenue {
 }
 
 const Revenues: React.FC = () => {
+    const { theme } = useTheme();
     const [filters, setFilters] = useState<Filters>({
         period: 'MTD',
         dateRange: {
@@ -369,7 +371,7 @@ const Revenues: React.FC = () => {
     };
 
     return (
-        <div className="w-full space-y-6">
+        <div className="w-full max-w-none space-y-6">
             {/* Alerts */}
             <div className="space-y-2">
                 {overdueInvoices.length > 0 && (
@@ -398,11 +400,11 @@ const Revenues: React.FC = () => {
 
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold text-gray-900">Revenues</h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Revenues</h1>
                 <div className="flex space-x-3">
                     <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                        className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
                     >
                         <Filter className="w-4 h-4 mr-2" />
                         Filters
@@ -419,14 +421,14 @@ const Revenues: React.FC = () => {
 
             {/* Filters */}
             {showFilters && (
-                <div className="bg-white rounded-lg shadow p-6 space-y-4 sticky top-0 z-10">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4 sticky top-0 z-10">
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Period</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Period</label>
                             <select
                                 value={filters.period}
                                 onChange={(e) => setFilters(prev => ({ ...prev, period: e.target.value as any }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                             >
                                 <option value="MTD">MTD</option>
                                 <option value="Last3M">Last 3M</option>
@@ -550,20 +552,20 @@ const Revenues: React.FC = () => {
 
             {/* KPI Tiles */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-600">Revenue MTD</p>
-                            <p className="text-2xl font-bold text-gray-900">{formatCurrency(kpiData.revenueMTD)}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Revenue MTD</p>
+                            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(kpiData.revenueMTD)}</p>
                         </div>
                         <DollarSign className="w-8 h-8 text-green-600" />
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-600">MoM Δ%</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">MoM Δ%</p>
                             <p className={`text-2xl font-bold ${kpiData.momDelta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                 {kpiData.momDelta >= 0 ? '+' : ''}{kpiData.momDelta.toFixed(1)}%
                             </p>
@@ -572,21 +574,21 @@ const Revenues: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-600">Forecast 30d</p>
-                            <p className="text-2xl font-bold text-gray-900">{formatCurrency(kpiData.forecast30d)}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Forecast 30d</p>
+                            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(kpiData.forecast30d)}</p>
                         </div>
                         <Calendar className="w-8 h-8 text-blue-600" />
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-600">Avg Invoice Size</p>
-                            <p className="text-2xl font-bold text-gray-900">{formatCurrency(kpiData.avgInvoiceSize)}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Avg Invoice Size</p>
+                            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(kpiData.avgInvoiceSize)}</p>
                         </div>
                         <DollarSign className="w-8 h-8 text-purple-600" />
                     </div>
@@ -595,9 +597,9 @@ const Revenues: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Revenue Trend Chart */}
-                <div className="lg:col-span-3 bg-white rounded-lg shadow p-6">
+                <div className="lg:col-span-3 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-semibold text-gray-900">Revenue Trend</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Revenue Trend</h2>
                         <div className="flex space-x-2">
                             {(['day', 'week', 'month'] as const).map(period => (
                                 <button
@@ -605,8 +607,8 @@ const Revenues: React.FC = () => {
                                     onClick={() => setGroupBy(period)}
                                     className={`px-3 py-1 text-sm rounded-lg transition-colors ${
                                         groupBy === period
-                                            ? 'bg-indigo-100 text-indigo-700'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                            ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                                     }`}
                                 >
                                     {period.charAt(0).toUpperCase() + period.slice(1)}
@@ -658,8 +660,8 @@ const Revenues: React.FC = () => {
 
                 {/* Insights Sidebar */}
                 <div className="space-y-6">
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Top 3 Customers</h3>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Top 3 Customers</h3>
                         <div className="space-y-3">
                             {topCustomers.map((customer, index) => (
                                 <div key={customer.name} className="flex items-center justify-between">
@@ -667,9 +669,9 @@ const Revenues: React.FC = () => {
                     <span className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm font-medium">
                       {index + 1}
                     </span>
-                                        <span className="text-sm font-medium text-gray-900">{customer.name}</span>
+                                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{customer.name}</span>
                                     </div>
-                                    <span className="text-sm text-gray-600">{formatCurrency(customer.total)}</span>
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">{formatCurrency(customer.total)}</span>
                                 </div>
                             ))}
                         </div>
