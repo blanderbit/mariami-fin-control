@@ -80,4 +80,24 @@ export async function getProfileRequest(): Promise<AuthUser | null> {
     }
 }
 
+export async function getOnboardingStatusRequest() {
+    try {
+        const res = await api.profile.profileOnboardingStatusList() as any;
+        return res.data?.results?.[0] || res.data?.data || null;
+    } catch (error) {
+        console.error('Failed to fetch onboarding status:', error);
+        return null;
+    }
+}
+
+export async function updateOnboardingRequest(data: any) {
+    try {
+        const res = await api.profile.profileOnboardingPartialUpdate(data) as any;
+        return res.data || null;
+    } catch (error) {
+        console.error('Failed to update onboarding:', error);
+        throw error;
+    }
+}
+
 
