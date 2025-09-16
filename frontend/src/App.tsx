@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import DataImport from "./pages/DataImport.tsx";
 import Revenues from "./pages/Revenues.tsx";
+import Settings from "./pages/Settings.tsx";
 
 function App() {
     return (
@@ -20,6 +21,7 @@ function App() {
                         <Route path="/" element={<Dashboard/>}/>
                         <Route path="data-import" element={<DataImport/>}/>
                         <Route path="revenues" element={<Revenues />} />
+                        <Route path="settings" element={<Settings />} />
                     </Route>
                 </Route>
 
