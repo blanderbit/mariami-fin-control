@@ -19,8 +19,10 @@ import {
     CreditCard,
     FileText,
     Phone,
-    ShoppingCart
+    ShoppingCart, Sun, Moon
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useTheme } from '../contexts/ThemeContext';
 
 import Logo from "../assets/FinclAI Logo Blue.png";
 
@@ -109,6 +111,7 @@ const primaryFocusOptions = [
 
 const Onboarding: React.FC = () => {
     const navigate = useNavigate();
+    const { theme, toggleTheme } = useTheme();
     const [currentStep, setCurrentStep] = useState(1);
     const [profile, setProfile] = useState<CompanyProfile>({
         country: '',
@@ -186,7 +189,7 @@ const Onboarding: React.FC = () => {
     const renderStep1 = () => (
         <div className="space-y-6">
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Country *
                 </label>
                 <div className="relative">
@@ -194,8 +197,8 @@ const Onboarding: React.FC = () => {
                     <select
                         value={profile.country}
                         onChange={(e) => handleInputChange('country', e.target.value)}
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                            errors.country ? 'border-red-300' : 'border-gray-300'
+                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                            errors.country ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                         }`}
                     >
                         <option value="">Select country</option>
@@ -204,11 +207,11 @@ const Onboarding: React.FC = () => {
                         ))}
                     </select>
                 </div>
-                {errors.country && <p className="mt-1 text-sm text-red-600">{errors.country}</p>}
+                {errors.country && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.country}</p>}
             </div>
 
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Base Currency *
                 </label>
                 <div className="relative">
@@ -216,8 +219,8 @@ const Onboarding: React.FC = () => {
                     <select
                         value={profile.baseCurrency}
                         onChange={(e) => handleInputChange('baseCurrency', e.target.value)}
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                            errors.baseCurrency ? 'border-red-300' : 'border-gray-300'
+                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                            errors.baseCurrency ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                         }`}
                     >
                         <option value="">Select currency</option>
@@ -226,11 +229,11 @@ const Onboarding: React.FC = () => {
                         ))}
                     </select>
                 </div>
-                {errors.baseCurrency && <p className="mt-1 text-sm text-red-600">{errors.baseCurrency}</p>}
+                {errors.baseCurrency && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.baseCurrency}</p>}
             </div>
 
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Industry *
                 </label>
                 <div className="relative">
@@ -238,8 +241,8 @@ const Onboarding: React.FC = () => {
                     <select
                         value={profile.industry}
                         onChange={(e) => handleInputChange('industry', e.target.value)}
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                            errors.industry ? 'border-red-300' : 'border-gray-300'
+                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                            errors.industry ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                         }`}
                     >
                         <option value="">Select industry</option>
@@ -252,7 +255,7 @@ const Onboarding: React.FC = () => {
             </div>
 
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Company Size - Employees
                 </label>
                 <div className="relative">
@@ -262,14 +265,14 @@ const Onboarding: React.FC = () => {
                         min="0"
                         value={profile.companySize || ''}
                         onChange={(e) => handleInputChange('companySize', parseInt(e.target.value) || 0)}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="Number of employees"
                     />
                 </div>
             </div>
 
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Fiscal Year Start (MM-DD) *
                 </label>
                 <div className="relative">
@@ -280,12 +283,12 @@ const Onboarding: React.FC = () => {
                         placeholder="01-01"
                         value={profile.fiscalYearStart}
                         onChange={(e) => handleInputChange('fiscalYearStart', e.target.value)}
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                            errors.fiscalYearStart ? 'border-red-300' : 'border-gray-300'
+                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                            errors.fiscalYearStart ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                         }`}
                     />
                 </div>
-                {errors.fiscalYearStart && <p className="mt-1 text-sm text-red-600">{errors.fiscalYearStart}</p>}
+                {errors.fiscalYearStart && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.fiscalYearStart}</p>}
             </div>
         </div>
     );
@@ -293,7 +296,7 @@ const Onboarding: React.FC = () => {
     const renderStep2 = () => (
         <div className="space-y-6">
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
                     How often do you update your financial/business data? *
                 </label>
                 <div className="space-y-3">
@@ -307,7 +310,7 @@ const Onboarding: React.FC = () => {
                                 onChange={(e) => handleInputChange('updateFrequency', e.target.value)}
                                 className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
                             />
-                            <span className="ml-2 text-sm text-gray-900">{option.label}</span>
+                            <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">{option.label}</span>
                         </label>
                     ))}
                 </div>
@@ -315,7 +318,7 @@ const Onboarding: React.FC = () => {
             </div>
 
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
                     What is your main financial priority right now? *
                 </label>
                 <div className="space-y-3">
@@ -329,7 +332,7 @@ const Onboarding: React.FC = () => {
                                 onChange={(e) => handleInputChange('primaryFocus', e.target.value)}
                                 className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
                             />
-                            <span className="ml-2 text-sm text-gray-900">{option.label}</span>
+                            <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">{option.label}</span>
                         </label>
                     ))}
                 </div>
@@ -337,7 +340,7 @@ const Onboarding: React.FC = () => {
             </div>
 
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     How do you primarily earn revenue? This helps us tailor metrics and dashboards to your business model. *
                 </label>
                 <div className="relative">
@@ -345,8 +348,8 @@ const Onboarding: React.FC = () => {
                     <select
                         value={profile.businessModel}
                         onChange={(e) => handleInputChange('businessModel', e.target.value)}
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                            errors.businessModel ? 'border-red-300' : 'border-gray-300'
+                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                            errors.businessModel ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                         }`}
                     >
                         <option value="">Select business model</option>
@@ -359,12 +362,17 @@ const Onboarding: React.FC = () => {
             </div>
 
             <div>
-                <label className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Multicurrency</span>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Multicurrency</span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {profile.multicurrency ? 'Enabled' : 'Disabled'}
+                        </p>
+                    </div>
                     <button
                         type="button"
                         onClick={() => handleInputChange('multicurrency', !profile.multicurrency)}
-                        className="flex items-center"
+                        className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-1 transition-colors"
                     >
                         {profile.multicurrency ? (
                             <ToggleRight className="w-8 h-8 text-indigo-600" />
@@ -372,11 +380,11 @@ const Onboarding: React.FC = () => {
                             <ToggleLeft className="w-8 h-8 text-gray-400" />
                         )}
                     </button>
-                </label>
+                </div>
             </div>
 
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Capital Reserve Target
                 </label>
                 <div className="relative">
@@ -386,7 +394,7 @@ const Onboarding: React.FC = () => {
                         min="0"
                         value={profile.capitalReserveTarget || ''}
                         onChange={(e) => handleInputChange('capitalReserveTarget', parseInt(e.target.value) || 0)}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                     />
                 </div>
@@ -397,17 +405,17 @@ const Onboarding: React.FC = () => {
     const renderStep3 = () => (
         <div className="space-y-6">
             <div className="text-center mb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Connect Your Tools</h3>
-                <p className="text-sm text-gray-600">Connect your existing tools to get started faster</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Connect Your Tools</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Connect your existing tools to get started faster</p>
             </div>
 
             <div className="grid grid-cols-1 gap-4">
-                <div className="border border-gray-200 rounded-lg p-4 flex items-center justify-between">
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                         <CreditCard className="w-8 h-8 text-blue-600" />
                         <div>
-                            <h4 className="font-medium text-gray-900">Banking</h4>
-                            <p className="text-sm text-gray-600">Connect your bank accounts</p>
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100">Banking</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Connect your bank accounts</p>
                         </div>
                     </div>
                     <button
@@ -429,12 +437,12 @@ const Onboarding: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="border border-gray-200 rounded-lg p-4 flex items-center justify-between">
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                         <FileText className="w-8 h-8 text-green-600" />
                         <div>
-                            <h4 className="font-medium text-gray-900">Accounting</h4>
-                            <p className="text-sm text-gray-600">QuickBooks, Xero, Zoho</p>
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100">Accounting</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">QuickBooks, Xero, Zoho</p>
                         </div>
                     </div>
                     <button
@@ -456,12 +464,12 @@ const Onboarding: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="border border-gray-200 rounded-lg p-4 flex items-center justify-between">
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                         <Phone className="w-8 h-8 text-purple-600" />
                         <div>
-                            <h4 className="font-medium text-gray-900">CRM</h4>
-                            <p className="text-sm text-gray-600">Customer relationship management</p>
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100">CRM</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Customer relationship management</p>
                         </div>
                     </div>
                     <button
@@ -483,12 +491,12 @@ const Onboarding: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="border border-gray-200 rounded-lg p-4 flex items-center justify-between">
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                         <ShoppingCart className="w-8 h-8 text-orange-600" />
                         <div>
-                            <h4 className="font-medium text-gray-900">E-commerce</h4>
-                            <p className="text-sm text-gray-600">Shopify and other platforms</p>
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100">E-commerce</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Shopify and other platforms</p>
                         </div>
                     </div>
                     <button
@@ -514,17 +522,28 @@ const Onboarding: React.FC = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center px-4">
+        <motion.div
+            initial={{y: 20, opacity: 0}}
+            animate={{y: 0, opacity: 1}}
+            transition={{duration: 0.5, delay: 0.2}}
+            className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-900 flex items-center justify-center px-4"
+        >
+            <button
+                onClick={toggleTheme}
+                className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+                {theme === 'dark' ? <Sun size={20}/> : <Moon size={20}/>}
+            </button>
             <div className="max-w-2xl w-full space-y-8">
                 <div className="text-center">
                     <div className="flex justify-center">
                         <img src={Logo} alt="FinclAI Logo" className="w-20 h-20 object-contain"/>
                     </div>
-                    <h2 className="mt-3 text-3xl font-bold text-gray-900">Setup Your Account</h2>
-                    <p className="mt-2 text-sm text-gray-600">Let's configure your financial AI assistant</p>
+                    <h2 className="mt-3 text-3xl font-bold text-gray-900 dark:text-gray-100">Setup Your Account</h2>
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Let's configure your financial AI assistant</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-lg">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
                     <div className="flex items-center justify-between mb-8">
                         {[1, 2, 3].map((step) => (
                             <div key={step} className="flex items-center">
@@ -532,7 +551,7 @@ const Onboarding: React.FC = () => {
                                     className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
                                         step <= currentStep
                                             ? 'bg-indigo-600 text-white'
-                                            : 'bg-gray-200 text-gray-600'
+                                            : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                                     }`}
                                 >
                                     {step < currentStep ? <Check className="w-5 h-5" /> : step}
@@ -540,7 +559,7 @@ const Onboarding: React.FC = () => {
                                 {step < 3 && (
                                     <div
                                         className={`w-16 h-1 mx-2 ${
-                                            step < currentStep ? 'bg-indigo-600' : 'bg-gray-200'
+                                            step < currentStep ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'
                                         }`}
                                     />
                                 )}
@@ -549,12 +568,12 @@ const Onboarding: React.FC = () => {
                     </div>
 
                     <div className="mb-6">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                             {currentStep === 1 && 'Company Information'}
                             {currentStep === 2 && 'Profile Setup'}
                             {currentStep === 3 && 'Integrations'}
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                             {currentStep === 1 && 'Tell us about your company'}
                             {currentStep === 2 && 'Configure your preferences'}
                             {currentStep === 3 && 'Connect your existing tools'}
@@ -569,7 +588,7 @@ const Onboarding: React.FC = () => {
                         <button
                             onClick={handleBack}
                             disabled={currentStep === 1}
-                            className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Back
@@ -578,7 +597,7 @@ const Onboarding: React.FC = () => {
                         {currentStep < 3 ? (
                             <button
                                 onClick={handleNext}
-                                className="flex items-center px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+                                className="flex items-center px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700"
                             >
                                 Next
                                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -586,7 +605,7 @@ const Onboarding: React.FC = () => {
                         ) : (
                             <button
                                 onClick={handleFinish}
-                                className="flex items-center px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+                                className="flex items-center px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700"
                             >
                                 Finish onboarding
                                 <Check className="w-4 h-4 ml-2" />
@@ -595,7 +614,7 @@ const Onboarding: React.FC = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 };
 
