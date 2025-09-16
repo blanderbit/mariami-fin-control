@@ -13,9 +13,10 @@ export type AuthUser = {
     name?: string | null;
     last_name?: string | null;
     is_admin?: boolean;
+    is_onboarded?: boolean;
 };
 
-export async function loginRequest(email: string, password: string) {
+export async function loginRequest(email: string, password: string, storage?: TokenStorage) {
     const res = await api.auth.authLoginCreate({ email, password }) as any;
     const tokensField: any = res.data?.data?.tokens;
 
@@ -37,9 +38,21 @@ export async function loginRequest(email: string, password: string) {
     }
     setTokens({ access, refresh });
 
-    // fetch profile
-    const me = await api.profile.profileOnboardingStatusList() as any;
-    const user = me.data?.data || null;
+    // Set token storage if provided
+    if (storage) {
+        setTokenStorage(storage);
+    }
+
+    // fetch profile with onboarding status
+    const profileRes = await api.profile.profileProfileList() as any;
+    const user = profileRes.data?.results?.[0] || profileRes.data;
+    
+    // Получаем статус онбординга для получения is_onboarded
+    const onboardingStatus = await getOnboardingStatusRequest();
+    if (onboardingStatus && user) {
+        user.is_onboarded = onboardingStatus.is_onboarded;
+    }
+    
     return user as AuthUser | null;
 }
 
@@ -73,6 +86,13 @@ export async function getProfileRequest(): Promise<AuthUser | null> {
     try {
         const res = await api.profile.profileProfileList() as any;
         const profile = res.data?.results?.[0] || res.data;
+        
+        // Получаем статус онбординга для получения is_onboarded
+        const onboardingStatus = await getOnboardingStatusRequest();
+        if (onboardingStatus && profile) {
+            profile.is_onboarded = onboardingStatus.is_onboarded;
+        }
+        
         return profile as AuthUser | null;
     } catch (error) {
         console.error('Failed to fetch profile:', error);
@@ -89,6 +109,29 @@ export async function getOnboardingStatusRequest() {
         return null;
     }
 }
+
+export type OnboardingData = {
+    name?: string;
+    last_name?: string;
+    country?: string;
+    company_name?: string;
+    employees_count?: number | null;
+    industry?: string;
+    currency?: string;
+    fiscal_year_start?: string | null;
+    update_frequency?: "daily" | "weekly" | "monthly";
+    primary_focus?: "cash" | "profit" | "growth";
+    business_model?: string;
+    multicurrency?: boolean;
+    capital_reserve_target?: string | null;
+};
+
+export type OnboardingStatus = {
+    profile: OnboardingData;
+    is_onboarding_complete: boolean;
+    is_onboarded: boolean;
+    required_fields: string[];
+};
 
 export async function updateOnboardingRequest(data: any) {
     try {

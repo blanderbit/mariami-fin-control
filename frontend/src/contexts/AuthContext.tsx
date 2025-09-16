@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useState, useEffect, useCallback} from 'react';
-import {loginRequest, logoutRequest, registerRequest, getProfileRequest} from '../api/auth';
+import {loginRequest, logoutRequest, registerRequest, getProfileRequest, getOnboardingStatusRequest, OnboardingStatus} from '../api/auth';
 import {setTokenStorage, TokenStorage, clearTokens, getTokens} from '../api/http';
 
 interface User {
@@ -8,16 +8,19 @@ interface User {
     last_name?: string | null;
     email: string;
     is_admin?: boolean;
+    is_onboarded?: boolean;
     avatar?: string;
 }
 
 interface AuthContextType {
     user: User | null;
+    onboardingStatus: OnboardingStatus | null;
     login: (email: string, password: string, remember?: boolean) => Promise<void>;
     register: (email: string, password: string, re_password: string, name?: string, last_name?: string) => Promise<void>;
     logout: (suppressRedirect?: boolean) => void;
     clearAuthState: () => void;
     refreshProfile: () => Promise<void>;
+    refreshOnboardingStatus: () => Promise<void>;
     loading: boolean;
     error: string | null;
 }
@@ -26,6 +29,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({children}: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
+    const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +55,12 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
                 if (profile) {
                     setUser(profile);
                     
+                    // Получаем статус онбординга
+                    const onboardingStatus = await getOnboardingStatusRequest();
+                    if (onboardingStatus) {
+                        setOnboardingStatus(onboardingStatus);
+                    }
+                    
                     // Обновляем сохраненный профиль
                     const storage = localStorage.getItem('user') ? 'local' : 'session';
                     if (storage === 'local') {
@@ -61,6 +71,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
                 } else {
                     // Если не удалось получить профиль, очищаем данные
                     setUser(null);
+                    setOnboardingStatus(null);
                     localStorage.removeItem('user');
                     sessionStorage.removeItem('user');
                     clearTokens();
@@ -69,6 +80,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
                 console.error('Failed to initialize auth:', error);
                 // При ошибке очищаем данные
                 setUser(null);
+                setOnboardingStatus(null);
                 localStorage.removeItem('user');
                 sessionStorage.removeItem('user');
                 clearTokens();
@@ -112,6 +124,12 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
 
             setUser(profile);
 
+            // Получаем статус онбординга
+            const onboardingStatus = await getOnboardingStatusRequest();
+            if (onboardingStatus) {
+                setOnboardingStatus(onboardingStatus);
+            }
+
             // Сохраняем профиль пользователя в выбранный storage
             if (storage === 'local') {
                 localStorage.setItem('user', JSON.stringify(profile));
@@ -151,6 +169,12 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
 
             setUser(profile);
 
+            // Получаем статус онбординга
+            const onboardingStatus = await getOnboardingStatusRequest();
+            if (onboardingStatus) {
+                setOnboardingStatus(onboardingStatus);
+            }
+
             // Сохраняем профиль пользователя
             localStorage.setItem('user', JSON.stringify(profile));
 
@@ -171,6 +195,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
         }
 
         setUser(null);
+        setOnboardingStatus(null);
         localStorage.removeItem('user');
         sessionStorage.removeItem('user');
         localStorage.removeItem('access_token');
@@ -180,6 +205,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
     // Полная очистка без редиректа (для Login useEffect)
     const clearAuthState = useCallback(() => {
         setUser(null);
+        setOnboardingStatus(null);
         localStorage.removeItem('user');
         sessionStorage.removeItem('user');
         localStorage.removeItem('access_token');
@@ -206,8 +232,20 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
         }
     }, []);
 
+    // Обновление статуса онбординга
+    const refreshOnboardingStatus = useCallback(async () => {
+        try {
+            const onboardingStatus = await getOnboardingStatusRequest();
+            if (onboardingStatus) {
+                setOnboardingStatus(onboardingStatus);
+            }
+        } catch (error) {
+            console.error('Failed to refresh onboarding status:', error);
+        }
+    }, []);
+
     return (
-        <AuthContext.Provider value={{user, login, register, logout, clearAuthState, refreshProfile, loading, error}}>
+        <AuthContext.Provider value={{user, onboardingStatus, login, register, logout, clearAuthState, refreshProfile, refreshOnboardingStatus, loading, error}}>
             {children}
         </AuthContext.Provider>
     );

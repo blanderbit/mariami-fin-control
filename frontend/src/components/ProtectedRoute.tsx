@@ -16,6 +16,11 @@ function ProtectedRoute() {
         return <Navigate to="/login" replace />;
     }
 
+    // Если пользователь не прошел онбординг, перенаправляем на онбординг
+    if (!user.is_onboarded) {
+        return <Navigate to="/onboarding" replace />;
+    }
+
     return <Outlet />;
 }
 
