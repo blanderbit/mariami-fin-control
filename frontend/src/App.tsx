@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard.tsx";
 import DataImport from "./pages/DataImport.tsx";
 import Revenues from "./pages/Revenues.tsx";
 import Settings from "./pages/Settings.tsx";
+import Onboarding from "./pages/Onboarding.tsx";
 
 function App() {
     return (
@@ -15,6 +16,7 @@ function App() {
             <Routes>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="/signup" element={<Signup/>}/>
+                <Route path="/onboarding" element={<Onboarding />} />
 
                 <Route element={<ProtectedRoute/>}>
                     <Route element={<Layout/>}>

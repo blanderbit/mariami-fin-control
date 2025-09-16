@@ -3,8 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import {Brain, Mail, Lock, Building, ArrowRight, AlertCircle, CheckCircle, Sun, Moon} from 'lucide-react';
 import {useTheme} from "../contexts/ThemeContext.tsx";
 import {motion} from 'framer-motion';
-import Logo from "../assets/FinclAI Logo Blue.png";
 import { useAuth } from '../contexts/AuthContext';
+
+import Logo from "../assets/FinclAI Logo Blue.png";
 
 const Signup: React.FC = () => {
     const navigate = useNavigate();
@@ -84,8 +85,7 @@ const Signup: React.FC = () => {
                 '' // last_name пока не заполняем
             );
 
-            // После успешной регистрации и автологина редиректим на главную
-            navigate('/');
+            navigate('/onboarding');
         } catch (err: any) {
             setErrors({ general: err?.message || 'Signup failed' });
         } finally {
