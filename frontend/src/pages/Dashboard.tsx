@@ -2,13 +2,19 @@ import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
+import { motion } from 'framer-motion';
 
 const Dashboard: React.FC = () => {
     const { theme } = useTheme();
     const modal = useModal();
 
     return (
-        <div className="max-w-7xl mx-auto">
+        <motion.div
+            initial={{y: 20, opacity: 0}}
+            animate={{y: 0, opacity: 1}}
+            transition={{duration: 0.5, delay: 0.2}}
+            className="max-w-7xl mx-auto"
+        >
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Dashboard</h1>
             
             {/* Example buttons to demonstrate modal usage */}
@@ -58,7 +64,7 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
             </Modal>
-        </div>
+        </motion.div>
     );
 };
 

@@ -15,6 +15,7 @@ import {
     Activity
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { motion } from 'framer-motion';
 import {
     ComposedChart,
     Bar,
@@ -371,7 +372,12 @@ const Revenues: React.FC = () => {
     };
 
     return (
-        <div className="w-full max-w-none space-y-6">
+        <motion.div
+            initial={{y: 20, opacity: 0}}
+            animate={{y: 0, opacity: 1}}
+            transition={{duration: 0.5, delay: 0.2}}
+            className="w-full max-w-none space-y-6"
+        >
             {/* Alerts */}
             <div className="space-y-2">
                 {overdueInvoices.length > 0 && (
@@ -943,7 +949,7 @@ const Revenues: React.FC = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 };
 

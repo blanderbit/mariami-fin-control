@@ -9,6 +9,7 @@ import {
     CreditCard,
     Calendar
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface UploadedFile {
     name: string;
@@ -112,7 +113,12 @@ const DataImport: React.FC = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8">
+        <motion.div
+            initial={{y: 20, opacity: 0}}
+            animate={{y: 0, opacity: 1}}
+            transition={{duration: 0.5, delay: 0.2}}
+            className="max-w-7xl mx-auto space-y-8"
+        >
             <div>
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Data Import</h1>
                 <p className="text-gray-600 dark:text-gray-400">Upload your data to see analytics and market insights</p>
@@ -305,7 +311,7 @@ const DataImport: React.FC = () => {
                     <li>• Duplicate entries will be removed based on Invoice_ID and Date+Amount+Client_Supplier</li>
                 </ul>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

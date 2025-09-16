@@ -4,7 +4,12 @@ import { motion } from 'framer-motion';
 
 function NotFound() {
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <motion.div
+            initial={{y: 20, opacity: 0}}
+            animate={{y: 0, opacity: 1}}
+            transition={{duration: 0.5, delay: 0.2}}
+            className="min-h-screen flex flex-col items-center justify-center p-4"
+        >
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -38,7 +43,7 @@ function NotFound() {
                     Back to Dashboard
                 </Link>
             </motion.div>
-        </div>
+        </motion.div>
     );
 }
 

@@ -6,6 +6,7 @@ import {
     Shield
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { motion } from 'framer-motion';
 
 const Settings: React.FC = () => {
     const { theme } = useTheme();
@@ -67,7 +68,12 @@ const Settings: React.FC = () => {
     );
 
     return (
-        <div className="w-full max-w-none">
+        <motion.div
+            initial={{y: 20, opacity: 0}}
+            animate={{y: 0, opacity: 1}}
+            transition={{duration: 0.5, delay: 0.2}}
+            className="w-full max-w-none"
+        >
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Settings</h1>
 
             <div className="flex space-x-8">
@@ -99,7 +105,7 @@ const Settings: React.FC = () => {
                     {activeTab === 'security' && renderSecurityTab()}
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 };
 
