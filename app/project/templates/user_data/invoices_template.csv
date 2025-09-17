@@ -1,0 +1,3 @@
+Invoice_ID,Date_Issued,Date_Due,Amount,Status,Client,Date_Paid
+INV-001,2025-01-01,2025-01-30,2000,Paid,Client A,2025-01-29
+INV-002,2025-01-15,2025-02-15,3000,Overdue,Client B,
