@@ -59,16 +59,16 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 - Результаты кэшируются на 1 час в Redis
 - Кэш автоматически инвалидируется при загрузке новых P&L файлов
 - Кэш НЕ инвалидируется при загрузке invoices или transactions (они не влияют на расчёт)
-- Ключи кэша: `revenue_analysis_{user_id}_{period}_{date}`
+- Ключи кэша: `financial_analysis_{user_id}_{period}_{date}`
 
 ## Архитектура
 
 ### Файлы
 
-- `users/services/revenue_analysis_service.py` - основная логика расчёта выручки
+- `users/services/financial_analysis_service.py` - основная логика расчёта выручки
 - `users/services/cache_invalidation_service.py` - управление кэшем
-- `users/views/revenue_analysis_view.py` - API endpoint
-- `users/serializers/revenue_analysis_serializer.py` - валидация и сериализация
+- `users/views/financial_analysis_view.py` - API endpoint
+- `users/serializers/financial_analysis_serializer.py` - валидация и сериализация
 - `config/settings/components/cache.py` - настройки Redis кэширования
 
 ### Модели

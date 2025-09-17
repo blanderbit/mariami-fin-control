@@ -6,17 +6,17 @@ from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from users.serializers.revenue_analysis_serializer import (
-    RevenueAnalysisQuerySerializer,
-    RevenueAnalysisResponseSerializer
+from users.serializers.financial_analysis_serializer import (
+    FinancialAnalysisQuerySerializer,
+    FinancialAnalysisResponseSerializer
 )
-from users.services.revenue_analysis_service import UserDataAnalysisService
+from users.services.financial_analysis_service import UserDataAnalysisService
 
 logger = logging.getLogger(__name__)
 
 
-class RevenueAnalysisAPIView(APIView):
-    """API View for revenue analysis"""
+class FinancialAnalysisAPIView(APIView):
+    """API View for comprehensive financial analysis"""
     
     permission_classes = [IsAuthenticated]
     
@@ -35,26 +35,28 @@ class RevenueAnalysisAPIView(APIView):
             ),
         ],
         responses={
-            200: RevenueAnalysisResponseSerializer,
+            200: FinancialAnalysisResponseSerializer,
             400: 'Bad Request - Invalid period parameter',
             401: 'Unauthorized',
             404: 'No data found for analysis',
             500: 'Internal Server Error'
         },
         operation_description=(
-            "Analyze user's revenue comparing current period with previous. "
+            "Comprehensive financial analysis including revenue, expenses, "
+            "and net profit comparing current period with previous. "
             "Supports month-to-month and year-to-year comparisons. "
-            "Data is calculated exclusively from user's uploaded P&L files "
-            "using the Revenue column."
+            "Revenue: calculated from Revenue column in P&L files. "
+            "Expenses: sum of COGS, Payroll, Rent, Marketing, Other_Expenses. "
+            "Net Profit: revenue minus expenses."
         ),
-        operation_summary="Get revenue analysis",
+        operation_summary="Get comprehensive money analysis",
         tags=['Analytics']
     )
     def get(self, request):
         """Get revenue analysis for authenticated user"""
         
         # Validate query parameters
-        query_serializer = RevenueAnalysisQuerySerializer(
+        query_serializer = FinancialAnalysisQuerySerializer(
             data=request.query_params
         )
         
@@ -73,13 +75,13 @@ class RevenueAnalysisAPIView(APIView):
             # Initialize analysis service
             analysis_service = UserDataAnalysisService(request.user)
             
-            # Get revenue analysis
-            analysis_result = analysis_service.get_revenue_analysis(
+            # Get comprehensive financial analysis
+            analysis_result = analysis_service.get_financial_analysis(
                 period_type
             )
             
             # Serialize and return response
-            response_serializer = RevenueAnalysisResponseSerializer(
+            response_serializer = FinancialAnalysisResponseSerializer(
                 analysis_result
             )
             
