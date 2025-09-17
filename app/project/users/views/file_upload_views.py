@@ -44,13 +44,7 @@ class UploadUserDataAPIView(APIView):
         """
         
         serializer = UploadUserDataSerializer(data=request.data)
-        
-        if not serializer.is_valid():
-            return Response({
-                'success': False,
-                'message': 'Ошибка валидации',
-                'errors': list(serializer.errors.values())
-            }, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
         
         try:
             uploaded_files_info = []

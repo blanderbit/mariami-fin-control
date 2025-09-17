@@ -1,38 +1,36 @@
 from rest_framework import serializers
 
 from config.utils.file_validators import FileFormatValidator
-from users.constants.file_upload_errors import (
-    FILE_SIZE_EXCEEDED,
-    NO_FILES_PROVIDED
-)
+from users.models import UserDataFile
+from users.constants.file_upload_errors import FILE_SIZE_EXCEEDED, NO_FILES_PROVIDED
+from rest_framework.status import HTTP_400_BAD_REQUEST
 
 
-class UserDataFileSerializer(serializers.Serializer):
+class UserDataFileSerializer(serializers.ModelSerializer):
     """Serializer for user uploaded files information"""
 
-    template_type = serializers.CharField()
-    original_filename = serializers.CharField()
-    stored_filename = serializers.CharField()
-    file_path = serializers.CharField()
-    file_size = serializers.IntegerField()
-    upload_time = serializers.DateTimeField()
-    is_active = serializers.BooleanField()
+    class Meta:
+        model = UserDataFile
+        fields = [
+            "template_type",
+            "original_filename",
+            "stored_filename",
+            "file_path",
+            "file_size",
+            "upload_time",
+            "is_active",
+        ]
 
 
 class UploadUserDataSerializer(serializers.Serializer):
     """Serializer for file upload validation"""
 
-    pnl_file = serializers.FileField(
-        required=False,
-        help_text="P&L template file"
-    )
+    pnl_file = serializers.FileField(required=False, help_text="P&L template file")
     transactions_file = serializers.FileField(
-        required=False,
-        help_text="Transactions template file"
+        required=False, help_text="Transactions template file"
     )
     invoices_file = serializers.FileField(
-        required=False,
-        help_text="Invoices template file"
+        required=False, help_text="Invoices template file"
     )
 
     def validate(self, attrs):
@@ -49,7 +47,7 @@ class UploadUserDataSerializer(serializers.Serializer):
                 uploaded_files.append(file)
 
         if not uploaded_files:
-            raise serializers.ValidationError(NO_FILES_PROVIDED)
+            raise serializers.ValidationError(NO_FILES_PROVIDED, HTTP_400_BAD_REQUEST)
 
         # Validate file formats
         is_valid, error_message, file_template_mapping = (
@@ -57,7 +55,11 @@ class UploadUserDataSerializer(serializers.Serializer):
         )
 
         if not is_valid:
-            raise serializers.ValidationError(error_message)
+            # Check if error_message is our custom format
+            if isinstance(error_message, dict) and "message" in error_message:
+                raise serializers.ValidationError(error_message)
+            else:
+                raise serializers.ValidationError(error_message)
 
         # Store validation results for use in view
         attrs["_uploaded_files"] = uploaded_files
@@ -74,7 +76,4 @@ class UploadUserDataResponseSerializer(serializers.Serializer):
     uploaded_files = serializers.ListField(
         child=serializers.DictField(), required=False
     )
-    errors = serializers.ListField(
-        child=serializers.CharField(),
-        required=False
-    )
+    errors = serializers.ListField(child=serializers.CharField(), required=False)
