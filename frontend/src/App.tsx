@@ -9,6 +9,7 @@ import DataImport from "./pages/DataImport.tsx";
 import Revenues from "./pages/Revenues.tsx";
 import Settings from "./pages/Settings.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
+import Overview from "./pages/Overview.tsx";
 
 function App() {
     return (
@@ -19,9 +20,10 @@ function App() {
                 <Route path="/onboarding" element={<Onboarding />} />
 
                 <Route element={<ProtectedRoute/>}>
-                    <Route element={<Layout/>}>
-                        <Route path="/" element={<Navigate to="/dashboard" replace />}/>
-                        <Route path="/dashboard" element={<Dashboard/>}/>
+                    <Route path="/" element={<Layout/>}>
+                        <Route element={<Navigate to="/dashboard" replace />}/>
+                        <Route path="overview" element={<Overview />} />
+                        <Route path="dashboard" element={<Dashboard/>}/>
                         <Route path="data-import" element={<DataImport/>}/>
                         <Route path="revenues" element={<Revenues />} />
                         <Route path="settings" element={<Settings />} />
