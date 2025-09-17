@@ -2,32 +2,32 @@
 
 # Validation errors
 FILE_SIZE_EXCEEDED = {
-    "message": "Файл превышает максимальный размер",
-    "code": "file_size_exceeded"
+    "code": "file_size_exceeded",
+    "message": "File exceeds maximum size limit"
 }
 
 NO_FILES_PROVIDED = {
-    "message": "Необходимо загрузить хотя бы один файл", 
-    "code": "no_files_provided"
+    "code": "no_files_provided",
+    "message": "At least one file must be uploaded"
 }
 
 INVALID_FILE_FORMAT = {
-    "message": "Неподдерживаемый формат файла",
-    "code": "invalid_file_format"
+    "code": "invalid_file_format",
+    "message": "Unsupported file format"
 }
 
 UNKNOWN_TEMPLATE_TYPE = {
-    "message": "Неизвестный тип шаблона файла",
-    "code": "unknown_template_type"
+    "code": "unknown_template_type",
+    "message": "Unknown file template type"
 }
 
 # Upload errors
 UPLOAD_FAILED = {
-    "message": "Ошибка при загрузке файла",
-    "code": "upload_failed"
+    "code": "upload_failed",
+    "message": "Failed to upload file"
 }
 
 MINIO_CONNECTION_ERROR = {
-    "message": "Ошибка подключения к хранилищу",
-    "code": "storage_connection_error"
+    "code": "storage_connection_error",
+    "message": "Storage connection error"
 }
