@@ -10,6 +10,7 @@ _base_settings: list[str] = [
     "components/storages.py",
     "components/minio.py",
     "components/celery.py",
+    "components/cache.py",
     "components/smtp.py",
     "components/valiables.py",
 ]
