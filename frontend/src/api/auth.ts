@@ -143,4 +143,27 @@ export async function updateOnboardingRequest(data: any) {
     }
 }
 
+export type UploadDataFilesRequest = {
+    pnl_file?: File;
+    transactions_file?: File;
+    invoices_file?: File;
+};
+
+export type UploadDataFilesResponse = {
+    success: boolean;
+    message: string;
+    uploaded_files?: Record<string, string | null>[];
+    errors?: string[];
+};
+
+export async function uploadDataFilesRequest(data: UploadDataFilesRequest): Promise<UploadDataFilesResponse> {
+    try {
+        const res = await api.users.usersUploadDataFilesCreate(data) as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to upload data files:', error);
+        throw error;
+    }
+}
+
 

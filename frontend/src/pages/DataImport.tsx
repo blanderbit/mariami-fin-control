@@ -7,9 +7,11 @@ import {
     FileText,
     DollarSign,
     CreditCard,
-    Calendar
+    Calendar,
+    Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { uploadDataFilesRequest, UploadDataFilesResponse } from '../api/auth';
 
 interface UploadedFile {
     name: string;
@@ -25,6 +27,8 @@ const DataImport: React.FC = () => {
     const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: UploadedFile }>({});
     const [uploadErrors, setUploadErrors] = useState<UploadErrors>({});
     const [currentCashBalance, setCurrentCashBalance] = useState<number>(0);
+    const [isUploading, setIsUploading] = useState<boolean>(false);
+    const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
 
     // Get company data
     const company = JSON.parse(localStorage.getItem('company') || '{}');
@@ -58,7 +62,7 @@ const DataImport: React.FC = () => {
         URL.revokeObjectURL(url);
     };
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, fileType: string) => {
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, fileType: string) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
@@ -74,34 +78,64 @@ const DataImport: React.FC = () => {
             return;
         }
 
-        // Clear previous errors
+        // Clear previous errors and success state
         setUploadErrors(prev => {
             const newErrors = { ...prev };
             delete newErrors[fileType];
             return newErrors;
         });
+        setUploadSuccess(false);
 
-        // Simulate file processing
-        setTimeout(() => {
-            setUploadedFiles(prev => ({
+        // Set uploading state
+        setIsUploading(true);
+
+        try {
+            // Prepare data for API call
+            const uploadData: { [key: string]: File } = {};
+            uploadData[`${fileType}_file`] = file;
+
+            // Call API
+            const response: UploadDataFilesResponse = await uploadDataFilesRequest(uploadData);
+
+            if (response.status === 'success') {
+                // Update uploaded files state
+                setUploadedFiles(prev => ({
+                    ...prev,
+                    [fileType]: {
+                        name: file.name,
+                        size: file.size,
+                        uploadedAt: new Date().toISOString()
+                    }
+                }));
+
+                // Save to localStorage
+                const company = JSON.parse(localStorage.getItem('company') || '{}');
+                if (!company.dataImport) company.dataImport = {};
+                company.dataImport[fileType] = {
+                    filename: file.name,
+                    uploadedAt: new Date().toISOString(),
+                    size: file.size
+                };
+                localStorage.setItem('company', JSON.stringify(company));
+
+                setUploadSuccess(true);
+            } else {
+                // Handle API errors
+                const errorMessage = response.message || 'Upload failed';
+                setUploadErrors(prev => ({
+                    ...prev,
+                    [fileType]: errorMessage
+                }));
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            setUploadErrors(prev => ({
                 ...prev,
-                [fileType]: {
-                    name: file.name,
-                    size: file.size,
-                    uploadedAt: new Date().toISOString()
-                }
+                [fileType]: 'Upload failed. Please try again.'
             }));
-
-            // Save to localStorage
-            const company = JSON.parse(localStorage.getItem('company') || '{}');
-            if (!company.dataImport) company.dataImport = {};
-            company.dataImport[fileType] = {
-                filename: file.name,
-                uploadedAt: new Date().toISOString(),
-                size: file.size
-            };
-            localStorage.setItem('company', JSON.stringify(company));
-        }, 1000);
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     const formatFileSize = (bytes: number) => {
@@ -142,13 +176,22 @@ const DataImport: React.FC = () => {
                                 Download P&L template
                             </button>
 
-                            <label className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer">
-                                <Upload className="w-4 h-4 mr-2" />
-                                Upload P&L file
+                            <label className={`flex items-center px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+                                isUploading
+                                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                            }`}>
+                                {isUploading ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Upload className="w-4 h-4 mr-2" />
+                                )}
+                                {isUploading ? 'Uploading...' : 'Upload P&L file'}
                                 <input
                                     type="file"
                                     accept=".csv,.xls,.xlsx"
                                     onChange={(e) => handleFileUpload(e, 'pnl')}
+                                    disabled={isUploading}
                                     className="hidden"
                                 />
                             </label>
@@ -191,13 +234,22 @@ const DataImport: React.FC = () => {
                                 Download Transactions template
                             </button>
 
-                            <label className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer">
-                                <Upload className="w-4 h-4 mr-2" />
-                                Upload Transactions file
+                            <label className={`flex items-center px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+                                isUploading
+                                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                            }`}>
+                                {isUploading ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Upload className="w-4 h-4 mr-2" />
+                                )}
+                                {isUploading ? 'Uploading...' : 'Upload Transactions file'}
                                 <input
                                     type="file"
                                     accept=".csv,.xls,.xlsx"
                                     onChange={(e) => handleFileUpload(e, 'transactions')}
+                                    disabled={isUploading}
                                     className="hidden"
                                 />
                             </label>
@@ -240,13 +292,22 @@ const DataImport: React.FC = () => {
                                 Download Invoices template
                             </button>
 
-                            <label className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer">
-                                <Upload className="w-4 h-4 mr-2" />
-                                Upload Invoices file
+                            <label className={`flex items-center px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+                                isUploading
+                                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                            }`}>
+                                {isUploading ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Upload className="w-4 h-4 mr-2" />
+                                )}
+                                {isUploading ? 'Uploading...' : 'Upload Invoices file'}
                                 <input
                                     type="file"
                                     accept=".csv,.xls,.xlsx"
                                     onChange={(e) => handleFileUpload(e, 'invoices')}
+                                    disabled={isUploading}
                                     className="hidden"
                                 />
                             </label>
@@ -298,6 +359,19 @@ const DataImport: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Success Message */}
+            {uploadSuccess && (
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 text-green-600 dark:text-green-400">
+                        <CheckCircle className="w-5 h-5" />
+                        <span className="font-medium">Files uploaded successfully!</span>
+                    </div>
+                    <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                        Your data has been processed and is ready for analysis.
+                    </p>
+                </div>
+            )}
 
             {/* Validation Notes */}
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">

@@ -134,34 +134,38 @@ export interface Onboarding {
    * Name
    * @maxLength 255
    */
-  name?: string;
+  name?: string | null;
   /**
    * Last name
    * @maxLength 255
    */
-  last_name?: string;
+  last_name?: string | null;
   /**
    * Country
    * @maxLength 255
    */
-  country?: string;
+  country?: string | null;
   /**
    * Company name
    * @maxLength 255
    */
-  company_name?: string;
-  /** Employees count */
+  company_name?: string | null;
+  /**
+   * Employees count
+   * @min 0
+   * @max 2147483647
+   */
   employees_count?: number | null;
   /**
    * Industry
    * @maxLength 255
    */
-  industry?: string;
+  industry?: string | null;
   /**
    * Currency
    * @maxLength 10
    */
-  currency?: string;
+  currency?: string | null;
   /**
    * Fiscal year start
    * Fiscal year start date
@@ -169,14 +173,14 @@ export interface Onboarding {
    */
   fiscal_year_start?: string | null;
   /** Update frequency */
-  update_frequency?: "daily" | "weekly" | "monthly";
+  update_frequency?: "daily" | "weekly" | "monthly" | null;
   /** Primary focus */
-  primary_focus?: "cash" | "profit" | "growth";
+  primary_focus?: "cash" | "profit" | "growth" | null;
   /**
    * Business model
    * @maxLength 255
    */
-  business_model?: string;
+  business_model?: string | null;
   /** Multicurrency */
   multicurrency?: boolean;
   /**
@@ -191,6 +195,8 @@ export interface GetMyProfile {
   id?: number;
   /** Profile */
   profile?: string;
+  /** Uploaded files */
+  uploaded_files?: string;
   /**
    * Last login
    * @format date-time
@@ -254,6 +260,18 @@ export interface UsersList {
   updated_at?: string;
   /** Profile */
   profile?: number | null;
+}
+
+export interface UploadUserDataResponse {
+  /** Success */
+  success: boolean;
+  /**
+   * Message
+   * @minLength 1
+   */
+  message: string;
+  uploaded_files?: Record<string, string | null>[];
+  errors?: string[];
 }
 
 import type {
@@ -792,6 +810,44 @@ export class Api<
         method: "GET",
         query: query,
         secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Upload user data files (P&L, Transactions, Invoices)
+     *
+     * @tags File Upload
+     * @name UsersUploadDataFilesCreate
+     * @request POST:/users/upload/data-files
+     * @secure
+     */
+    usersUploadDataFilesCreate: (
+      data: {
+        /**
+         * P&L template file
+         * @format binary
+         */
+        pnl_file?: File;
+        /**
+         * Transactions template file
+         * @format binary
+         */
+        transactions_file?: File;
+        /**
+         * Invoices template file
+         * @format binary
+         */
+        invoices_file?: File;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<UploadUserDataResponse, void>({
+        path: `/users/upload/data-files`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.FormData,
+        format: "json",
         ...params,
       }),
   };
