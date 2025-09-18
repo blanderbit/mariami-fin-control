@@ -18,7 +18,7 @@ import {
     ShoppingCart
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { updateOnboardingRequest } from '../api/auth';
+import { updateOnboardingRequest, getOnboardingStatusRequest, OnboardingData } from '../api/auth';
 
 const countries = [
     { code: 'US', name: 'United States' },
@@ -84,18 +84,55 @@ interface DataWarning {
 const Overview: React.FC = () => {
     const { theme } = useTheme();
     const [company, setCompany] = useState<any>({});
+    const [profileData, setProfileData] = useState<OnboardingData | null>(null);
     const [integrations, setIntegrations] = useState<Integration[]>([]);
     const [warnings, setWarnings] = useState<DataWarning[]>([]);
     const [showAddModal, setShowAddModal] = useState(false);
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [editingProfile, setEditingProfile] = useState<any>({});
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
     useEffect(() => {
-        // Load company data
+        loadProfileData();
+        loadIntegrations();
+    }, []);
+
+    const loadProfileData = async () => {
+        try {
+            setIsLoadingProfile(true);
+            const onboardingStatus = await getOnboardingStatusRequest();
+            if (onboardingStatus && onboardingStatus.profile) {
+                setProfileData(onboardingStatus.profile);
+                
+                // Update company data with profile data
+                const companyData = JSON.parse(localStorage.getItem('company') || '{}');
+                const updatedCompany = {
+                    ...companyData,
+                    name: onboardingStatus.profile.company_name || companyData.name,
+                    profile: {
+                        ...companyData.profile,
+                        country: onboardingStatus.profile.country,
+                        baseCurrency: onboardingStatus.profile.currency,
+                        industry: onboardingStatus.profile.industry,
+                        companySize: onboardingStatus.profile.employees_count,
+                        fiscalYearStart: onboardingStatus.profile.fiscal_year_start,
+                    }
+                };
+                setCompany(updatedCompany);
+                localStorage.setItem('company', JSON.stringify(updatedCompany));
+            }
+        } catch (error) {
+            console.error('Failed to load profile data:', error);
+            // Fallback to localStorage data
         const companyData = JSON.parse(localStorage.getItem('company') || '{}');
         setCompany(companyData);
+        } finally {
+            setIsLoadingProfile(false);
+        }
+    };
 
+    const loadIntegrations = () => {
         // Initialize demo integrations
         const demoIntegrations: Integration[] = [
             {
@@ -131,7 +168,7 @@ const Overview: React.FC = () => {
 
         // Generate warnings based on integration status and data
         generateWarnings(demoIntegrations);
-    }, []);
+    };
 
     const generateWarnings = (integrations: Integration[]) => {
         const newWarnings: DataWarning[] = [];
@@ -250,12 +287,12 @@ const Overview: React.FC = () => {
     const handleEditProfile = () => {
         setIsEditingProfile(true);
         setEditingProfile({
-            name: company.name || '',
-            country: company.profile?.country || '',
-            currency: company.profile?.baseCurrency || '',
-            industry: company.profile?.industry || '',
-            employees_count: company.profile?.companySize || null,
-            fiscal_year_start: company.profile?.fiscalYearStart || null,
+            company_name: company.name || profileData?.company_name || '',
+            country: company.profile?.country || profileData?.country || '',
+            currency: company.profile?.baseCurrency || profileData?.currency || '',
+            industry: company.profile?.industry || profileData?.industry || '',
+            employees_count: company.profile?.companySize || profileData?.employees_count || null,
+            fiscal_year_start: company.profile?.fiscalYearStart || profileData?.fiscal_year_start || null,
         });
     };
 
@@ -269,7 +306,7 @@ const Overview: React.FC = () => {
             // Обновляем локальные данные
             const updatedCompany = {
                 ...company,
-                name: editingProfile.name,
+                name: editingProfile.company_name,
                 profile: {
                     ...company.profile,
                     country: editingProfile.country,
@@ -282,6 +319,12 @@ const Overview: React.FC = () => {
             
             setCompany(updatedCompany);
             localStorage.setItem('company', JSON.stringify(updatedCompany));
+            
+            // Обновляем данные профиля
+            setProfileData(prev => ({
+                ...prev,
+                ...editingProfile
+            }));
             
             setIsEditingProfile(false);
         } catch (error) {
@@ -409,13 +452,15 @@ const Overview: React.FC = () => {
                                 {isEditingProfile ? (
                                     <input
                                         type="text"
-                                        value={editingProfile.name || ''}
-                                        onChange={(e) => handleProfileChange('name', e.target.value)}
+                                        value={editingProfile.company_name || ''}
+                                        onChange={(e) => handleProfileChange('company_name', e.target.value)}
                                         className="w-full mt-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                                         placeholder="Enter company name"
                                     />
                                 ) : (
-                                    <p className="font-medium text-gray-900 dark:text-gray-100">{company.name || 'Not specified'}</p>
+                                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                                        {isLoadingProfile ? 'Loading...' : (company.name || profileData?.company_name || 'Not specified')}
+                                    </p>
                                 )}
                             </div>
                         </div>
@@ -436,7 +481,9 @@ const Overview: React.FC = () => {
                                         ))}
                                     </select>
                                 ) : (
-                                    <p className="font-medium text-gray-900 dark:text-gray-100">{company.profile?.country || 'Not specified'}</p>
+                                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                                        {isLoadingProfile ? 'Loading...' : (company.profile?.country || profileData?.country || 'Not specified')}
+                                    </p>
                                 )}
                             </div>
                         </div>
@@ -457,7 +504,9 @@ const Overview: React.FC = () => {
                                         ))}
                                     </select>
                                 ) : (
-                                    <p className="font-medium text-gray-900 dark:text-gray-100">{company.profile?.baseCurrency || 'Not specified'}</p>
+                                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                                        {isLoadingProfile ? 'Loading...' : (company.profile?.baseCurrency || profileData?.currency || 'Not specified')}
+                                    </p>
                                 )}
                             </div>
                         </div>
@@ -478,7 +527,9 @@ const Overview: React.FC = () => {
                                         ))}
                                     </select>
                                 ) : (
-                                    <p className="font-medium text-gray-900 dark:text-gray-100">{company.profile?.industry || 'Not specified'}</p>
+                                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                                        {isLoadingProfile ? 'Loading...' : (company.profile?.industry || profileData?.industry || 'Not specified')}
+                                    </p>
                                 )}
                             </div>
                         </div>
@@ -497,7 +548,9 @@ const Overview: React.FC = () => {
                                         placeholder="Number of employees"
                                     />
                                 ) : (
-                                    <p className="font-medium text-gray-900 dark:text-gray-100">{company.profile?.companySize || 0}</p>
+                                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                                        {isLoadingProfile ? 'Loading...' : (company.profile?.companySize || profileData?.employees_count || 0)}
+                                    </p>
                                 )}
                             </div>
                         </div>
@@ -514,7 +567,9 @@ const Overview: React.FC = () => {
                                         className="w-full mt-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                                     />
                                 ) : (
-                                    <p className="font-medium text-gray-900 dark:text-gray-100">{company.profile?.fiscalYearStart || 'Not specified'}</p>
+                                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                                        {isLoadingProfile ? 'Loading...' : (company.profile?.fiscalYearStart || profileData?.fiscal_year_start || 'Not specified')}
+                                    </p>
                                 )}
                             </div>
                         </div>
