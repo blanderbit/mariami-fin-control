@@ -7,3 +7,7 @@ from users.serializers.update_user_serializer import (
 from users.serializers.user_updated_serializer import (
     UserUpdatedSerializer as UserUpdatedSerializer
 )
+from users.serializers.financial_analysis_serializer import (
+    FinancialAnalysisQuerySerializer as FinancialAnalysisQuerySerializer,
+    FinancialAnalysisResponseSerializer as FinancialAnalysisResponseSerializer
+)
