@@ -120,8 +120,9 @@ class PNLAnalysisAPIView(APIView):
                         },
                         "period": {
                             "start_date": "2024-01-01",
-                            "end_date": "2024-02-29"
-                        }
+                            "end_date": "2024-02-29"                        
+                        },
+                        "ai_insights": "Strong revenue growth YoY, monitor expense efficiency for margins."
                     }
                 }
             ),

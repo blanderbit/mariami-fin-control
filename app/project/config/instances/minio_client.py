@@ -3,7 +3,6 @@ from typing import Optional
 from django.conf import settings
 from minio import Minio
 from minio.error import S3Error
-from users.models import UserModel
 
 
 class MinIOClient:

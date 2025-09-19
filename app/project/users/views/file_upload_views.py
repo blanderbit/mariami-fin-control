@@ -13,6 +13,7 @@ from users.serializers.file_upload_serializers import (
 )
 from users.models import UserDataFile, UserModel
 from config.instances.minio_client import MINIO_CLIENT
+from users.services.financial_analysis_service import UserPNLAnalysisService
 
 
 class UploadUserDataAPIView(APIView):
@@ -100,9 +101,14 @@ class UploadUserDataAPIView(APIView):
                     },
                 )
 
-                # print(UserDataFile.TEMPLATE_CHOICES)
-                # if user_data_file.template_type == UserDataFile.TEMPLATE_CHOICES:
-                #     user_financial_analysis_service.invalidate_cache()
+                # Invalidate PnL analysis cache if P&L template was uploaded
+                if template_type == 'pnl_template':
+                    try:
+                        pnl_service = UserPNLAnalysisService(request.user)
+                        pnl_service.invalidate_cache()
+                    except Exception as e:
+                        # Log error but don't fail the upload
+                        print(f"Failed to invalidate cache: {str(e)}")
 
                 uploaded_files_info.append(
                     {

@@ -8,6 +8,7 @@ import logging
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from config.instances.minio_client import MINIO_CLIENT
+from config.instances.claude_ai_client import CLAUDE_CLIENT
 from users.models.user_data_file import UserDataFile
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,8 @@ class UserPNLAnalysisService:
     def __init__(self, user):
         self.user = user
         self.minio_client = MINIO_CLIENT
+        # Use Claude client instance
+        self.claude_client = CLAUDE_CLIENT
 
     def get_pnl_analysis(self, start_date: date, end_date: date) -> Dict:
         """
@@ -34,6 +37,8 @@ class UserPNLAnalysisService:
         cached_result = cache.get(cache_key)
 
         if cached_result:
+            # Update cache access order for LRU
+            self._update_cache_access(cache_key)
             logger.info(f"Using cached PnL analysis for user {self.user.id}")
             return cached_result
 
@@ -59,6 +64,11 @@ class UserPNLAnalysisService:
                 pnl_df, start_date, end_date, "year"
             )
 
+            # Generate AI insights
+            ai_insights = self._generate_ai_insights(
+                total_revenue, total_expenses, net_profit, month_changes, year_changes, pnl_data
+            )
+
             # Build response
             result = {
                 "pnl_data": pnl_data.to_dict("records"),
@@ -79,10 +89,11 @@ class UserPNLAnalysisService:
                     "start_date": start_date.isoformat(),
                     "end_date": end_date.isoformat(),
                 },
+                "ai_insights": ai_insights,
             }
 
-            # Cache for 60 seconds
-            cache.set(cache_key, result, 60)
+            # Store in cache with LRU management
+            self._store_in_cache(cache_key, result)
             logger.info(f"Calculated and cached PnL analysis for user {self.user.id}")
 
             return result
@@ -92,6 +103,166 @@ class UserPNLAnalysisService:
                 f"Error calculating PnL analysis " f"for user {self.user.id}: {str(e)}"
             )
             raise
+
+    def _store_in_cache(self, cache_key: str, result: Dict):
+        """Store result in cache with LRU management (max 5 entries per user)"""
+        user_cache_list_key = f"pnl_cache_list_{self.user.id}"
+
+        # Get current cache list for this user
+        cache_list = cache.get(user_cache_list_key, [])
+
+        # Remove the key if it already exists (update scenario)
+        if cache_key in cache_list:
+            cache_list.remove(cache_key)
+
+        # Add new key to the front (most recent)
+        cache_list.insert(0, cache_key)
+
+        # Limit to 5 entries - remove oldest if needed
+        if len(cache_list) > 5:
+            # Delete the oldest cache entry
+            oldest_key = cache_list.pop()
+            cache.delete(oldest_key)
+            logger.info(f"Removed oldest cache entry: {oldest_key}")
+
+        # Update the cache list and store the result
+        cache.set(user_cache_list_key, cache_list, 3600)  # 1 hour TTL
+        cache.set(cache_key, result, 60)  # 1 minute TTL for analysis data
+
+        logger.info(
+            f"Stored cache for user {self.user.id}, "
+            f"total entries: {len(cache_list)}"
+        )
+
+    def _update_cache_access(self, cache_key: str):
+        """Update cache access order for LRU"""
+        user_cache_list_key = f"pnl_cache_list_{self.user.id}"
+        cache_list = cache.get(user_cache_list_key, [])
+
+        if cache_key in cache_list:
+            # Move accessed key to front
+            cache_list.remove(cache_key)
+            cache_list.insert(0, cache_key)
+            cache.set(user_cache_list_key, cache_list, 3600)
+
+    def _generate_ai_insights(
+        self,
+        total_revenue: Decimal,
+        total_expenses: Decimal,
+        net_profit: Decimal,
+        month_changes: Dict,
+        year_changes: Dict,
+        current_period_data: pd.DataFrame,
+    ) -> str:
+        """Generate AI-powered insights summary using Claude"""
+        try:
+            # Prepare data for AI analysis
+            revenue_mom = month_changes["revenue"]["percentage_change"]
+            revenue_yoy = year_changes["revenue"]["percentage_change"]
+            expenses_mom = month_changes["expenses"]["percentage_change"]
+            expenses_yoy = year_changes["expenses"]["percentage_change"]
+            profit_mom = month_changes["net_profit"]["percentage_change"]
+            profit_yoy = year_changes["net_profit"]["percentage_change"]
+
+            # Calculate expense categories for the actual current period
+            expense_categories = self._calculate_expenses_by_categories(current_period_data)
+            
+            # Build expense categories info for prompt
+            expense_info = ""
+
+            for expense_item in expense_categories.items():
+                expense_info += f"\n- {expense_item[0]}: ${expense_item[1]:,.0f}"
+            # Create more specific prompt for Claude analysis
+            user_prompt = f"""
+Analyze this business P&L and provide ONE actionable insight in 15-20 words:
+
+FINANCIALS:
+• Revenue: ${total_revenue:,.0f} ({revenue_mom:+.1f}% MoM, {revenue_yoy:+.1f}% YoY)
+• Expenses: ${total_expenses:,.0f} ({expenses_mom:+.1f}% MoM, {expenses_yoy:+.1f}% YoY)
+• Expenses detailed info with categories: {expense_info}
+• Net Profit: ${net_profit:,.0f} ({profit_mom:+.1f}% MoM, {profit_yoy:+.1f}% YoY)
+
+FOCUS ON:
+1. Most concerning trend (revenue decline, expense growth, margin pressure)
+2. Specific category driving changes
+3. Clear action item
+
+BAD EXAMPLES (avoid these):
+- "Revenue growth outpacing expenses - Investigate opportunities to scale profitable product lines."
+- "Expenses stable but revenue down - Analyze customer acquisition channels for optimization."
+- "Revenue growth outpacing expenses - Invest in scaling high-margin product lines."
+
+GOOD EXAMPLES (use similar format):
+- "Revenue down 15% while Marketing up 25% - optimize ad spend efficiency"
+- "Payroll costs rising 20% faster than revenue - review headcount strategy"  
+- "Strong 12% revenue growth but COGS increasing - negotiate supplier terms"
+- "Marketing driving 30% revenue boost but margins tight - scale profitable channels"
+
+Respond with format: "[Main trend] - [specific action]"
+            """.strip()
+
+            # Call Claude API with proper format
+            insight = self.claude_client.chat_completion(
+                messages=[{"role": "user", "content": user_prompt}],
+                system="You are a CFO providing specific, actionable business insights. Focus on trends and concrete next steps. Keep responses under 20 words.",
+                model="claude-sonnet-4-20250514",
+                max_tokens=50,
+                temperature=0.1,  # Lower temperature for more consistent, focused insights
+            )
+
+            logger.info(f"Generated Claude insight for user {self.user.id}: {insight}")
+            return insight
+
+        except Exception as e:
+            logger.error(f"Failed to generate Claude insights: {str(e)}")
+            # Return fallback insight based on basic analysis
+            return self._generate_fallback_insight(month_changes, year_changes)
+
+    def _calculate_expenses_by_categories(
+        self, pnl_data: pd.DataFrame
+    ) -> Dict[str, float]:
+        """Calculate total expenses for each category"""
+        try:
+            expense_columns = ["COGS", "Payroll", "Rent", "Marketing", "Other_Expenses"]
+
+            if pnl_data.empty:
+                return {}
+
+            category_totals = {}
+            for col in expense_columns:
+                if col in pnl_data.columns:
+                    col_sum = pnl_data[col].sum()
+                    if not pd.isna(col_sum) and col_sum > 0:
+                        category_totals[col] = float(col_sum)
+
+            return category_totals
+
+        except Exception as e:
+            logger.error(f"Error calculating expenses by categories: {str(e)}")
+            return {}
+
+    def _generate_fallback_insight(
+        self, month_changes: Dict, year_changes: Dict
+    ) -> str:
+        """Generate basic insight when AI fails"""
+        try:
+            revenue_yoy = year_changes["revenue"]["percentage_change"]
+            expenses_yoy = year_changes["expenses"]["percentage_change"]
+            profit_mom = month_changes["net_profit"]["percentage_change"]
+
+            if revenue_yoy > 10:
+                return "Strong revenue growth YoY, monitor expense efficiency."
+            elif revenue_yoy < -10:
+                return "Revenue declining YoY, focus on growth initiatives."
+            elif expenses_yoy > revenue_yoy + 5:
+                return "Expenses growing faster than revenue, cost control needed."
+            elif profit_mom > 15:
+                return "Strong profit growth MoM, good operational momentum."
+            else:
+                return "Performance steady, opportunities for optimization."
+
+        except Exception:
+            return "Financial analysis completed, review metrics for trends."
 
     def _filter_pnl_data(
         self, pnl_df: pd.DataFrame, start_date: date, end_date: date
@@ -259,8 +430,16 @@ class UserPNLAnalysisService:
 
     def invalidate_cache(self):
         """Invalidate all cached data for this user"""
-        # Delete all PnL analysis cache entries for this user
-        # Note: We can't easily delete all entries with wildcard,
-        # so we'll need to manage cache keys more systematically
-        logger.info(f"Cache invalidation requested for user {self.user.id}")
-        # For now, cache will expire naturally after 1 hour
+        user_cache_list_key = f"pnl_cache_list_{self.user.id}"
+        cache_list = cache.get(user_cache_list_key, [])
+
+        # Delete all cache entries for this user
+        if cache_list:
+            cache.delete_many(cache_list)
+            logger.info(
+                f"Deleted {len(cache_list)} cache entries for user {self.user.id}"
+            )
+
+        # Delete the cache list itself
+        cache.delete(user_cache_list_key)
+        logger.info(f"Cache invalidated for user {self.user.id}")
