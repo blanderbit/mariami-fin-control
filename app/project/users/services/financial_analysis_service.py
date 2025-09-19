@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-class UserDataAnalysisService:
+class UserFinancialAnalysisService:
     """Service for analyzing user financial data"""
     
     def __init__(self, user):
@@ -37,7 +37,7 @@ class UserDataAnalysisService:
         cached_result = cache.get(cache_key)
         
         if cached_result:
-            logger.info(
+            logger.error(
                 f"Using cached money analysis for user {self.user.id}"
             )
             return cached_result

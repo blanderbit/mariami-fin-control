@@ -9,13 +9,13 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils import timezone
 
-from users.services.financial_analysis_service import UserDataAnalysisService
+from users.services.financial_analysis_service import UserFinancialAnalysisService
 
 User = get_user_model()
 
 
-class UserDataAnalysisServiceTest(TestCase):
-    """Test suite for UserDataAnalysisService"""
+class UserFinancialAnalysisServiceTest(TestCase):
+    """Test suite for UserFinancialAnalysisService"""
     
     def setUp(self):
         """Set up test data and user"""
@@ -23,7 +23,7 @@ class UserDataAnalysisServiceTest(TestCase):
             email='test@example.com',
             password='testpass123'
         )
-        self.service = UserDataAnalysisService(self.user)
+        self.service = UserFinancialAnalysisService(self.user)
         
         # Clear cache before each test
         cache.clear()
@@ -46,7 +46,7 @@ class UserDataAnalysisServiceTest(TestCase):
         cache.clear()
     
     @patch('users.services.financial_analysis_service.'
-           'UserDataAnalysisService._get_dataframe_from_file')
+           'UserFinancialAnalysisService._get_dataframe_from_file')
     def test_monthly_financial_analysis_september_2025(self, mock_get_dataframe):
         """Test month-to-month analysis for September 2025"""
         # Mock the current date to September 2025
@@ -92,7 +92,7 @@ class UserDataAnalysisServiceTest(TestCase):
             self.assertEqual(result['currency'], 'USD')
     
     @patch('users.services.financial_analysis_service.'
-           'UserDataAnalysisService._get_dataframe_from_file')
+           'UserFinancialAnalysisService._get_dataframe_from_file')
     def test_yearly_financial_analysis_2025(self, mock_get_dataframe):
         """Test year-to-year analysis for 2025"""
         with patch('django.utils.timezone.now') as mock_now:
@@ -132,7 +132,7 @@ class UserDataAnalysisServiceTest(TestCase):
             self.assertTrue(revenue_data['is_positive_change'])
     
     @patch('users.services.financial_analysis_service.'
-           'UserDataAnalysisService._get_dataframe_from_file')
+           'UserFinancialAnalysisService._get_dataframe_from_file')
     def test_no_data_available(self, mock_get_dataframe):
         """Test when no P&L data is available"""
         mock_get_dataframe.return_value = None
@@ -160,7 +160,7 @@ class UserDataAnalysisServiceTest(TestCase):
             self.assertEqual(net_profit_data['previous'], 0.0)
     
     @patch('users.services.financial_analysis_service.'
-           'UserDataAnalysisService._get_dataframe_from_file')
+           'UserFinancialAnalysisService._get_dataframe_from_file')
     def test_invalid_pnl_data_structure(self, mock_get_dataframe):
         """Test with P&L data missing required columns"""
         # Create DataFrame without Revenue column
@@ -182,7 +182,7 @@ class UserDataAnalysisServiceTest(TestCase):
             self.assertEqual(revenue_data['previous'], 0.0)
     
     @patch('users.services.financial_analysis_service.'
-           'UserDataAnalysisService._get_dataframe_from_file')
+           'UserFinancialAnalysisService._get_dataframe_from_file')
     def test_caching_functionality(self, mock_get_dataframe):
         """Test that results are properly cached"""
         mock_get_dataframe.return_value = self.mock_pnl_data
@@ -203,7 +203,7 @@ class UserDataAnalysisServiceTest(TestCase):
             self.assertEqual(mock_get_dataframe.call_count, 1)
     
     @patch('users.services.financial_analysis_service.'
-           'UserDataAnalysisService._get_dataframe_from_file')
+           'UserFinancialAnalysisService._get_dataframe_from_file')
     def test_negative_growth(self, mock_get_dataframe):
         """Test scenario with negative revenue growth"""
         # Create data where current period is lower than previous
@@ -285,7 +285,7 @@ class UserDataAnalysisServiceTest(TestCase):
         self.assertEqual(result, Decimal('0'))
     
     @patch('users.services.financial_analysis_service.'
-           'UserDataAnalysisService._get_dataframe_from_file')
+           'UserFinancialAnalysisService._get_dataframe_from_file')
     def test_expenses_calculation(self, mock_get_dataframe):
         """Test expenses calculation from P&L data"""
         # Mock P&L data with known expense values
@@ -317,7 +317,7 @@ class UserDataAnalysisServiceTest(TestCase):
             self.assertTrue(expenses_data['is_positive_change'])
     
     @patch('users.services.financial_analysis_service.'
-           'UserDataAnalysisService._get_dataframe_from_file')
+           'UserFinancialAnalysisService._get_dataframe_from_file')
     def test_net_profit_calculation(self, mock_get_dataframe):
         """Test net profit calculation (revenue - expenses)"""
         mock_get_dataframe.return_value = self.mock_pnl_data
@@ -347,7 +347,7 @@ class UserDataAnalysisServiceTest(TestCase):
             )
     
     @patch('users.services.financial_analysis_service.'
-           'UserDataAnalysisService._get_dataframe_from_file')
+           'UserFinancialAnalysisService._get_dataframe_from_file')
     def test_missing_expense_columns(self, mock_get_dataframe):
         """Test behavior when some expense columns are missing"""
         # P&L data missing some expense columns
@@ -409,6 +409,6 @@ class FinancialAnalysisIntegrationTest(TestCase):
         # 4. Verifies the complete workflow
         
         # For now, we'll just test that the service can be instantiated
-        service = UserDataAnalysisService(self.user)
+        service = UserFinancialAnalysisService(self.user)
         self.assertIsNotNone(service)
         self.assertEqual(service.user, self.user)

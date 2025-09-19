@@ -10,7 +10,7 @@ from users.serializers.financial_analysis_serializer import (
     FinancialAnalysisQuerySerializer,
     FinancialAnalysisResponseSerializer
 )
-from users.services.financial_analysis_service import UserDataAnalysisService
+from users.services.financial_analysis_service import UserFinancialAnalysisService
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ class FinancialAnalysisAPIView(APIView):
         
         try:
             # Initialize analysis service
-            analysis_service = UserDataAnalysisService(request.user)
+            analysis_service = UserFinancialAnalysisService(request.user)
             
             # Get comprehensive financial analysis
             analysis_result = analysis_service.get_financial_analysis(
