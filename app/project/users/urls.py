@@ -6,9 +6,7 @@ from users.views.admin import (
 )
 from users.views import CheckIsUserAdminView
 from users.views.file_upload_views import UploadUserDataAPIView
-from users.views.financial_analysis_view import (
-    FinancialAnalysisAPIView
-)
+from users.views.pnl_analysis_view import PNLAnalysisAPIView
 
 urlpatterns = [
     path("admin/users", UsersListView.as_view(), name="users-list"),
@@ -25,9 +23,9 @@ urlpatterns = [
         name="upload-data-files"
     ),
     path(
-        "financial-analysis",
-        FinancialAnalysisAPIView.as_view(),
-        name="financial-analysis"
+        "pnl-analysis",
+        PNLAnalysisAPIView.as_view(),
+        name="pnl-analysis"
     ),
 ]
     

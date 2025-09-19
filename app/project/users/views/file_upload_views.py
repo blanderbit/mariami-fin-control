@@ -11,9 +11,8 @@ from users.serializers.file_upload_serializers import (
     UploadUserDataSerializer,
     UploadUserDataResponseSerializer,
 )
-from users.models.user_data_file import UserDataFile
+from users.models import UserDataFile, UserModel
 from config.instances.minio_client import MINIO_CLIENT
-from users.services import UserFinancialAnalysisService
 
 
 class UploadUserDataAPIView(APIView):
@@ -46,8 +45,6 @@ class UploadUserDataAPIView(APIView):
 
         serializer = UploadUserDataSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        user_financial_analysis_service = UserFinancialAnalysisService(request.user)
 
         try:
             uploaded_files_info = []
@@ -82,7 +79,7 @@ class UploadUserDataAPIView(APIView):
                 # Upload file to MinIO
                 file.seek(0)  # Reset file pointer
                 MINIO_CLIENT.upload_file(
-                    bucket_name="user-data",
+                    bucket_name='user-data',
                     object_name=object_name,
                     file_data=file,
                     file_size=file.size,
@@ -103,9 +100,9 @@ class UploadUserDataAPIView(APIView):
                     },
                 )
 
-                print(UserDataFile.TEMPLATE_CHOICES)
-                if user_data_file.template_type == UserDataFile.TEMPLATE_CHOICES:
-                    user_financial_analysis_service.invalidate_cache()
+                # print(UserDataFile.TEMPLATE_CHOICES)
+                # if user_data_file.template_type == UserDataFile.TEMPLATE_CHOICES:
+                #     user_financial_analysis_service.invalidate_cache()
 
                 uploaded_files_info.append(
                     {
