@@ -166,4 +166,34 @@ export async function uploadDataFilesRequest(data: UploadDataFilesRequest): Prom
     }
 }
 
+export type FinancialAnalysisRequest = {
+    period: 'month' | 'year';
+};
+
+export type FinancialMetric = {
+    current: number;
+    previous: number;
+    change: number;
+    percentage_change: number;
+    is_positive_change: boolean;
+};
+
+export type FinancialAnalysisResponse = {
+    period_type: string;
+    revenue_data: FinancialMetric;
+    expenses_data: FinancialMetric;
+    net_profit_data: FinancialMetric;
+    currency: string;
+};
+
+export async function getFinancialAnalysisRequest(data: FinancialAnalysisRequest): Promise<FinancialAnalysisResponse> {
+    try {
+        const res = await api.users.usersFinancialAnalysisList(data) as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to get financial analysis:', error);
+        throw error;
+    }
+}
+
 

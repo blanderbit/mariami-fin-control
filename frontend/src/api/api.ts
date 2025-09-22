@@ -262,6 +262,56 @@ export interface UsersList {
   profile?: number | null;
 }
 
+/** Revenue analysis data */
+export interface FinancialMetric {
+  /**
+   * Current
+   * Value for current period
+   */
+  current: number;
+  /**
+   * Previous
+   * Value for previous period
+   */
+  previous: number;
+  /**
+   * Change
+   * Absolute change between periods
+   */
+  change: number;
+  /**
+   * Percentage change
+   * Percentage change between periods
+   */
+  percentage_change: number;
+  /**
+   * Is positive change
+   * Whether the change is positive
+   */
+  is_positive_change: boolean;
+}
+
+export interface FinancialAnalysisResponse {
+  /**
+   * Period type
+   * Type of period used for analysis (month/year)
+   * @minLength 1
+   */
+  period_type: string;
+  /** Revenue analysis data */
+  revenue_data: FinancialMetric;
+  /** Revenue analysis data */
+  expenses_data: FinancialMetric;
+  /** Revenue analysis data */
+  net_profit_data: FinancialMetric;
+  /**
+   * Currency
+   * Currency code
+   * @minLength 1
+   */
+  currency: string;
+}
+
 export interface UploadUserDataResponse {
   /** Success */
   success: boolean;
@@ -810,6 +860,31 @@ export class Api<
         method: "GET",
         query: query,
         secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Comprehensive financial analysis including revenue, expenses, and net profit comparing current period with previous. Supports month-to-month and year-to-year comparisons. Revenue: calculated from Revenue column in P&L files. Expenses: sum of COGS, Payroll, Rent, Marketing, Other_Expenses. Net Profit: revenue minus expenses.
+     *
+     * @tags Analytics
+     * @name UsersFinancialAnalysisList
+     * @summary Get comprehensive money analysis
+     * @request GET:/users/financial-analysis
+     * @secure
+     */
+    usersFinancialAnalysisList: (
+      query: {
+        /** Analysis period: 'month' for month-to-month comparison, 'year' for year-to-year comparison */
+        period: "month" | "year";
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<FinancialAnalysisResponse, void>({
+        path: `/users/financial-analysis`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
         ...params,
       }),
 
