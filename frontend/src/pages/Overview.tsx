@@ -18,7 +18,7 @@ import {
     ShoppingCart
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { updateOnboardingRequest, getOnboardingStatusRequest, OnboardingData } from '../api/auth';
+import { updateOnboardingRequest, getOnboardingStatusRequest, OnboardingData, getCurrenciesRequest, Currency } from '../api/auth';
 
 const countries = [
     { code: 'US', name: 'United States' },
@@ -39,18 +39,6 @@ const countries = [
     { code: 'HK', name: 'Hong Kong' },
 ];
 
-const currencies = [
-    { code: 'USD', name: 'US Dollar' },
-    { code: 'EUR', name: 'Euro' },
-    { code: 'GBP', name: 'British Pound' },
-    { code: 'CAD', name: 'Canadian Dollar' },
-    { code: 'AUD', name: 'Australian Dollar' },
-    { code: 'JPY', name: 'Japanese Yen' },
-    { code: 'CHF', name: 'Swiss Franc' },
-    { code: 'SEK', name: 'Swedish Krona' },
-    { code: 'NOK', name: 'Norwegian Krone' },
-    { code: 'DKK', name: 'Danish Krone' },
-];
 
 const industries = [
     'Services',
@@ -92,10 +80,13 @@ const Overview: React.FC = () => {
     const [editingProfile, setEditingProfile] = useState<any>({});
     const [isSaving, setIsSaving] = useState(false);
     const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+    const [currencies, setCurrencies] = useState<Currency[]>([]);
+    const [currenciesLoading, setCurrenciesLoading] = useState(true);
 
     useEffect(() => {
         loadProfileData();
         loadIntegrations();
+        loadCurrencies();
     }, []);
 
     const loadProfileData = async () => {
@@ -129,6 +120,17 @@ const Overview: React.FC = () => {
         setCompany(companyData);
         } finally {
             setIsLoadingProfile(false);
+        }
+    };
+
+    const loadCurrencies = async () => {
+        try {
+            const currencies = await getCurrenciesRequest();
+            setCurrencies(currencies);
+        } catch (error) {
+            console.error('Failed to load currencies:', error);
+        } finally {
+            setCurrenciesLoading(false);
         }
     };
 
@@ -496,11 +498,18 @@ const Overview: React.FC = () => {
                                     <select
                                         value={editingProfile.currency || ''}
                                         onChange={(e) => handleProfileChange('currency', e.target.value)}
-                                        className="w-full mt-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                                        disabled={currenciesLoading}
+                                        className={`w-full mt-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                                            currenciesLoading ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
                                     >
-                                        <option value="">Select currency</option>
+                                        <option value="">
+                                            {currenciesLoading ? 'Loading currencies...' : 'Select currency'}
+                                        </option>
                                         {currencies.map(currency => (
-                                            <option key={currency.code} value={currency.code}>{currency.code} - {currency.name}</option>
+                                            <option key={currency.code} value={currency.code}>
+                                                {currency.code} - {currency.name} ({currency.symbol})
+                                            </option>
                                         ))}
                                     </select>
                                 ) : (

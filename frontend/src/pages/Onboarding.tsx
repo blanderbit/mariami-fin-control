@@ -21,6 +21,12 @@ const Onboarding: React.FC = () => {
             return;
         }
 
+        // Если онбординг завершен (все обязательные поля заполнены), перенаправляем на дашборд
+        if (onboardingStatus && onboardingStatus.is_onboarded) {
+            navigate('/dashboard');
+            return;
+        }
+
         // Если нет данных онбординга, загружаем их
         if (!onboardingStatus) {
             // Данные будут загружены через AuthContext
@@ -42,12 +48,6 @@ const Onboarding: React.FC = () => {
 
     // Определяем начальный степ на основе заполненных полей
     const currentStep = getCurrentOnboardingStep(onboardingStatus.profile) || 1;
-    
-    // Если онбординг завершен (все обязательные поля заполнены), перенаправляем на дашборд
-    if (onboardingStatus.is_onboarded) {
-        navigate('/dashboard');
-        return null;
-    }
 
     return (
         <OnboardingStepper 

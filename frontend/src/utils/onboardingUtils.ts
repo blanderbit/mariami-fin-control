@@ -3,7 +3,7 @@ import { OnboardingData } from '../api/auth';
 // Обязательные поля для каждого степа
 const STEP_REQUIRED_FIELDS = {
     1: ['country', 'currency', 'industry', 'fiscal_year_start'],
-    2: ['update_frequency', 'primary_focus', 'business_model'],
+    2: ['update_frequency', 'primary_focus', 'business_model', 'current_cash'],
     3: [] // Интеграции не обязательны
 };
 
@@ -120,6 +120,7 @@ export function getStepData(profile: OnboardingData, step: number): Partial<Onbo
                 business_model: profile.business_model,
                 multicurrency: profile.multicurrency,
                 capital_reserve_target: profile.capital_reserve_target,
+                current_cash: profile.current_cash,
             };
         case 3:
             return {}; // Интеграции пока не реализованы

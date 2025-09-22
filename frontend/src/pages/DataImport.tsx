@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Download,
     Upload,
@@ -11,7 +11,7 @@ import {
     Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { uploadDataFilesRequest, UploadDataFilesResponse } from '../api/auth';
+import { uploadDataFilesRequest, UploadDataFilesResponse, updateOnboardingRequest, getOnboardingStatusRequest } from '../api/auth';
 
 interface UploadedFile {
     name: string;
@@ -29,6 +29,8 @@ const DataImport: React.FC = () => {
     const [currentCashBalance, setCurrentCashBalance] = useState<number>(0);
     const [isUploading, setIsUploading] = useState<boolean>(false);
     const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
+    const [isUpdatingCash, setIsUpdatingCash] = useState<boolean>(false);
+    const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(true);
 
     // Get company data
     const company = JSON.parse(localStorage.getItem('company') || '{}');
@@ -61,6 +63,36 @@ const DataImport: React.FC = () => {
         a.click();
         URL.revokeObjectURL(url);
     };
+
+    const loadProfileData = async () => {
+        try {
+            setIsLoadingProfile(true);
+            const onboardingStatus = await getOnboardingStatusRequest();
+            if (onboardingStatus && onboardingStatus.profile && onboardingStatus.profile.current_cash) {
+                setCurrentCashBalance(parseFloat(onboardingStatus.profile.current_cash));
+            }
+        } catch (error) {
+            console.error('Failed to load profile data:', error);
+        } finally {
+            setIsLoadingProfile(false);
+        }
+    };
+
+    const updateCurrentCashBalance = async (value: number) => {
+        try {
+            setIsUpdatingCash(true);
+            await updateOnboardingRequest({ current_cash: value.toString() });
+        } catch (error) {
+            console.error('Failed to update current cash balance:', error);
+        } finally {
+            setIsUpdatingCash(false);
+        }
+    };
+
+    // Загружаем данные профиля при монтировании компонента
+    useEffect(() => {
+        loadProfileData();
+    }, []);
 
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, fileType: string) => {
         const file = event.target.files?.[0];
@@ -339,21 +371,51 @@ const DataImport: React.FC = () => {
                     <div className="flex-1">
                         <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Step 4 — Current Cash Balance</h4>
                         <p className="text-gray-600 dark:text-gray-400 mb-2">Optional: enter your current bank balance</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">Used to calculate Ending Cash. If empty, we will show only Net Cash Flow.</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500 mb-2">Used to calculate Ending Cash. If empty, we will show only Net Cash Flow.</p>
+                        
+                        {/* Отображение текущего значения */}
+                        {!isLoadingProfile && (
+                            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                                <p className="text-sm text-blue-700 dark:text-blue-300">
+                                    <span className="font-medium">Current value:</span> {currentCashBalance ? `${currentCashBalance.toLocaleString()} ${baseCurrency}` : 'Not set'}
+                                </p>
+                            </div>
+                        )}
 
-                        <div className="max-w-xs">
-                            <div className="relative">
-                                <input
-                                    type="number"
-                                    min="0"
-                                    value={currentCashBalance || ''}
-                                    onChange={(e) => setCurrentCashBalance(parseFloat(e.target.value) || 0)}
-                                    className="w-full pl-4 pr-16 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-900 dark:text-gray-100"
-                                    placeholder="e.g. 12,500"
-                                />
-                                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
-                  {baseCurrency}
-                </span>
+                        <div className="max-w-md">
+                            <div className="flex space-x-3">
+                                <div className="relative flex-1">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={currentCashBalance || ''}
+                                        onChange={(e) => {
+                                            const value = parseFloat(e.target.value) || 0;
+                                            setCurrentCashBalance(value);
+                                        }}
+                                        className="w-full pl-4 pr-16 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-900 dark:text-gray-100"
+                                        placeholder="e.g. 12,500"
+                                    />
+                                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
+                                        {baseCurrency}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => updateCurrentCashBalance(currentCashBalance)}
+                                    disabled={isUpdatingCash}
+                                    className={`px-4 py-3 rounded-lg font-medium transition-colors ${
+                                        isUpdatingCash
+                                            ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                    }`}
+                                >
+                                    {isUpdatingCash ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        'Update'
+                                    )}
+                                </button>
                             </div>
                         </div>
                     </div>

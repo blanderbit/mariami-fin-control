@@ -124,6 +124,7 @@ export type OnboardingData = {
     business_model?: string;
     multicurrency?: boolean;
     capital_reserve_target?: string | null;
+    current_cash?: string | null;
 };
 
 export type OnboardingStatus = {
@@ -192,6 +193,33 @@ export async function getFinancialAnalysisRequest(data: FinancialAnalysisRequest
         return res.data || res;
     } catch (error) {
         console.error('Failed to get financial analysis:', error);
+        throw error;
+    }
+}
+
+export type Currency = {
+    code: string;
+    name: string;
+    symbol: string;
+};
+
+export type CurrenciesResponse = {
+    status: string;
+    code: number;
+    data: {
+        currencies: Currency[];
+        count: number;
+    };
+    message: string | null;
+};
+
+export async function getCurrenciesRequest(): Promise<Currency[]> {
+    try {
+        const res = await api.profile.profileCurrenciesList() as any;
+        const response = res.data || res;
+        return response.data?.currencies || [];
+    } catch (error) {
+        console.error('Failed to get currencies:', error);
         throw error;
     }
 }

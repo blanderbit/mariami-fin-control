@@ -23,7 +23,7 @@ import {
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { updateOnboardingRequest, OnboardingData } from '../api/auth';
+import { updateOnboardingRequest, OnboardingData, getCurrenciesRequest, Currency } from '../api/auth';
 import { getStepData } from '../utils/onboardingUtils';
 import Logo from "../assets/FinclAI Logo Blue.png";
 
@@ -46,18 +46,6 @@ const countries = [
     { code: 'HK', name: 'Hong Kong' },
 ];
 
-const currencies = [
-    { code: 'USD', name: 'US Dollar' },
-    { code: 'EUR', name: 'Euro' },
-    { code: 'GBP', name: 'British Pound' },
-    { code: 'CAD', name: 'Canadian Dollar' },
-    { code: 'AUD', name: 'Australian Dollar' },
-    { code: 'JPY', name: 'Japanese Yen' },
-    { code: 'CHF', name: 'Swiss Franc' },
-    { code: 'SEK', name: 'Swedish Krona' },
-    { code: 'NOK', name: 'Norwegian Krone' },
-    { code: 'DKK', name: 'Danish Krone' },
-];
 
 const industries = [
     'Services',
@@ -115,9 +103,28 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = ({
         business_model: '',
         multicurrency: false,
         capital_reserve_target: null,
+        current_cash: null,
     });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [loading, setLoading] = useState(false);
+    const [currencies, setCurrencies] = useState<Currency[]>([]);
+    const [currenciesLoading, setCurrenciesLoading] = useState(true);
+
+    // Загружаем список валют при монтировании компонента
+    useEffect(() => {
+        const loadCurrencies = async () => {
+            try {
+                const currencies = await getCurrenciesRequest();
+                setCurrencies(currencies);
+            } catch (error) {
+                console.error('Failed to load currencies:', error);
+            } finally {
+                setCurrenciesLoading(false);
+            }
+        };
+
+        loadCurrencies();
+    }, []);
 
     // Определяем обязательные поля для каждого степа
     const getRequiredFieldsForStep = (step: number): string[] => {
@@ -125,7 +132,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = ({
             case 1:
                 return ['country', 'currency', 'industry', 'fiscal_year_start'];
             case 2:
-                return ['update_frequency', 'primary_focus', 'business_model'];
+                return ['update_frequency', 'primary_focus', 'business_model', 'current_cash'];
             case 3:
                 return []; // Интеграции не обязательны
             default:
@@ -241,13 +248,18 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = ({
                     <select
                         value={profile.currency || ''}
                         onChange={(e) => handleInputChange('currency', e.target.value)}
+                        disabled={currenciesLoading}
                         className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
                             errors.currency ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-                        }`}
+                        } ${currenciesLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        <option value="">Select currency</option>
+                        <option value="">
+                            {currenciesLoading ? 'Loading currencies...' : 'Select currency'}
+                        </option>
                         {currencies.map(currency => (
-                            <option key={currency.code} value={currency.code}>{currency.code} - {currency.name}</option>
+                            <option key={currency.code} value={currency.code}>
+                                {currency.code} - {currency.name} ({currency.symbol})
+                            </option>
                         ))}
                     </select>
                 </div>
@@ -416,6 +428,27 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = ({
                         placeholder="0.00"
                     />
                 </div>
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Current Cash Balance *
+                </label>
+                <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={profile.current_cash || ''}
+                        onChange={(e) => handleInputChange('current_cash', e.target.value)}
+                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                            errors.current_cash ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                        placeholder="0.00"
+                    />
+                </div>
+                {errors.current_cash && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.current_cash}</p>}
             </div>
         </div>
     );

@@ -163,9 +163,20 @@ export interface Onboarding {
   industry?: string | null;
   /**
    * Currency
-   * @maxLength 10
+   * Primary business currency
    */
-  currency?: string | null;
+  currency?:
+    | "USD"
+    | "EUR"
+    | "GBP"
+    | "CAD"
+    | "AUD"
+    | "JPY"
+    | "CHF"
+    | "SEK"
+    | "NOK"
+    | "DKK"
+    | null;
   /**
    * Fiscal year start
    * Fiscal year start date
@@ -185,9 +196,16 @@ export interface Onboarding {
   multicurrency?: boolean;
   /**
    * Capital reserve target
+   * Target amount for capital reserves
    * @format decimal
    */
   capital_reserve_target?: string | null;
+  /**
+   * Current cash
+   * Current cash available
+   * @format decimal
+   */
+  current_cash?: string | null;
 }
 
 export interface GetMyProfile {
@@ -260,56 +278,6 @@ export interface UsersList {
   updated_at?: string;
   /** Profile */
   profile?: number | null;
-}
-
-/** Revenue analysis data */
-export interface FinancialMetric {
-  /**
-   * Current
-   * Value for current period
-   */
-  current: number;
-  /**
-   * Previous
-   * Value for previous period
-   */
-  previous: number;
-  /**
-   * Change
-   * Absolute change between periods
-   */
-  change: number;
-  /**
-   * Percentage change
-   * Percentage change between periods
-   */
-  percentage_change: number;
-  /**
-   * Is positive change
-   * Whether the change is positive
-   */
-  is_positive_change: boolean;
-}
-
-export interface FinancialAnalysisResponse {
-  /**
-   * Period type
-   * Type of period used for analysis (month/year)
-   * @minLength 1
-   */
-  period_type: string;
-  /** Revenue analysis data */
-  revenue_data: FinancialMetric;
-  /** Revenue analysis data */
-  expenses_data: FinancialMetric;
-  /** Revenue analysis data */
-  net_profit_data: FinancialMetric;
-  /**
-   * Currency
-   * Currency code
-   * @minLength 1
-   */
-  currency: string;
 }
 
 export interface UploadUserDataResponse {
@@ -700,6 +668,22 @@ export class Api<
   };
   profile = {
     /**
+     * @description Get list of all supported currencies
+     *
+     * @tags profile
+     * @name ProfileCurrenciesList
+     * @request GET:/profile/currencies
+     * @secure
+     */
+    profileCurrenciesList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/profile/currencies`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
      * @description Update profile data during onboarding process
      *
      * @tags profile
@@ -864,23 +848,32 @@ export class Api<
       }),
 
     /**
-     * @description Comprehensive financial analysis including revenue, expenses, and net profit comparing current period with previous. Supports month-to-month and year-to-year comparisons. Revenue: calculated from Revenue column in P&L files. Expenses: sum of COGS, Payroll, Rent, Marketing, Other_Expenses. Net Profit: revenue minus expenses.
+     * @description Get P&L analysis for a specific date range. This endpoint: 1. Fetches user's P&L data for the specified period 2. Returns the filtered P&L data as a list 3. Calculates total revenue (sum of Revenue column) 4. Calculates total expenses (sum of all expenses fields) 5. Calculates net profit (revenue - expenses) 6. Provides 1-month and 1-year comparison with percentage changes The response includes: - pnl_data: Array of P&L records for the requested period - total_revenue: Sum of all revenue for the period - total_expenses: Sum of all expense categories for the period - net_profit: Total revenue minus total expenses - month_change: Comparison with same period 1 month ago - year_change: Comparison with same period 1 year ago
      *
-     * @tags Analytics
-     * @name UsersFinancialAnalysisList
-     * @summary Get comprehensive money analysis
-     * @request GET:/users/financial-analysis
+     * @tags users
+     * @name GetPnlAnalysis
+     * @request GET:/users/pnl-analysis
      * @secure
      */
-    usersFinancialAnalysisList: (
+    getPnlAnalysis: (
       query: {
-        /** Analysis period: 'month' for month-to-month comparison, 'year' for year-to-year comparison */
-        period: "month" | "year";
+        /**
+         * Start date for analysis period (YYYY-MM-DD format)
+         * @format date
+         * @example "2024-01-01"
+         */
+        start_date: string;
+        /**
+         * End date for analysis period (YYYY-MM-DD format)
+         * @format date
+         * @example "2024-12-31"
+         */
+        end_date: string;
       },
       params: RequestParams = {},
     ) =>
-      this.request<FinancialAnalysisResponse, void>({
-        path: `/users/financial-analysis`,
+      this.request<void, void>({
+        path: `/users/pnl-analysis`,
         method: "GET",
         query: query,
         secure: true,
