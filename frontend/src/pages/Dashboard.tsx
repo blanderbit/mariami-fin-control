@@ -33,7 +33,18 @@ import {
     ResponsiveContainer,
     Cell
 } from 'recharts';
-import { format, startOfMonth, endOfMonth, subMonths, parseISO } from 'date-fns';
+import {
+    format,
+    startOfMonth,
+    endOfMonth,
+    subMonths,
+    parseISO,
+    startOfYear,
+    endOfYear,
+    subYears,
+    startOfDay,
+    endOfDay
+} from 'date-fns';
 import { revenues } from '../data/seedData';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -79,10 +90,83 @@ interface ChartData {
 
 const Dashboard: React.FC = () => {
     const { theme } = useTheme();
-    
+
+    // Period selection state
+    const [selectedPeriod, setSelectedPeriod] = useState('This month');
+
+    // Custom range state
+    const [customStartDate, setCustomStartDate] = useState('');
+    const [customEndDate, setCustomEndDate] = useState('');
+    const [showCustomRange, setShowCustomRange] = useState(false);
+
     // Get company data
     const company = JSON.parse(localStorage.getItem('company') || '{}');
     const baseCurrency = company.profile?.baseCurrency || 'USD';
+
+    // Function to get period dates based on selected period
+    const getPeriodDates = (period: string) => {
+        const now = new Date();
+        let startDate: Date;
+        let endDate: Date;
+
+        switch (period) {
+            case 'This month':
+                startDate = startOfMonth(now);
+                endDate = endOfMonth(now);
+                break;
+            case 'Last 3 months':
+                startDate = startOfMonth(subMonths(now, 2));
+                endDate = endOfMonth(now);
+                break;
+            case 'Last 6 months':
+                startDate = startOfMonth(subMonths(now, 5));
+                endDate = endOfMonth(now);
+                break;
+            case 'Last 12 months':
+                startDate = startOfMonth(subMonths(now, 11));
+                endDate = endOfMonth(now);
+                break;
+            case 'Year to date':
+                startDate = startOfYear(now);
+                endDate = endOfDay(now);
+                break;
+            case 'Custom range':
+                // Use custom dates if available, otherwise use current month
+                if (customStartDate && customEndDate) {
+                    startDate = parseISO(customStartDate);
+                    endDate = parseISO(customEndDate);
+                } else {
+                    startDate = startOfMonth(now);
+                    endDate = endOfMonth(now);
+                }
+                break;
+            default:
+                startDate = startOfMonth(now);
+                endDate = endOfMonth(now);
+        }
+
+        return {
+            start_date: format(startDate, 'yyyy-MM-dd'),
+            end_date: format(endDate, 'yyyy-MM-dd')
+        };
+    };
+
+    // Handle period change
+    const handlePeriodChange = (period: string) => {
+        setSelectedPeriod(period);
+        if (period === 'Custom range') {
+            setShowCustomRange(true);
+        } else {
+            setShowCustomRange(false);
+        }
+    };
+
+    // Get current period dates
+    const periodDates = getPeriodDates(selectedPeriod);
+
+    // Debug: Log current period dates
+    console.log('Selected period:', selectedPeriod);
+    console.log('Period dates:', periodDates);
 
     // Mock API data generation
     const pulseKPIs = useMemo((): PulseKPI => {
@@ -107,7 +191,29 @@ const Dashboard: React.FC = () => {
         const revenue = [];
         const expenses_total = [];
 
-        for (let i = 5; i >= 0; i--) {
+        // Calculate number of months based on selected period
+        let monthsToShow = 6; // default
+        switch (selectedPeriod) {
+            case 'This month':
+                monthsToShow = 1;
+                break;
+            case 'Last 3 months':
+                monthsToShow = 3;
+                break;
+            case 'Last 6 months':
+                monthsToShow = 6;
+                break;
+            case 'Last 12 months':
+                monthsToShow = 12;
+                break;
+            case 'Year to date':
+                monthsToShow = new Date().getMonth() + 1; // current month number
+                break;
+            default:
+                monthsToShow = 6;
+        }
+
+        for (let i = monthsToShow - 1; i >= 0; i--) {
             const date = subMonths(new Date(), i);
             months.push(format(date, 'yyyy-MM'));
             revenue.push(45000 + Math.random() * 10000 - 5000);
@@ -129,7 +235,7 @@ const Dashboard: React.FC = () => {
             expenses_by_category,
             story: "🔥 Expenses +25% MoM; Revenue −10% YoY. Marketing spend driving customer acquisition but impacting short-term margins."
         };
-    }, []);
+    }, [selectedPeriod]);
 
     const expenseChips = useMemo((): ExpenseChip[] => [
         { category: 'Payroll', amount: 15000, pct: 46.9, icon: 'users' },
@@ -265,10 +371,97 @@ const Dashboard: React.FC = () => {
             className="max-w-7xl mx-auto space-y-8"
         >
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Business Pulse</h1>
-                <p className="text-gray-600 dark:text-gray-400">Your company's financial heartbeat, risks, and next steps</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Business Pulse</h1>
+                    <p className="text-gray-600 dark:text-gray-400">Your company's financial heartbeat, risks, and next steps</p>
+                </div>
+
+                {/* Period Selector */}
+                <div className="flex items-center space-x-3">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Period:</span>
+                    <select
+                        value={selectedPeriod}
+                        onChange={(e) => handlePeriodChange(e.target.value)}
+                        className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        <option value="This month">This month</option>
+                        <option value="Last 3 months">Last 3 months</option>
+                        <option value="Last 6 months">Last 6 months</option>
+                        <option value="Last 12 months">Last 12 months</option>
+                        <option value="Year to date">Year to date</option>
+                        <option value="Custom range">Custom range</option>
+                    </select>
+                </div>
             </div>
+
+            {/* Custom Date Range Selector */}
+            {showCustomRange && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Select Custom Date Range</h3>
+
+                    <div className="flex items-center space-x-4 mb-4">
+                        <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Start Date
+                            </label>
+                            <input
+                                type="date"
+                                value={customStartDate}
+                                onChange={(e) => setCustomStartDate(e.target.value)}
+                                max={customEndDate || undefined}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                        </div>
+
+                        <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                End Date
+                            </label>
+                            <input
+                                type="date"
+                                value={customEndDate}
+                                onChange={(e) => setCustomEndDate(e.target.value)}
+                                min={customStartDate || undefined}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Validation message */}
+                    {customStartDate && customEndDate && customStartDate > customEndDate && (
+                        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-md">
+                            <p className="text-sm text-red-800 dark:text-red-200">
+                                End date must be on or after start date.
+                            </p>
+                        </div>
+                    )}
+
+                    <div className="flex justify-end space-x-3">
+                        <button
+                            onClick={() => {
+                                setCustomStartDate('');
+                                setCustomEndDate('');
+                            }}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={() => {
+                                if (customStartDate && customEndDate && customStartDate <= customEndDate) {
+                                    setShowCustomRange(false);
+                                    // Period is already set to 'Custom range'
+                                }
+                            }}
+                            disabled={!customStartDate || !customEndDate || customStartDate > customEndDate}
+                            className="px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors"
+                        >
+                            Apply
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* KPI Pulse Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
@@ -305,7 +498,7 @@ const Dashboard: React.FC = () => {
 
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-blue-500">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Net Profit</h3>
+                        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Operating Profit</h3>
                         <div className={getStatusColor('trend', pulseKPIs.net_profit, 12)}>
                             {getStatusIcon('trend', pulseKPIs.net_profit, 12)}
                         </div>
@@ -363,8 +556,8 @@ const Dashboard: React.FC = () => {
                         <ComposedChart data={stackedChartData}>
                             <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} />
                             <XAxis dataKey="month" stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} />
-                            <YAxis 
-                                tickFormatter={(value) => formatCurrency(value).replace(/\$|,/g, '')} 
+                            <YAxis
+                                tickFormatter={(value) => formatCurrency(value).replace(/\$|,/g, '')}
                                 stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
                             />
                             <Tooltip
