@@ -47,6 +47,7 @@ import {
 } from 'date-fns';
 import { revenues } from '../data/seedData';
 import { useTheme } from '../contexts/ThemeContext';
+import { getPnLAnalysisRequest, PnLAnalysisResponse, PnLDataItem } from '../api/auth';
 
 interface PulseKPI {
     revenue: number;
@@ -98,6 +99,17 @@ const Dashboard: React.FC = () => {
     const [customStartDate, setCustomStartDate] = useState('');
     const [customEndDate, setCustomEndDate] = useState('');
     const [showCustomRange, setShowCustomRange] = useState(false);
+
+    // P&L Analysis state
+    const [pnlData, setPnlData] = useState<PnLAnalysisResponse | null>(null);
+    const [isLoadingPnl, setIsLoadingPnl] = useState(false);
+    const [pnlError, setPnlError] = useState<string | null>(null);
+
+    // Date picker states
+    const [showOverdueDatePicker, setShowOverdueDatePicker] = useState(false);
+    const [showCashDatePicker, setShowCashDatePicker] = useState(false);
+    const [overdueDate, setOverdueDate] = useState('');
+    const [cashDate, setCashDate] = useState('');
 
     // Get company data
     const company = JSON.parse(localStorage.getItem('company') || '{}');
@@ -168,64 +180,145 @@ const Dashboard: React.FC = () => {
     console.log('Selected period:', selectedPeriod);
     console.log('Period dates:', periodDates);
 
-    // Mock API data generation
+    // Load P&L data
+    const loadPnLData = async () => {
+        try {
+            setIsLoadingPnl(true);
+            setPnlError(null);
+            const response = await getPnLAnalysisRequest(periodDates);
+            setPnlData(response);
+        } catch (error) {
+            console.error('Failed to load P&L data:', error);
+            setPnlError('Failed to load financial data. Please try again.');
+        } finally {
+            setIsLoadingPnl(false);
+        }
+    };
+
+    // Load P&L data when period changes
+    useEffect(() => {
+        loadPnLData();
+    }, [selectedPeriod, customStartDate, customEndDate]);
+
+    // Generate KPI data from P&L analysis
     const pulseKPIs = useMemo((): PulseKPI => {
+        if (!pnlData?.data) {
+            // Fallback to mock data if P&L data is not available
+            return {
+                revenue: 45000,
+                revenue_mom: 8.5,
+                revenue_yoy: 23.1,
+                expenses_total: 32000,
+                top_expense_category: 'Payroll',
+                net_profit: 13000,
+                profit_margin: 28.9,
+                overdue_invoices: 8500,
+                overdue_count: 3,
+                ending_cash: 125000,
+                cash_buffer_months: 3.9,
+                currency: baseCurrency
+            };
+        }
+
+        const data = pnlData.data;
+        const profitMargin = data.total_revenue > 0 ? (data.net_profit / data.total_revenue) * 100 : 0;
+
+        // Find top expense category
+        const latestMonth = data.pnl_data[data.pnl_data.length - 1];
+        const expenses = [
+            { name: 'Payroll', amount: latestMonth?.Payroll || 0 },
+            { name: 'COGS', amount: latestMonth?.COGS || 0 },
+            { name: 'Marketing', amount: latestMonth?.Marketing || 0 },
+            { name: 'Rent', amount: latestMonth?.Rent || 0 },
+            { name: 'Other_Expenses', amount: latestMonth?.Other_Expenses || 0 }
+        ];
+        const topExpense = expenses.reduce((max, current) =>
+            current.amount > max.amount ? current : max
+        );
+
         return {
-            revenue: 45000,
-            revenue_mom: 8.5,
-            revenue_yoy: 23.1,
-            expenses_total: 32000,
-            top_expense_category: 'Payroll',
-            net_profit: 13000,
-            profit_margin: 28.9,
-            overdue_invoices: 8500,
-            overdue_count: 3,
-            ending_cash: 125000,
-            cash_buffer_months: 3.9,
+            revenue: data.total_revenue,
+            revenue_mom: data.month_change.revenue.percentage_change,
+            revenue_yoy: data.year_change.revenue.percentage_change,
+            expenses_total: data.total_expenses,
+            top_expense_category: topExpense.name,
+            net_profit: data.net_profit,
+            profit_margin: profitMargin,
+            overdue_invoices: 8500, // Keep mock data for now
+            overdue_count: 3, // Keep mock data for now
+            ending_cash: 125000, // Keep mock data for now
+            cash_buffer_months: 3.9, // Keep mock data for now
             currency: baseCurrency
         };
-    }, [baseCurrency]);
+    }, [pnlData, baseCurrency]);
 
     const chartData = useMemo((): ChartData => {
-        const months = [];
-        const revenue = [];
-        const expenses_total = [];
+        if (!pnlData?.data?.pnl_data) {
+            // Fallback to mock data if P&L data is not available
+            const months = [];
+            const revenue = [];
+            const expenses_total = [];
 
-        // Calculate number of months based on selected period
-        let monthsToShow = 6; // default
-        switch (selectedPeriod) {
-            case 'This month':
-                monthsToShow = 1;
-                break;
-            case 'Last 3 months':
-                monthsToShow = 3;
-                break;
-            case 'Last 6 months':
-                monthsToShow = 6;
-                break;
-            case 'Last 12 months':
-                monthsToShow = 12;
-                break;
-            case 'Year to date':
-                monthsToShow = new Date().getMonth() + 1; // current month number
-                break;
-            default:
-                monthsToShow = 6;
+            // Calculate number of months based on selected period
+            let monthsToShow = 6; // default
+            switch (selectedPeriod) {
+                case 'This month':
+                    monthsToShow = 1;
+                    break;
+                case 'Last 3 months':
+                    monthsToShow = 3;
+                    break;
+                case 'Last 6 months':
+                    monthsToShow = 6;
+                    break;
+                case 'Last 12 months':
+                    monthsToShow = 12;
+                    break;
+                case 'Year to date':
+                    monthsToShow = new Date().getMonth() + 1; // current month number
+                    break;
+                default:
+                    monthsToShow = 6;
+            }
+
+            for (let i = monthsToShow - 1; i >= 0; i--) {
+                const date = subMonths(new Date(), i);
+                months.push(format(date, 'yyyy-MM'));
+                revenue.push(45000 + Math.random() * 10000 - 5000);
+                expenses_total.push(32000 + Math.random() * 8000 - 4000);
+            }
+
+            const expenses_by_category = [
+                { category: 'Payroll', series: months.map(() => 15000 + Math.random() * 3000 - 1500) },
+                { category: 'Rent', series: months.map(() => 5000 + Math.random() * 500 - 250) },
+                { category: 'Marketing', series: months.map(() => 4000 + Math.random() * 2000 - 1000) },
+                { category: 'Software', series: months.map(() => 2000 + Math.random() * 500 - 250) },
+                { category: 'Other_Expenses', series: months.map(() => 3000 + Math.random() * 1000 - 500) }
+            ];
+
+            return {
+                months,
+                revenue,
+                expenses_total,
+                expenses_by_category,
+                story: "🔥 Expenses +25% MoM; Revenue −10% YoY. Marketing spend driving customer acquisition but impacting short-term margins."
+            };
         }
 
-        for (let i = monthsToShow - 1; i >= 0; i--) {
-            const date = subMonths(new Date(), i);
-            months.push(format(date, 'yyyy-MM'));
-            revenue.push(45000 + Math.random() * 10000 - 5000);
-            expenses_total.push(32000 + Math.random() * 8000 - 4000);
-        }
+        // Use real P&L data
+        const pnlDataItems = pnlData.data.pnl_data;
+        const months = pnlDataItems.map(item => format(parseISO(item.Month), 'yyyy-MM'));
+        const revenue = pnlDataItems.map(item => item.Revenue);
+        const expenses_total = pnlDataItems.map(item =>
+            item.COGS + item.Payroll + item.Rent + item.Marketing + item.Other_Expenses
+        );
 
         const expenses_by_category = [
-            { category: 'Payroll', series: months.map(() => 15000 + Math.random() * 3000 - 1500) },
-            { category: 'Rent', series: months.map(() => 5000 + Math.random() * 500 - 250) },
-            { category: 'Marketing', series: months.map(() => 4000 + Math.random() * 2000 - 1000) },
-            { category: 'Software', series: months.map(() => 2000 + Math.random() * 500 - 250) },
-            { category: 'Other_Expenses', series: months.map(() => 3000 + Math.random() * 1000 - 500) }
+            { category: 'COGS', series: pnlDataItems.map(item => item.COGS) },
+            { category: 'Payroll', series: pnlDataItems.map(item => item.Payroll) },
+            { category: 'Rent', series: pnlDataItems.map(item => item.Rent) },
+            { category: 'Marketing', series: pnlDataItems.map(item => item.Marketing) },
+            { category: 'Other_Expenses', series: pnlDataItems.map(item => item.Other_Expenses) }
         ];
 
         return {
@@ -233,17 +326,46 @@ const Dashboard: React.FC = () => {
             revenue,
             expenses_total,
             expenses_by_category,
-            story: "🔥 Expenses +25% MoM; Revenue −10% YoY. Marketing spend driving customer acquisition but impacting short-term margins."
+            story: pnlData.data.ai_insights || "Financial data analysis based on your P&L records."
         };
-    }, [selectedPeriod]);
+    }, [selectedPeriod, pnlData]);
 
-    const expenseChips = useMemo((): ExpenseChip[] => [
-        { category: 'Payroll', amount: 15000, pct: 46.9, icon: 'users' },
-        { category: 'Marketing', amount: 4000, pct: 12.5, icon: 'zap' },
-        { category: 'Rent', amount: 5000, pct: 15.6, icon: 'building' },
-        { category: 'Software', amount: 2000, pct: 6.3, icon: 'code' },
-        { category: 'Other', amount: 6000, pct: 18.7, icon: 'more' }
-    ], []);
+    const expenseChips = useMemo((): ExpenseChip[] => {
+        if (!pnlData?.data?.pnl_data) {
+            // Fallback to mock data
+            return [
+                { category: 'Payroll', amount: 15000, pct: 46.9, icon: 'users' },
+                { category: 'Marketing', amount: 4000, pct: 12.5, icon: 'zap' },
+                { category: 'Rent', amount: 5000, pct: 15.6, icon: 'building' },
+                { category: 'Software', amount: 2000, pct: 6.3, icon: 'code' },
+                { category: 'Other', amount: 6000, pct: 18.7, icon: 'more' }
+            ];
+        }
+
+        // Use real P&L data - get latest month data
+        const latestMonth = pnlData.data.pnl_data[pnlData.data.pnl_data.length - 1];
+        const totalExpenses = latestMonth.COGS + latestMonth.Payroll + latestMonth.Rent +
+                            latestMonth.Marketing + latestMonth.Other_Expenses;
+
+        const getIcon = (category: string) => {
+            switch (category) {
+                case 'Payroll': return 'users';
+                case 'Marketing': return 'zap';
+                case 'Rent': return 'building';
+                case 'COGS': return 'shopping-cart';
+                case 'Other_Expenses': return 'more';
+                default: return 'dollar-sign';
+            }
+        };
+
+        return [
+            { category: 'COGS', amount: latestMonth.COGS, pct: totalExpenses > 0 ? (latestMonth.COGS / totalExpenses) * 100 : 0, icon: getIcon('COGS') },
+            { category: 'Payroll', amount: latestMonth.Payroll, pct: totalExpenses > 0 ? (latestMonth.Payroll / totalExpenses) * 100 : 0, icon: getIcon('Payroll') },
+            { category: 'Rent', amount: latestMonth.Rent, pct: totalExpenses > 0 ? (latestMonth.Rent / totalExpenses) * 100 : 0, icon: getIcon('Rent') },
+            { category: 'Marketing', amount: latestMonth.Marketing, pct: totalExpenses > 0 ? (latestMonth.Marketing / totalExpenses) * 100 : 0, icon: getIcon('Marketing') },
+            { category: 'Other_Expenses', amount: latestMonth.Other_Expenses, pct: totalExpenses > 0 ? (latestMonth.Other_Expenses / totalExpenses) * 100 : 0, icon: getIcon('Other_Expenses') }
+        ].filter(chip => chip.amount > 0); // Only show categories with expenses
+    }, [pnlData]);
 
     const alerts = useMemo((): Alert[] => [
         {
@@ -266,12 +388,20 @@ const Dashboard: React.FC = () => {
         }
     ], []);
 
-    const insights = useMemo((): string[] => [
-        "Your gross margin (71%) is above industry average (65%) for your sector",
-        "Customer acquisition cost decreased 12% this quarter while retention improved",
-        "Operating expenses as % of revenue (28%) are well controlled vs benchmark (35%)",
-        "Consider increasing marketing budget by 20% to capitalize on current conversion rates"
-    ], []);
+    const insights = useMemo((): string[] => {
+        if (!pnlData?.data?.ai_insights) {
+            // Fallback to mock insights
+            return [
+                "Your gross margin (71%) is above industry average (65%) for your sector",
+                "Customer acquisition cost decreased 12% this quarter while retention improved",
+                "Operating expenses as % of revenue (28%) are well controlled vs benchmark (35%)",
+                "Consider increasing marketing budget by 20% to capitalize on current conversion rates"
+            ];
+        }
+
+        // Use AI insights from P&L API
+        return [pnlData.data.ai_insights];
+    }, [pnlData]);
 
     const formatCurrency = (amount: number, curr: string = baseCurrency) => {
         return new Intl.NumberFormat('en-US', {
@@ -383,7 +513,8 @@ const Dashboard: React.FC = () => {
                     <select
                         value={selectedPeriod}
                         onChange={(e) => handlePeriodChange(e.target.value)}
-                        className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        disabled={isLoadingPnl}
+                        className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <option value="This month">This month</option>
                         <option value="Last 3 months">Last 3 months</option>
@@ -392,8 +523,33 @@ const Dashboard: React.FC = () => {
                         <option value="Year to date">Year to date</option>
                         <option value="Custom range">Custom range</option>
                     </select>
+                    {isLoadingPnl && (
+                        <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            <span>Loading...</span>
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* Error Message */}
+            {pnlError && (
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4">
+                    <div className="flex items-center space-x-3">
+                        <XCircle className="w-5 h-5 text-red-500" />
+                        <div>
+                            <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error loading financial data</h3>
+                            <p className="text-sm text-red-700 dark:text-red-300 mt-1">{pnlError}</p>
+                        </div>
+                        <button
+                            onClick={loadPnLData}
+                            className="ml-auto px-3 py-1 text-sm bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200 rounded-md hover:bg-red-200 dark:hover:bg-red-700 transition-colors"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Custom Date Range Selector */}
             {showCustomRange && (
@@ -514,10 +670,51 @@ const Dashboard: React.FC = () => {
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-yellow-500">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Overdue Invoices</h3>
+                        <div className="mr-1">
+                            <button
+                                onClick={() => {
+                                    setShowOverdueDatePicker(!showOverdueDatePicker);
+                                    if (!showOverdueDatePicker) {
+                                        setShowCashDatePicker(false);
+                                    }
+                                }}
+                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                                title="Select overdue date">
+                                <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                            </button>
+                        </div>
                         <div className={getStatusColor('criticalIf>0', pulseKPIs.overdue_invoices)}>
                             {getStatusIcon('criticalIf>0', pulseKPIs.overdue_invoices)}
                         </div>
                     </div>
+
+                    {/* Date Picker */}
+                    {showOverdueDatePicker && (
+                        <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <div className="space-y-3">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Overdue as of:
+                                </label>
+                                <input
+                                    type="date"
+                                    value={overdueDate}
+                                    onChange={(e) => setOverdueDate(e.target.value)}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                                <button
+                                    onClick={() => {
+                                        setShowOverdueDatePicker(false);
+                                        // Here you would apply the date filter
+                                        console.log('Apply overdue date filter:', overdueDate);
+                                    }}
+                                    className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                                >
+                                    Apply
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                         {formatCurrency(pulseKPIs.overdue_invoices)}
                     </p>
@@ -529,10 +726,52 @@ const Dashboard: React.FC = () => {
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-purple-500">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Ending Cash</h3>
+                        <div className="mr-1">
+                            <button
+                                onClick={() => {
+                                    setShowCashDatePicker(!showCashDatePicker);
+                                    if (!showCashDatePicker) {
+                                        setShowOverdueDatePicker(false);
+                                    }
+                                }}
+                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                                title="Select cash date"
+                            >
+                                <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                            </button>
+                        </div>
                         <div className={getStatusColor('balance', pulseKPIs.ending_cash)}>
                             {getStatusIcon('balance', pulseKPIs.ending_cash)}
                         </div>
                     </div>
+
+                    {/* Date Picker */}
+                    {showCashDatePicker && (
+                        <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <div className="space-y-3">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Cash as of:
+                                </label>
+                                <input
+                                    type="date"
+                                    value={cashDate}
+                                    onChange={(e) => setCashDate(e.target.value)}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                                <button
+                                    onClick={() => {
+                                        setShowCashDatePicker(false);
+                                        // Here you would apply the date filter
+                                        console.log('Apply cash date filter:', cashDate);
+                                    }}
+                                    className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                                >
+                                    Apply
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                         {formatCurrency(pulseKPIs.ending_cash)}
                     </p>

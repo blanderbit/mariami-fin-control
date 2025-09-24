@@ -252,4 +252,65 @@ export function clearCurrenciesCache(): void {
     currenciesPromise = null;
 }
 
+// P&L Analysis Types
+export type PnLDataItem = {
+    Month: string;
+    Revenue: number;
+    COGS: number;
+    Payroll: number;
+    Rent: number;
+    Marketing: number;
+    Other_Expenses: number;
+    Net_Profit: number;
+};
+
+export type PnLChangeData = {
+    change: number;
+    percentage_change: number;
+};
+
+export type PnLPeriod = {
+    start_date: string;
+    end_date: string;
+};
+
+export type PnLAnalysisResponse = {
+    status: string;
+    code: number;
+    data: {
+        pnl_data: PnLDataItem[];
+        total_revenue: number;
+        total_expenses: number;
+        net_profit: number;
+        month_change: {
+            revenue: PnLChangeData;
+            expenses: PnLChangeData;
+            net_profit: PnLChangeData;
+        };
+        year_change: {
+            revenue: PnLChangeData;
+            expenses: PnLChangeData;
+            net_profit: PnLChangeData;
+        };
+        period: PnLPeriod;
+        ai_insights: string;
+    };
+    message: string | null;
+};
+
+export type PnLAnalysisRequest = {
+    start_date: string;
+    end_date: string;
+};
+
+export async function getPnLAnalysisRequest(data: PnLAnalysisRequest): Promise<PnLAnalysisResponse> {
+    try {
+        const res = await api.users.getPnlAnalysis(data) as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to get P&L analysis:', error);
+        throw error;
+    }
+}
+
 
