@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
     Calendar,
     DollarSign,
@@ -91,6 +91,10 @@ interface ChartData {
 
 const Dashboard: React.FC = () => {
     const { theme } = useTheme();
+
+    // Refs for scroll targets
+    const revenueExpensesRef = useRef<HTMLDivElement>(null);
+    const expensesCategoryRef = useRef<HTMLDivElement>(null);
 
     // Period selection state
     const [selectedPeriod, setSelectedPeriod] = useState('This month');
@@ -599,6 +603,16 @@ const Dashboard: React.FC = () => {
 
     const expenseColors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'];
 
+    // Scroll function
+    const scrollToElement = (ref: React.RefObject<HTMLDivElement>) => {
+        if (ref.current) {
+            ref.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        }
+    };
+
     return (
         <motion.div
             initial={{y: 20, opacity: 0}}
@@ -728,7 +742,10 @@ const Dashboard: React.FC = () => {
 
             {/* KPI Pulse Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-green-500">
+                <div
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-green-500 cursor-pointer hover:shadow-xl transition-shadow duration-200"
+                    onClick={() => scrollToElement(revenueExpensesRef)}
+                >
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Revenue</h3>
                         <div className={getStatusColor('trend', pulseKPIs.revenue, pulseKPIs.revenue_mom)}>
@@ -744,7 +761,10 @@ const Dashboard: React.FC = () => {
                     </p>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-red-500">
+                <div
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-red-500 cursor-pointer hover:shadow-xl transition-shadow duration-200"
+                    onClick={() => scrollToElement(expensesCategoryRef)}
+                >
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Expenses</h3>
                         <div className={getStatusColor('trend', pulseKPIs.expenses_total, -5)}>
@@ -759,7 +779,10 @@ const Dashboard: React.FC = () => {
                     </p>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-blue-500">
+                <div
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-blue-500 cursor-pointer hover:shadow-xl transition-shadow duration-200"
+                    onClick={() => scrollToElement(revenueExpensesRef)}
+                >
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Operating Profit</h3>
                         <div className={getStatusColor('trend', pulseKPIs.net_profit, 12)}>
@@ -889,7 +912,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Revenue vs Expenses Chart with Story */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <div ref={revenueExpensesRef} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Revenue vs Expenses</h2>
                     <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30 border border-orange-200 dark:border-orange-700 rounded-lg p-4">
@@ -934,7 +957,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Expense Chips */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <div ref={expensesCategoryRef} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Expenses by category</h2>
                 </div>
