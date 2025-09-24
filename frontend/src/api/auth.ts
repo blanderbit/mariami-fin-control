@@ -213,15 +213,43 @@ export type CurrenciesResponse = {
     message: string | null;
 };
 
+// Кэш для валют
+let currenciesCache: Currency[] | null = null;
+let currenciesPromise: Promise<Currency[]> | null = null;
+
 export async function getCurrenciesRequest(): Promise<Currency[]> {
-    try {
-        const res = await api.profile.profileCurrenciesList() as any;
-        const response = res.data || res;
-        return response.data?.currencies || [];
-    } catch (error) {
-        console.error('Failed to get currencies:', error);
-        throw error;
+    // Если данные уже в кэше, возвращаем их
+    if (currenciesCache) {
+        return currenciesCache;
     }
+
+    // Если запрос уже выполняется, ждем его результата
+    if (currenciesPromise) {
+        return currenciesPromise;
+    }
+
+    // Создаем новый запрос
+    currenciesPromise = (async () => {
+        try {
+            const res = await api.profile.profileCurrenciesList() as any;
+            const response = res.data || res;
+            const currencies = response.data?.currencies || [];
+            currenciesCache = currencies;
+            return currencies;
+        } catch (error) {
+            console.error('Failed to get currencies:', error);
+            currenciesPromise = null; // Сбрасываем промис при ошибке
+            throw error;
+        }
+    })();
+
+    return currenciesPromise;
+}
+
+// Функция для очистки кэша валют (если нужно обновить данные)
+export function clearCurrenciesCache(): void {
+    currenciesCache = null;
+    currenciesPromise = null;
 }
 
 

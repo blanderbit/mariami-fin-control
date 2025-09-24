@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Brain,
@@ -84,7 +84,7 @@ interface OnboardingStepperProps {
     initialData?: OnboardingData;
 }
 
-const OnboardingStepper: React.FC<OnboardingStepperProps> = ({
+const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
     initialStep = 1,
     initialData
 }) => {
@@ -124,7 +124,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = ({
         };
 
         loadCurrencies();
-    }, []);
+    }, []); // Пустой массив зависимостей - выполняется только при монтировании
 
     // Определяем обязательные поля для каждого степа
     const getRequiredFieldsForStep = (step: number): string[] => {
@@ -623,6 +623,8 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = ({
             </div>
         </motion.div>
     );
-};
+});
+
+OnboardingStepper.displayName = 'OnboardingStepper';
 
 export default OnboardingStepper;

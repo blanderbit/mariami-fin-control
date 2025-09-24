@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getCurrentOnboardingStep } from '../utils/onboardingUtils';
@@ -47,13 +47,18 @@ const Onboarding: React.FC = () => {
     }
 
     // Определяем начальный степ на основе заполненных полей
-    const currentStep = getCurrentOnboardingStep(onboardingStatus.profile) || 1;
+    const currentStep = useMemo(() => {
+        return getCurrentOnboardingStep(onboardingStatus.profile) || 1;
+    }, [onboardingStatus.profile]);
+
+    // Мемоизируем пропсы для OnboardingStepper
+    const stepperProps = useMemo(() => ({
+        initialStep: currentStep,
+        initialData: onboardingStatus.profile
+    }), [currentStep, onboardingStatus.profile]);
 
     return (
-        <OnboardingStepper 
-            initialStep={currentStep}
-            initialData={onboardingStatus.profile}
-        />
+        <OnboardingStepper {...stepperProps} />
     );
 };
 

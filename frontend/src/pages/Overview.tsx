@@ -17,6 +17,7 @@ import {
     Phone,
     ShoppingCart
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { updateOnboardingRequest, getOnboardingStatusRequest, OnboardingData, getCurrenciesRequest, Currency } from '../api/auth';
 
@@ -343,7 +344,7 @@ const Overview: React.FC = () => {
     };
 
     const handleProfileChange = (field: string, value: any) => {
-        setEditingProfile(prev => ({ ...prev, [field]: value }));
+        setEditingProfile((prev: any) => ({ ...prev, [field]: value }));
     };
 
     const handleAddIntegration = (type: string) => {
@@ -360,7 +361,12 @@ const Overview: React.FC = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
+        <motion.div
+            initial={{y: 20, opacity: 0}}
+            animate={{y: 0, opacity: 1}}
+            transition={{duration: 0.5, delay: 0.2}}
+            className="max-w-7xl mx-auto space-y-6"
+        >
             {/* Data Warnings */}
             {/*{warnings.length > 0 && (*/}
             {/*    <div className="space-y-2">*/}
@@ -653,7 +659,7 @@ const Overview: React.FC = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 };
 
