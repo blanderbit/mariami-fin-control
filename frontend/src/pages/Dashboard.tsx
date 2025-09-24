@@ -169,6 +169,7 @@ const Dashboard: React.FC = () => {
         if (period === 'Custom range') {
             setShowCustomRange(true);
         } else {
+            // Only close custom range when selecting a different period
             setShowCustomRange(false);
         }
     };
@@ -186,19 +187,58 @@ const Dashboard: React.FC = () => {
             setIsLoadingPnl(true);
             setPnlError(null);
             const response = await getPnLAnalysisRequest(periodDates);
-            setPnlData(response);
+
+            // Check if response has valid data
+            if (response && response.data && response.data.pnl_data && response.data.pnl_data.length > 0) {
+                setPnlData(response);
+            } else {
+                // Set empty data structure to trigger fallback
+                setPnlData({
+                    status: 'success',
+                    code: 200,
+                    data: {
+                        pnl_data: [],
+                        total_revenue: 0,
+                        total_expenses: 0,
+                        net_profit: 0,
+                        month_change: {
+                            revenue: { change: 0, percentage_change: 0 },
+                            expenses: { change: 0, percentage_change: 0 },
+                            net_profit: { change: 0, percentage_change: 0 }
+                        },
+                        year_change: {
+                            revenue: { change: 0, percentage_change: 0 },
+                            expenses: { change: 0, percentage_change: 0 },
+                            net_profit: { change: 0, percentage_change: 0 }
+                        },
+                        period: periodDates,
+                        ai_insights: 'No data available for the selected period.'
+                    },
+                    message: null
+                });
+            }
         } catch (error) {
             console.error('Failed to load P&L data:', error);
             setPnlError('Failed to load financial data. Please try again.');
+            setPnlData(null);
         } finally {
             setIsLoadingPnl(false);
         }
     };
 
-    // Load P&L data when period changes
+    // Load P&L data when period changes (except for custom range)
     useEffect(() => {
-        loadPnLData();
-    }, [selectedPeriod, customStartDate, customEndDate]);
+        if (selectedPeriod !== 'Custom range') {
+            loadPnLData();
+        }
+    }, [selectedPeriod]);
+
+    // Apply custom range
+    const applyCustomRange = () => {
+        if (customStartDate && customEndDate && customStartDate <= customEndDate) {
+            loadPnLData();
+        }
+    };
 
     // Generate KPI data from P&L analysis
     const pulseKPIs = useMemo((): PulseKPI => {
@@ -224,7 +264,7 @@ const Dashboard: React.FC = () => {
         const profitMargin = data.total_revenue > 0 ? (data.net_profit / data.total_revenue) * 100 : 0;
 
         // Find top expense category
-        const latestMonth = data.pnl_data[data.pnl_data.length - 1];
+        const latestMonth = data.pnl_data && data.pnl_data.length > 0 ? data.pnl_data[data.pnl_data.length - 1] : null;
         const expenses = [
             { name: 'Payroll', amount: latestMonth?.Payroll || 0 },
             { name: 'COGS', amount: latestMonth?.COGS || 0 },
@@ -306,19 +346,73 @@ const Dashboard: React.FC = () => {
         }
 
         // Use real P&L data
-        const pnlDataItems = pnlData.data.pnl_data;
+        const pnlDataItems = pnlData.data.pnl_data || [];
+
+        // Check if we have data
+        if (pnlDataItems.length === 0) {
+            // Fallback to mock data if no P&L data
+            const months = [];
+            const revenue = [];
+            const expenses_total = [];
+
+            // Calculate number of months based on selected period
+            let monthsToShow = 6; // default
+            switch (selectedPeriod) {
+                case 'This month':
+                    monthsToShow = 1;
+                    break;
+                case 'Last 3 months':
+                    monthsToShow = 3;
+                    break;
+                case 'Last 6 months':
+                    monthsToShow = 6;
+                    break;
+                case 'Last 12 months':
+                    monthsToShow = 12;
+                    break;
+                case 'Year to date':
+                    monthsToShow = new Date().getMonth() + 1; // current month number
+                    break;
+                default:
+                    monthsToShow = 6;
+            }
+
+            for (let i = monthsToShow - 1; i >= 0; i--) {
+                const date = subMonths(new Date(), i);
+                months.push(format(date, 'yyyy-MM'));
+                revenue.push(45000 + Math.random() * 10000 - 5000);
+                expenses_total.push(32000 + Math.random() * 8000 - 4000);
+            }
+
+            const expenses_by_category = [
+                { category: 'Payroll', series: months.map(() => 15000 + Math.random() * 3000 - 1500) },
+                { category: 'Rent', series: months.map(() => 5000 + Math.random() * 500 - 250) },
+                { category: 'Marketing', series: months.map(() => 4000 + Math.random() * 2000 - 1000) },
+                { category: 'Software', series: months.map(() => 2000 + Math.random() * 500 - 250) },
+                { category: 'Other_Expenses', series: months.map(() => 3000 + Math.random() * 1000 - 500) }
+            ];
+
+            return {
+                months,
+                revenue,
+                expenses_total,
+                expenses_by_category,
+                story: "No data available for the selected period. Please check your data or try a different period."
+            };
+        }
+
         const months = pnlDataItems.map(item => format(parseISO(item.Month), 'yyyy-MM'));
-        const revenue = pnlDataItems.map(item => item.Revenue);
+        const revenue = pnlDataItems.map(item => item.Revenue || 0);
         const expenses_total = pnlDataItems.map(item =>
-            item.COGS + item.Payroll + item.Rent + item.Marketing + item.Other_Expenses
+            (item.COGS || 0) + (item.Payroll || 0) + (item.Rent || 0) + (item.Marketing || 0) + (item.Other_Expenses || 0)
         );
 
         const expenses_by_category = [
-            { category: 'COGS', series: pnlDataItems.map(item => item.COGS) },
-            { category: 'Payroll', series: pnlDataItems.map(item => item.Payroll) },
-            { category: 'Rent', series: pnlDataItems.map(item => item.Rent) },
-            { category: 'Marketing', series: pnlDataItems.map(item => item.Marketing) },
-            { category: 'Other_Expenses', series: pnlDataItems.map(item => item.Other_Expenses) }
+            { category: 'COGS', series: pnlDataItems.map(item => item.COGS || 0) },
+            { category: 'Payroll', series: pnlDataItems.map(item => item.Payroll || 0) },
+            { category: 'Rent', series: pnlDataItems.map(item => item.Rent || 0) },
+            { category: 'Marketing', series: pnlDataItems.map(item => item.Marketing || 0) },
+            { category: 'Other_Expenses', series: pnlDataItems.map(item => item.Other_Expenses || 0) }
         ];
 
         return {
@@ -344,8 +438,20 @@ const Dashboard: React.FC = () => {
 
         // Use real P&L data - get latest month data
         const latestMonth = pnlData.data.pnl_data[pnlData.data.pnl_data.length - 1];
-        const totalExpenses = latestMonth.COGS + latestMonth.Payroll + latestMonth.Rent +
-                            latestMonth.Marketing + latestMonth.Other_Expenses;
+
+        // Check if latestMonth exists and has the required properties
+        if (!latestMonth) {
+            return [
+                { category: 'Payroll', amount: 15000, pct: 46.9, icon: 'users' },
+                { category: 'Marketing', amount: 4000, pct: 12.5, icon: 'zap' },
+                { category: 'Rent', amount: 5000, pct: 15.6, icon: 'building' },
+                { category: 'Software', amount: 2000, pct: 6.3, icon: 'code' },
+                { category: 'Other', amount: 6000, pct: 18.7, icon: 'more' }
+            ];
+        }
+
+        const totalExpenses = (latestMonth.COGS || 0) + (latestMonth.Payroll || 0) + (latestMonth.Rent || 0) +
+                            (latestMonth.Marketing || 0) + (latestMonth.Other_Expenses || 0);
 
         const getIcon = (category: string) => {
             switch (category) {
@@ -598,22 +704,23 @@ const Dashboard: React.FC = () => {
                             onClick={() => {
                                 setCustomStartDate('');
                                 setCustomEndDate('');
+                                setShowCustomRange(false);
+                                // Reset to previous period or default
+                                setSelectedPeriod('This month');
                             }}
                             className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
                         >
                             Cancel
                         </button>
                         <button
-                            onClick={() => {
-                                if (customStartDate && customEndDate && customStartDate <= customEndDate) {
-                                    setShowCustomRange(false);
-                                    // Period is already set to 'Custom range'
-                                }
-                            }}
-                            disabled={!customStartDate || !customEndDate || customStartDate > customEndDate}
-                            className="px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors"
+                            onClick={applyCustomRange}
+                            disabled={!customStartDate || !customEndDate || customStartDate > customEndDate || isLoadingPnl}
+                            className="px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors flex items-center space-x-2"
                         >
-                            Apply
+                            {isLoadingPnl && (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            )}
+                            <span>{isLoadingPnl ? 'Loading...' : 'Apply'}</span>
                         </button>
                     </div>
                 </div>
