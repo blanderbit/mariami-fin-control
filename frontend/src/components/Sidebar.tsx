@@ -21,14 +21,8 @@ import Logo from '../assets/FinclAI Logo Blue.png';
 const navigationItems = [
     { name: 'Business Overview', path: '/overview', icon: LayoutDashboard },
     { name: 'Dashboard', path: '/dashboard', icon: BarChart3 },
-    { name: 'Revenues', path: '/revenues', icon: TrendingUp },
-    { name: 'Expenses', path: '/expenses', icon: TrendingDown },
-    { name: 'Unit Economics', path: '/unit-economics', icon: Calculator },
-    { name: 'Financial Statements', path: '/statements', icon: FileText },
-    { name: 'Goals', path: '/goals', icon: Target },
     { name: 'Data Import', path: '/data-import', icon: Database },
-    { name: 'Market & Strategic Intelligence', path: '/market-intel', icon: Brain },
-    { name: 'Scenario Planning', path: '/scenarios', icon: GitBranch },
+    { name: 'Benchmark', path: '/benchmark', icon: TrendingUp },
     { name: 'AI Assistant', path: '/assistant', icon: Bot },
     { name: 'Settings', path: '/settings', icon: Settings },
 ];

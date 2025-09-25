@@ -247,25 +247,25 @@ const Dashboard: React.FC = () => {
     // Generate KPI data from P&L analysis
     const pulseKPIs = useMemo((): PulseKPI => {
         if (!pnlData?.data) {
-            // Fallback to mock data if P&L data is not available
+            // Return empty data if no backend data
             return {
-                revenue: 45000,
-                revenue_mom: 8.5,
-                revenue_yoy: 23.1,
-                expenses_total: 32000,
-                top_expense_category: 'Payroll',
-                net_profit: 13000,
-                profit_margin: 28.9,
-                overdue_invoices: 8500,
-                overdue_count: 3,
-                ending_cash: 125000,
-                cash_buffer_months: 3.9,
+                revenue: 0,
+                revenue_mom: 0,
+                revenue_yoy: 0,
+                expenses_total: 0,
+                top_expense_category: '',
+                net_profit: 0,
+                profit_margin: 0,
+                overdue_invoices: 0,
+                overdue_count: 0,
+                ending_cash: 0,
+                cash_buffer_months: 0,
                 currency: baseCurrency
             };
         }
 
         const data = pnlData.data;
-        const profitMargin = data.total_revenue > 0 ? (data.net_profit / data.total_revenue) * 100 : 0;
+        const profitMargin = data.total_revenue > 0 ? Math.round(((data.net_profit / data.total_revenue) * 100) * 100) / 100 : 0;
 
         // Find top expense category
         const latestMonth = data.pnl_data && data.pnl_data.length > 0 ? data.pnl_data[data.pnl_data.length - 1] : null;
@@ -281,129 +281,35 @@ const Dashboard: React.FC = () => {
         );
 
         return {
-            revenue: data.total_revenue,
-            revenue_mom: data.month_change.revenue.percentage_change,
-            revenue_yoy: data.year_change.revenue.percentage_change,
-            expenses_total: data.total_expenses,
-            top_expense_category: topExpense.name,
-            net_profit: data.net_profit,
-            profit_margin: profitMargin,
-            overdue_invoices: 8500, // Keep mock data for now
-            overdue_count: 3, // Keep mock data for now
-            ending_cash: 125000, // Keep mock data for now
-            cash_buffer_months: 3.9, // Keep mock data for now
+            revenue: data.total_revenue || 0,
+            revenue_mom: data.month_change?.revenue?.percentage_change || 0,
+            revenue_yoy: data.year_change?.revenue?.percentage_change || 0,
+            expenses_total: data.total_expenses || 0,
+            top_expense_category: topExpense.name || '',
+            net_profit: data.net_profit || 0,
+            profit_margin: profitMargin || 0,
+            overdue_invoices: 0, // Will be provided by backend when available
+            overdue_count: 0, // Will be provided by backend when available
+            ending_cash: 0, // Will be provided by backend when available
+            cash_buffer_months: 0, // Will be provided by backend when available
             currency: baseCurrency
         };
     }, [pnlData, baseCurrency]);
 
     const chartData = useMemo((): ChartData => {
-        if (!pnlData?.data?.pnl_data) {
-            // Fallback to mock data if P&L data is not available
-            const months = [];
-            const revenue = [];
-            const expenses_total = [];
-
-            // Calculate number of months based on selected period
-            let monthsToShow = 6; // default
-            switch (selectedPeriod) {
-                case 'This month':
-                    monthsToShow = 1;
-                    break;
-                case 'Last 3 months':
-                    monthsToShow = 3;
-                    break;
-                case 'Last 6 months':
-                    monthsToShow = 6;
-                    break;
-                case 'Last 12 months':
-                    monthsToShow = 12;
-                    break;
-                case 'Year to date':
-                    monthsToShow = new Date().getMonth() + 1; // current month number
-                    break;
-                default:
-                    monthsToShow = 6;
-            }
-
-            for (let i = monthsToShow - 1; i >= 0; i--) {
-                const date = subMonths(new Date(), i);
-                months.push(format(date, 'yyyy-MM'));
-                revenue.push(45000 + Math.random() * 10000 - 5000);
-                expenses_total.push(32000 + Math.random() * 8000 - 4000);
-            }
-
-            const expenses_by_category = [
-                { category: 'Payroll', series: months.map(() => 15000 + Math.random() * 3000 - 1500) },
-                { category: 'Rent', series: months.map(() => 5000 + Math.random() * 500 - 250) },
-                { category: 'Marketing', series: months.map(() => 4000 + Math.random() * 2000 - 1000) },
-                { category: 'Software', series: months.map(() => 2000 + Math.random() * 500 - 250) },
-                { category: 'Other_Expenses', series: months.map(() => 3000 + Math.random() * 1000 - 500) }
-            ];
-
+        if (!pnlData?.data?.pnl_data || pnlData.data.pnl_data.length === 0) {
+            // Return empty data if no backend data
             return {
-                months,
-                revenue,
-                expenses_total,
-                expenses_by_category,
-                story: "🔥 Expenses +25% MoM; Revenue −10% YoY. Marketing spend driving customer acquisition but impacting short-term margins."
+                months: [],
+                revenue: [],
+                expenses_total: [],
+                expenses_by_category: [],
+                story: ""
             };
         }
 
         // Use real P&L data
-        const pnlDataItems = pnlData.data.pnl_data || [];
-
-        // Check if we have data
-        if (pnlDataItems.length === 0) {
-            // Fallback to mock data if no P&L data
-            const months = [];
-            const revenue = [];
-            const expenses_total = [];
-
-            // Calculate number of months based on selected period
-            let monthsToShow = 6; // default
-            switch (selectedPeriod) {
-                case 'This month':
-                    monthsToShow = 1;
-                    break;
-                case 'Last 3 months':
-                    monthsToShow = 3;
-                    break;
-                case 'Last 6 months':
-                    monthsToShow = 6;
-                    break;
-                case 'Last 12 months':
-                    monthsToShow = 12;
-                    break;
-                case 'Year to date':
-                    monthsToShow = new Date().getMonth() + 1; // current month number
-                    break;
-                default:
-                    monthsToShow = 6;
-            }
-
-            for (let i = monthsToShow - 1; i >= 0; i--) {
-                const date = subMonths(new Date(), i);
-                months.push(format(date, 'yyyy-MM'));
-                revenue.push(45000 + Math.random() * 10000 - 5000);
-                expenses_total.push(32000 + Math.random() * 8000 - 4000);
-            }
-
-            const expenses_by_category = [
-                { category: 'Payroll', series: months.map(() => 15000 + Math.random() * 3000 - 1500) },
-                { category: 'Rent', series: months.map(() => 5000 + Math.random() * 500 - 250) },
-                { category: 'Marketing', series: months.map(() => 4000 + Math.random() * 2000 - 1000) },
-                { category: 'Software', series: months.map(() => 2000 + Math.random() * 500 - 250) },
-                { category: 'Other_Expenses', series: months.map(() => 3000 + Math.random() * 1000 - 500) }
-            ];
-
-            return {
-                months,
-                revenue,
-                expenses_total,
-                expenses_by_category,
-                story: "No data available for the selected period. Please check your data or try a different period."
-            };
-        }
+        const pnlDataItems = pnlData.data.pnl_data;
 
         const months = pnlDataItems.map(item => format(parseISO(item.Month), 'yyyy-MM'));
         const revenue = pnlDataItems.map(item => item.Revenue || 0);
@@ -424,20 +330,14 @@ const Dashboard: React.FC = () => {
             revenue,
             expenses_total,
             expenses_by_category,
-            story: pnlData.data.ai_insights || "Financial data analysis based on your P&L records."
+            story: pnlData.data.ai_insights || ""
         };
     }, [selectedPeriod, pnlData]);
 
     const expenseChips = useMemo((): ExpenseChip[] => {
-        if (!pnlData?.data?.pnl_data) {
-            // Fallback to mock data
-            return [
-                { category: 'Payroll', amount: 15000, pct: 46.9, icon: 'users' },
-                { category: 'Marketing', amount: 4000, pct: 12.5, icon: 'zap' },
-                { category: 'Rent', amount: 5000, pct: 15.6, icon: 'building' },
-                { category: 'Software', amount: 2000, pct: 6.3, icon: 'code' },
-                { category: 'Other', amount: 6000, pct: 18.7, icon: 'more' }
-            ];
+        if (!pnlData?.data?.pnl_data || pnlData.data.pnl_data.length === 0) {
+            // Return empty array if no backend data
+            return [];
         }
 
         // Use real P&L data - get latest month data
@@ -445,13 +345,7 @@ const Dashboard: React.FC = () => {
 
         // Check if latestMonth exists and has the required properties
         if (!latestMonth) {
-            return [
-                { category: 'Payroll', amount: 15000, pct: 46.9, icon: 'users' },
-                { category: 'Marketing', amount: 4000, pct: 12.5, icon: 'zap' },
-                { category: 'Rent', amount: 5000, pct: 15.6, icon: 'building' },
-                { category: 'Software', amount: 2000, pct: 6.3, icon: 'code' },
-                { category: 'Other', amount: 6000, pct: 18.7, icon: 'more' }
-            ];
+            return [];
         }
 
         const totalExpenses = (latestMonth.COGS || 0) + (latestMonth.Payroll || 0) + (latestMonth.Rent || 0) +
@@ -468,12 +362,15 @@ const Dashboard: React.FC = () => {
             }
         };
 
+        // Helper function to round percentage to 2 decimal places
+        const roundPercentage = (value: number) => Math.round(value * 100) / 100;
+
         return [
-            { category: 'COGS', amount: latestMonth.COGS, pct: totalExpenses > 0 ? (latestMonth.COGS / totalExpenses) * 100 : 0, icon: getIcon('COGS') },
-            { category: 'Payroll', amount: latestMonth.Payroll, pct: totalExpenses > 0 ? (latestMonth.Payroll / totalExpenses) * 100 : 0, icon: getIcon('Payroll') },
-            { category: 'Rent', amount: latestMonth.Rent, pct: totalExpenses > 0 ? (latestMonth.Rent / totalExpenses) * 100 : 0, icon: getIcon('Rent') },
-            { category: 'Marketing', amount: latestMonth.Marketing, pct: totalExpenses > 0 ? (latestMonth.Marketing / totalExpenses) * 100 : 0, icon: getIcon('Marketing') },
-            { category: 'Other_Expenses', amount: latestMonth.Other_Expenses, pct: totalExpenses > 0 ? (latestMonth.Other_Expenses / totalExpenses) * 100 : 0, icon: getIcon('Other_Expenses') }
+            { category: 'COGS', amount: latestMonth.COGS || 0, pct: totalExpenses > 0 ? roundPercentage(((latestMonth.COGS || 0) / totalExpenses) * 100) : 0, icon: getIcon('COGS') },
+            { category: 'Payroll', amount: latestMonth.Payroll || 0, pct: totalExpenses > 0 ? roundPercentage(((latestMonth.Payroll || 0) / totalExpenses) * 100) : 0, icon: getIcon('Payroll') },
+            { category: 'Rent', amount: latestMonth.Rent || 0, pct: totalExpenses > 0 ? roundPercentage(((latestMonth.Rent || 0) / totalExpenses) * 100) : 0, icon: getIcon('Rent') },
+            { category: 'Marketing', amount: latestMonth.Marketing || 0, pct: totalExpenses > 0 ? roundPercentage(((latestMonth.Marketing || 0) / totalExpenses) * 100) : 0, icon: getIcon('Marketing') },
+            { category: 'Other_Expenses', amount: latestMonth.Other_Expenses || 0, pct: totalExpenses > 0 ? roundPercentage(((latestMonth.Other_Expenses || 0) / totalExpenses) * 100) : 0, icon: getIcon('Other_Expenses') }
         ].filter(chip => chip.amount > 0); // Only show categories with expenses
     }, [pnlData]);
 
@@ -500,13 +397,8 @@ const Dashboard: React.FC = () => {
 
     const insights = useMemo((): string[] => {
         if (!pnlData?.data?.ai_insights) {
-            // Fallback to mock insights
-            return [
-                "Your gross margin (71%) is above industry average (65%) for your sector",
-                "Customer acquisition cost decreased 12% this quarter while retention improved",
-                "Operating expenses as % of revenue (28%) are well controlled vs benchmark (35%)",
-                "Consider increasing marketing budget by 20% to capitalize on current conversion rates"
-            ];
+            // Return empty array if no backend insights
+            return [];
         }
 
         // Use AI insights from P&L API
@@ -775,7 +667,7 @@ const Dashboard: React.FC = () => {
                         {formatCurrency(pulseKPIs.expenses_total)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Top category: {pulseKPIs.top_expense_category}
+                        Top category: {pulseKPIs.top_expense_category || 'No data'}
                     </p>
                 </div>
 
@@ -915,45 +807,55 @@ const Dashboard: React.FC = () => {
             <div ref={revenueExpensesRef} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Revenue vs Expenses</h2>
-                    <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30 border border-orange-200 dark:border-orange-700 rounded-lg p-4">
-                        <p className="text-orange-800 dark:text-orange-200 font-medium">{chartData.story}</p>
-                    </div>
+                    {chartData.story && (
+                        <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30 border border-orange-200 dark:border-orange-700 rounded-lg p-4">
+                            <p className="text-orange-800 dark:text-orange-200 font-medium">{chartData.story}</p>
+                        </div>
+                    )}
                 </div>
 
-                <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={stackedChartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} />
-                            <XAxis dataKey="month" stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} />
-                            <YAxis
-                                tickFormatter={(value) => formatCurrency(value).replace(/\$|,/g, '')}
-                                stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
-                            />
-                            <Tooltip
-                                formatter={(value: number, name: string) => [formatCurrency(value), name]}
-                                contentStyle={{
-                                    backgroundColor: theme === 'dark' ? '#374151' : '#ffffff',
-                                    border: theme === 'dark' ? '1px solid #4b5563' : '1px solid #e5e7eb',
-                                    color: theme === 'dark' ? '#f9fafb' : '#111827'
-                                }}
-                            />
-
-                            {/* Revenue bar */}
-                            <Bar dataKey="revenue" fill="#10b981" name="Revenue" />
-
-                            {/* Stacked expense categories */}
-                            {chartData.expenses_by_category.map((category, index) => (
-                                <Bar
-                                    key={category.category}
-                                    dataKey={category.category}
-                                    stackId="expenses"
-                                    fill={expenseColors[index % expenseColors.length]}
-                                    name={category.category}
+                {stackedChartData.length > 0 ? (
+                    <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart data={stackedChartData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} />
+                                <XAxis dataKey="month" stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} />
+                                <YAxis
+                                    tickFormatter={(value) => formatCurrency(value).replace(/\$|,/g, '')}
+                                    stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
                                 />
-                            ))}
-                        </ComposedChart>
-                    </ResponsiveContainer>
-                </div>
+                                <Tooltip
+                                    formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                                    contentStyle={{
+                                        backgroundColor: theme === 'dark' ? '#374151' : '#ffffff',
+                                        border: theme === 'dark' ? '1px solid #4b5563' : '1px solid #e5e7eb',
+                                        color: theme === 'dark' ? '#f9fafb' : '#111827'
+                                    }}
+                                />
+
+                                {/* Revenue bar */}
+                                <Bar dataKey="revenue" fill="#10b981" name="Revenue" />
+
+                                {/* Stacked expense categories */}
+                                {chartData.expenses_by_category.map((category, index) => (
+                                    <Bar
+                                        key={category.category}
+                                        dataKey={category.category}
+                                        stackId="expenses"
+                                        fill={expenseColors[index % expenseColors.length]}
+                                        name={category.category}
+                                    />
+                                ))}
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </div>
+                ) : (
+                    <div className="h-80 flex items-center justify-center">
+                        <div className="text-center">
+                            <p className="text-gray-600 dark:text-gray-400">No chart data available</p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Expense Chips */}
@@ -962,21 +864,28 @@ const Dashboard: React.FC = () => {
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Expenses by category</h2>
                 </div>
 
-                <div className="flex flex-wrap gap-3 mb-4">
-                    {expenseChips.map((chip, index) => (
-                        <button
-                            key={index}
-                            onClick={() => window.location.href = '/scenarios'}
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-full border transition-all hover:shadow-md ${getChipColor(chip.pct)}`}
-                        >
-                            {getChipIcon(chip.icon)}
-                            <span className="font-medium">{chip.category}</span>
-                            <span className="text-sm">{chip.pct}%</span>
-                        </button>
-                    ))}
-                </div>
-
-                <p className="text-sm text-gray-500 dark:text-gray-400">Click a chip to see details in Cash Flow</p>
+                {expenseChips.length > 0 ? (
+                    <>
+                        <div className="flex flex-wrap gap-3 mb-4">
+                            {expenseChips.map((chip, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => window.location.href = '/scenarios'}
+                                    className={`flex items-center space-x-2 px-4 py-2 rounded-full border transition-all hover:shadow-md ${getChipColor(chip.pct)}`}
+                                >
+                                    {getChipIcon(chip.icon)}
+                                    <span className="font-medium">{chip.category}</span>
+                                    <span className="text-sm mt-0.5">{chip.pct}%</span>
+                                </button>
+                            ))}
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Click a chip to see details in Cash Flow</p>
+                    </>
+                ) : (
+                    <div className="text-center py-8">
+                        <p className="text-gray-600 dark:text-gray-400">No expense data available</p>
+                    </div>
+                )}
             </div>
 
             {/* Alerts Feed */}
