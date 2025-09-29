@@ -280,6 +280,67 @@ export interface UsersList {
   profile?: number | null;
 }
 
+export interface AIInsightsResponse {
+  /**
+   * List of exactly 4 AI-generated business insights
+   * @maxItems 4
+   * @minItems 4
+   */
+  insights: string[];
+  /**
+   * Period
+   * Analysis period information
+   */
+  period: Record<string, string | null>;
+  /**
+   * Data sources
+   * Available data sources used for analysis
+   */
+  data_sources: Record<string, string | null>;
+}
+
+export interface CashAnalysisResponse {
+  /**
+   * Total income
+   * Total income from transactions
+   * @format decimal
+   */
+  total_income: string;
+  /**
+   * Total expense
+   * Total expense from transactions
+   * @format decimal
+   */
+  total_expense: string;
+}
+
+export interface ExpenseCategory {
+  /**
+   * Total amount
+   * Total amount for this expense category
+   * @format decimal
+   */
+  total_amount: string;
+  /**
+   * Spike
+   * True if MoM > +20% or category ≥3% of total expenses
+   */
+  spike: boolean;
+  /**
+   * New
+   * True if category appeared first time in period
+   */
+  new: boolean;
+}
+
+export interface ExpenseBreakdownResponse {
+  COGS?: ExpenseCategory;
+  Payroll?: ExpenseCategory;
+  Rent?: ExpenseCategory;
+  Marketing?: ExpenseCategory;
+  Other_Expenses?: ExpenseCategory;
+}
+
 /** Metrics for paid invoices */
 export interface InvoiceMetrics {
   /**
@@ -905,6 +966,57 @@ export class Api<
       }),
 
     /**
+     * @description Generate AI insights by analyzing combined financial data from P&L, invoices, and cash analysis. Returns exactly 4 concise business insights with actionable recommendations. Requires uploaded data files (pnl_template, invoices_template, transactions_template) for comprehensive analysis.
+     *
+     * @tags AI Analysis
+     * @name UsersAiInsightsList
+     * @summary Get AI-powered business insights
+     * @request GET:/users/ai-insights
+     * @secure
+     */
+    usersAiInsightsList: (
+      query: {
+        /**
+         * Start date for analysis period (YYYY-MM-DD)
+         * @format date
+         */
+        start_date: string;
+        /**
+         * End date for analysis period (YYYY-MM-DD)
+         * @format date
+         */
+        end_date: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<AIInsightsResponse, void>({
+        path: `/users/ai-insights`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Analyze user's transaction data to calculate total income and total expense. Requires transactions_template file to be uploaded.
+     *
+     * @tags Cash Analysis
+     * @name UsersCashAnalysisList
+     * @summary Get cash analysis
+     * @request GET:/users/cash-analysis
+     * @secure
+     */
+    usersCashAnalysisList: (params: RequestParams = {}) =>
+      this.request<CashAnalysisResponse, void>({
+        path: `/users/cash-analysis`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * No description
      *
      * @tags users
@@ -924,6 +1036,39 @@ export class Api<
         method: "GET",
         query: query,
         secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Analyze user's expense data by category for a specific date range. Returns breakdown with total amounts, spike detection, and new category flags. Requires pnl_template file to be uploaded.
+     *
+     * @tags Expense Analysis
+     * @name UsersExpenseBreakdownList
+     * @summary Get expense breakdown analysis
+     * @request GET:/users/expense-breakdown
+     * @secure
+     */
+    usersExpenseBreakdownList: (
+      query: {
+        /**
+         * Start date for analysis period (YYYY-MM-DD)
+         * @format date
+         */
+        start_date: string;
+        /**
+         * End date for analysis period (YYYY-MM-DD)
+         * @format date
+         */
+        end_date: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ExpenseBreakdownResponse, void>({
+        path: `/users/expense-breakdown`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
         ...params,
       }),
 

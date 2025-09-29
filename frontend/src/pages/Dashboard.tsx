@@ -971,7 +971,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Expense Chips */}
-            <div ref={expensesCategoryRef} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            {/* <div ref={expensesCategoryRef} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Expenses by category</h2>
                 </div>
@@ -999,10 +999,10 @@ const Dashboard: React.FC = () => {
                         <p className="text-gray-600 dark:text-gray-400">No expense data available</p>
                     </div>
                 )}
-            </div>
+            </div> */}
 
             {/* Alerts Feed */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            {/* <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Signals</h2>
                 </div>
@@ -1030,10 +1030,10 @@ const Dashboard: React.FC = () => {
                         <p className="text-gray-600 dark:text-gray-400">No signals — everything is stable 🎉</p>
                     </div>
                 )}
-            </div>
+            </div> */}
 
             {/* AI Advisor Insights */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            {/* <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
                         <Brain className="w-6 h-6 mr-2 text-indigo-600"/>
@@ -1057,7 +1057,7 @@ const Dashboard: React.FC = () => {
                         <p className="text-gray-600 dark:text-gray-400">No advice yet — upload more data.</p>
                     </div>
                 )}
-            </div>
+            </div> */}
         </motion.div>
     );
 };
