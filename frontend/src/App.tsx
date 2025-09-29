@@ -9,6 +9,7 @@ import DataImport from "./pages/DataImport.tsx";
 import Settings from "./pages/Settings.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
 import Overview from "./pages/Overview.tsx";
+import Benchmark from "./pages/Benchmark.tsx";
 
 function App() {
     return (
@@ -24,6 +25,7 @@ function App() {
                         <Route path="overview" element={<Overview />} />
                         <Route path="dashboard" element={<Dashboard/>}/>
                         <Route path="data-import" element={<DataImport/>}/>
+                        <Route path="benchmark" element={<Benchmark />} />
                         <Route path="settings" element={<Settings />} />
                     </Route>
                 </Route>
