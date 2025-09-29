@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, {useState, useEffect, useMemo, useRef} from 'react';
 import {
     Calendar,
     DollarSign,
@@ -22,7 +22,7 @@ import {
     Brain,
     ExternalLink
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import {motion} from 'framer-motion';
 import {
     ComposedChart,
     Bar,
@@ -45,9 +45,9 @@ import {
     startOfDay,
     endOfDay
 } from 'date-fns';
-import { revenues } from '../data/seedData';
-import { useTheme } from '../contexts/ThemeContext';
-import { getPnLAnalysisRequest, PnLAnalysisResponse, PnLDataItem } from '../api/auth';
+import {revenues} from '../data/seedData';
+import {useTheme} from '../contexts/ThemeContext';
+import {getPnLAnalysisRequest, PnLAnalysisResponse, PnLDataItem} from '../api/auth';
 
 interface PulseKPI {
     revenue: number;
@@ -90,7 +90,7 @@ interface ChartData {
 }
 
 const Dashboard: React.FC = () => {
-    const { theme } = useTheme();
+    const {theme} = useTheme();
 
     // Refs for scroll targets
     const revenueExpensesRef = useRef<HTMLDivElement>(null);
@@ -208,14 +208,14 @@ const Dashboard: React.FC = () => {
                         total_expenses: 0,
                         net_profit: 0,
                         month_change: {
-                            revenue: { change: 0, percentage_change: 0 },
-                            expenses: { change: 0, percentage_change: 0 },
-                            net_profit: { change: 0, percentage_change: 0 }
+                            revenue: {change: 0, percentage_change: 0},
+                            expenses: {change: 0, percentage_change: 0},
+                            net_profit: {change: 0, percentage_change: 0}
                         },
                         year_change: {
-                            revenue: { change: 0, percentage_change: 0 },
-                            expenses: { change: 0, percentage_change: 0 },
-                            net_profit: { change: 0, percentage_change: 0 }
+                            revenue: {change: 0, percentage_change: 0},
+                            expenses: {change: 0, percentage_change: 0},
+                            net_profit: {change: 0, percentage_change: 0}
                         },
                         period: periodDates,
                         ai_insights: 'No data available for the selected period.'
@@ -272,11 +272,11 @@ const Dashboard: React.FC = () => {
         // Find top expense category
         const latestMonth = data.pnl_data && data.pnl_data.length > 0 ? data.pnl_data[data.pnl_data.length - 1] : null;
         const expenses = [
-            { name: 'Payroll', amount: latestMonth?.Payroll || 0 },
-            { name: 'COGS', amount: latestMonth?.COGS || 0 },
-            { name: 'Marketing', amount: latestMonth?.Marketing || 0 },
-            { name: 'Rent', amount: latestMonth?.Rent || 0 },
-            { name: 'Other_Expenses', amount: latestMonth?.Other_Expenses || 0 }
+            {name: 'Payroll', amount: latestMonth?.Payroll || 0},
+            {name: 'COGS', amount: latestMonth?.COGS || 0},
+            {name: 'Marketing', amount: latestMonth?.Marketing || 0},
+            {name: 'Rent', amount: latestMonth?.Rent || 0},
+            {name: 'Other_Expenses', amount: latestMonth?.Other_Expenses || 0}
         ];
         const topExpense = expenses.reduce((max, current) =>
             current.amount > max.amount ? current : max
@@ -320,11 +320,11 @@ const Dashboard: React.FC = () => {
         );
 
         const expenses_by_category = [
-            { category: 'COGS', series: pnlDataItems.map(item => item.COGS || 0) },
-            { category: 'Payroll', series: pnlDataItems.map(item => item.Payroll || 0) },
-            { category: 'Rent', series: pnlDataItems.map(item => item.Rent || 0) },
-            { category: 'Marketing', series: pnlDataItems.map(item => item.Marketing || 0) },
-            { category: 'Other_Expenses', series: pnlDataItems.map(item => item.Other_Expenses || 0) }
+            {category: 'COGS', series: pnlDataItems.map(item => item.COGS || 0)},
+            {category: 'Payroll', series: pnlDataItems.map(item => item.Payroll || 0)},
+            {category: 'Rent', series: pnlDataItems.map(item => item.Rent || 0)},
+            {category: 'Marketing', series: pnlDataItems.map(item => item.Marketing || 0)},
+            {category: 'Other_Expenses', series: pnlDataItems.map(item => item.Other_Expenses || 0)}
         ];
 
         return {
@@ -351,16 +351,22 @@ const Dashboard: React.FC = () => {
         }
 
         const totalExpenses = (latestMonth.COGS || 0) + (latestMonth.Payroll || 0) + (latestMonth.Rent || 0) +
-                            (latestMonth.Marketing || 0) + (latestMonth.Other_Expenses || 0);
+            (latestMonth.Marketing || 0) + (latestMonth.Other_Expenses || 0);
 
         const getIcon = (category: string) => {
             switch (category) {
-                case 'Payroll': return 'users';
-                case 'Marketing': return 'zap';
-                case 'Rent': return 'building';
-                case 'COGS': return 'shopping-cart';
-                case 'Other_Expenses': return 'more';
-                default: return 'dollar-sign';
+                case 'Payroll':
+                    return 'users';
+                case 'Marketing':
+                    return 'zap';
+                case 'Rent':
+                    return 'building';
+                case 'COGS':
+                    return 'shopping-cart';
+                case 'Other_Expenses':
+                    return 'more';
+                default:
+                    return 'dollar-sign';
             }
         };
 
@@ -368,11 +374,36 @@ const Dashboard: React.FC = () => {
         const roundPercentage = (value: number) => Math.round(value * 100) / 100;
 
         return [
-            { category: 'COGS', amount: latestMonth.COGS || 0, pct: totalExpenses > 0 ? roundPercentage(((latestMonth.COGS || 0) / totalExpenses) * 100) : 0, icon: getIcon('COGS') },
-            { category: 'Payroll', amount: latestMonth.Payroll || 0, pct: totalExpenses > 0 ? roundPercentage(((latestMonth.Payroll || 0) / totalExpenses) * 100) : 0, icon: getIcon('Payroll') },
-            { category: 'Rent', amount: latestMonth.Rent || 0, pct: totalExpenses > 0 ? roundPercentage(((latestMonth.Rent || 0) / totalExpenses) * 100) : 0, icon: getIcon('Rent') },
-            { category: 'Marketing', amount: latestMonth.Marketing || 0, pct: totalExpenses > 0 ? roundPercentage(((latestMonth.Marketing || 0) / totalExpenses) * 100) : 0, icon: getIcon('Marketing') },
-            { category: 'Other_Expenses', amount: latestMonth.Other_Expenses || 0, pct: totalExpenses > 0 ? roundPercentage(((latestMonth.Other_Expenses || 0) / totalExpenses) * 100) : 0, icon: getIcon('Other_Expenses') }
+            {
+                category: 'COGS',
+                amount: latestMonth.COGS || 0,
+                pct: totalExpenses > 0 ? roundPercentage(((latestMonth.COGS || 0) / totalExpenses) * 100) : 0,
+                icon: getIcon('COGS')
+            },
+            {
+                category: 'Payroll',
+                amount: latestMonth.Payroll || 0,
+                pct: totalExpenses > 0 ? roundPercentage(((latestMonth.Payroll || 0) / totalExpenses) * 100) : 0,
+                icon: getIcon('Payroll')
+            },
+            {
+                category: 'Rent',
+                amount: latestMonth.Rent || 0,
+                pct: totalExpenses > 0 ? roundPercentage(((latestMonth.Rent || 0) / totalExpenses) * 100) : 0,
+                icon: getIcon('Rent')
+            },
+            {
+                category: 'Marketing',
+                amount: latestMonth.Marketing || 0,
+                pct: totalExpenses > 0 ? roundPercentage(((latestMonth.Marketing || 0) / totalExpenses) * 100) : 0,
+                icon: getIcon('Marketing')
+            },
+            {
+                category: 'Other_Expenses',
+                amount: latestMonth.Other_Expenses || 0,
+                pct: totalExpenses > 0 ? roundPercentage(((latestMonth.Other_Expenses || 0) / totalExpenses) * 100) : 0,
+                icon: getIcon('Other_Expenses')
+            }
         ].filter(chip => chip.amount > 0); // Only show categories with expenses
     }, [pnlData]);
 
@@ -432,41 +463,41 @@ const Dashboard: React.FC = () => {
     const getStatusIcon = (statusBy: string, value: number, trend?: number) => {
         switch (statusBy) {
             case 'trend':
-                return trend && trend > 0 ? <TrendingUp className="w-6 h-6" /> : <TrendingDown className="w-6 h-6" />;
+                return trend && trend > 0 ? <TrendingUp className="w-6 h-6"/> : <TrendingDown className="w-6 h-6"/>;
             case 'criticalIf>0':
-                return value > 0 ? <AlertTriangle className="w-6 h-6" /> : <CheckCircle className="w-6 h-6" />;
+                return value > 0 ? <AlertTriangle className="w-6 h-6"/> : <CheckCircle className="w-6 h-6"/>;
             case 'balance':
-                return <DollarSign className="w-6 h-6" />;
+                return <DollarSign className="w-6 h-6"/>;
             default:
-                return <BarChart3 className="w-6 h-6" />;
+                return <BarChart3 className="w-6 h-6"/>;
         }
     };
 
     const getAlertIcon = (severity: string) => {
         switch (severity) {
             case 'error':
-                return <XCircle className="w-5 h-5 text-red-500" />;
+                return <XCircle className="w-5 h-5 text-red-500"/>;
             case 'warning':
-                return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+                return <AlertTriangle className="w-5 h-5 text-yellow-500"/>;
             case 'info':
-                return <Info className="w-5 h-5 text-blue-500" />;
+                return <Info className="w-5 h-5 text-blue-500"/>;
             default:
-                return <CheckCircle className="w-5 h-5 text-green-500" />;
+                return <CheckCircle className="w-5 h-5 text-green-500"/>;
         }
     };
 
     const getChipIcon = (iconKey: string) => {
         switch (iconKey) {
             case 'users':
-                return <Users className="w-4 h-4" />;
+                return <Users className="w-4 h-4"/>;
             case 'zap':
-                return <Zap className="w-4 h-4" />;
+                return <Zap className="w-4 h-4"/>;
             case 'building':
-                return <BarChart3 className="w-4 h-4" />;
+                return <BarChart3 className="w-4 h-4"/>;
             case 'code':
-                return <Target className="w-4 h-4" />;
+                return <Target className="w-4 h-4"/>;
             default:
-                return <DollarSign className="w-4 h-4" />;
+                return <DollarSign className="w-4 h-4"/>;
         }
     };
 
@@ -518,7 +549,8 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Business Pulse</h1>
-                    <p className="text-gray-600 dark:text-gray-400">Your company's financial heartbeat, risks, and next steps</p>
+                    <p className="text-gray-600 dark:text-gray-400">Your company's financial heartbeat, risks, and next
+                        steps</p>
                 </div>
 
                 {/* Period Selector */}
@@ -550,9 +582,10 @@ const Dashboard: React.FC = () => {
             {pnlError && (
                 <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4">
                     <div className="flex items-center space-x-3">
-                        <XCircle className="w-5 h-5 text-red-500" />
+                        <XCircle className="w-5 h-5 text-red-500"/>
                         <div>
-                            <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error loading financial data</h3>
+                            <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error loading financial
+                                data</h3>
                             <p className="text-sm text-red-700 dark:text-red-300 mt-1">{pnlError}</p>
                         </div>
                         <button
@@ -567,8 +600,10 @@ const Dashboard: React.FC = () => {
 
             {/* Custom Date Range Selector */}
             {showCustomRange && (
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Select Custom Date Range</h3>
+                <div
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Select Custom Date
+                        Range</h3>
 
                     <div className="flex items-center space-x-4 mb-4">
                         <div className="flex-1">
@@ -600,7 +635,8 @@ const Dashboard: React.FC = () => {
 
                     {/* Validation message */}
                     {customStartDate && customEndDate && customStartDate > customEndDate && (
-                        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-md">
+                        <div
+                            className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-md">
                             <p className="text-sm text-red-800 dark:text-red-200">
                                 End date must be on or after start date.
                             </p>
@@ -694,27 +730,30 @@ const Dashboard: React.FC = () => {
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-yellow-500">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Overdue Invoices</h3>
-                        <div className="mr-1">
-                            <button
-                                onClick={() => {
-                                    setShowOverdueDatePicker(!showOverdueDatePicker);
-                                    if (!showOverdueDatePicker) {
-                                        setShowCashDatePicker(false);
-                                    }
-                                }}
-                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                                title="Select overdue date range">
-                                <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                            </button>
-                        </div>
-                        <div className={getStatusColor('criticalIf>0', pulseKPIs.overdue_invoices)}>
-                            {getStatusIcon('criticalIf>0', pulseKPIs.overdue_invoices)}
+                        <div className="flex">
+                            <div className="mr-1">
+                                <button
+                                    onClick={() => {
+                                        setShowOverdueDatePicker(!showOverdueDatePicker);
+                                        if (!showOverdueDatePicker) {
+                                            setShowCashDatePicker(false);
+                                        }
+                                    }}
+                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                                    title="Select overdue date range">
+                                    <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400"/>
+                                </button>
+                            </div>
+                            <div className={getStatusColor('criticalIf>0', pulseKPIs.overdue_invoices)}>
+                                {getStatusIcon('criticalIf>0', pulseKPIs.overdue_invoices)}
+                            </div>
                         </div>
                     </div>
 
                     {/* Date Range Picker */}
                     {showOverdueDatePicker && (
-                        <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <div
+                            className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                             <div className="space-y-3">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Overdue date range:
@@ -757,7 +796,10 @@ const Dashboard: React.FC = () => {
                                         onClick={() => {
                                             setShowOverdueDatePicker(false);
                                             // Here you would apply the date range filter
-                                            console.log('Apply overdue date range filter:', { start: overdueStartDate, end: overdueEndDate });
+                                            console.log('Apply overdue date range filter:', {
+                                                start: overdueStartDate,
+                                                end: overdueEndDate
+                                            });
                                         }}
                                         disabled={!overdueStartDate || !overdueEndDate || overdueStartDate > overdueEndDate}
                                         className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors"
@@ -780,28 +822,32 @@ const Dashboard: React.FC = () => {
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-purple-500">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Ending Cash</h3>
-                        <div className="mr-1">
-                            <button
-                                onClick={() => {
-                                    setShowCashDatePicker(!showCashDatePicker);
-                                    if (!showCashDatePicker) {
-                                        setShowOverdueDatePicker(false);
-                                    }
-                                }}
-                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                                title="Select cash date range"
-                            >
-                                <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                            </button>
-                        </div>
-                        <div className={getStatusColor('balance', pulseKPIs.ending_cash)}>
-                            {getStatusIcon('balance', pulseKPIs.ending_cash)}
+                        <div className="flex">
+
+                            <div className="mr-1">
+                                <button
+                                    onClick={() => {
+                                        setShowCashDatePicker(!showCashDatePicker);
+                                        if (!showCashDatePicker) {
+                                            setShowOverdueDatePicker(false);
+                                        }
+                                    }}
+                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                                    title="Select cash date range"
+                                >
+                                    <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400"/>
+                                </button>
+                            </div>
+                            <div className={getStatusColor('balance', pulseKPIs.ending_cash)}>
+                                {getStatusIcon('balance', pulseKPIs.ending_cash)}
+                            </div>
                         </div>
                     </div>
 
                     {/* Date Range Picker */}
                     {showCashDatePicker && (
-                        <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <div
+                            className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                             <div className="space-y-3">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Cash date range:
@@ -844,7 +890,10 @@ const Dashboard: React.FC = () => {
                                         onClick={() => {
                                             setShowCashDatePicker(false);
                                             // Here you would apply the date range filter
-                                            console.log('Apply cash date range filter:', { start: cashStartDate, end: cashEndDate });
+                                            console.log('Apply cash date range filter:', {
+                                                start: cashStartDate,
+                                                end: cashEndDate
+                                            });
                                         }}
                                         disabled={!cashStartDate || !cashEndDate || cashStartDate > cashEndDate}
                                         className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors"
@@ -870,7 +919,8 @@ const Dashboard: React.FC = () => {
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Revenue vs Expenses</h2>
                     {chartData.story && (
-                        <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30 border border-orange-200 dark:border-orange-700 rounded-lg p-4">
+                        <div
+                            className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30 border border-orange-200 dark:border-orange-700 rounded-lg p-4">
                             <p className="text-orange-800 dark:text-orange-200 font-medium">{chartData.story}</p>
                         </div>
                     )}
@@ -880,8 +930,8 @@ const Dashboard: React.FC = () => {
                     <div className="h-80">
                         <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={stackedChartData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} />
-                                <XAxis dataKey="month" stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e5e7eb'}/>
+                                <XAxis dataKey="month" stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}/>
                                 <YAxis
                                     tickFormatter={(value) => formatCurrency(value).replace(/\$|,/g, '')}
                                     stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
@@ -896,7 +946,7 @@ const Dashboard: React.FC = () => {
                                 />
 
                                 {/* Revenue bar */}
-                                <Bar dataKey="revenue" fill="#10b981" name="Revenue" />
+                                <Bar dataKey="revenue" fill="#10b981" name="Revenue"/>
 
                                 {/* Stacked expense categories */}
                                 {chartData.expenses_by_category.map((category, index) => (
@@ -941,7 +991,8 @@ const Dashboard: React.FC = () => {
                                 </button>
                             ))}
                         </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Click a chip to see details in Cash Flow</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Click a chip to see details in Cash
+                            Flow</p>
                     </>
                 ) : (
                     <div className="text-center py-8">
@@ -966,15 +1017,16 @@ const Dashboard: React.FC = () => {
                             >
                                 <div className="flex items-center space-x-3">
                                     {getAlertIcon(alert.severity)}
-                                    <span className="font-medium text-gray-900 dark:text-gray-100">{alert.message}</span>
+                                    <span
+                                        className="font-medium text-gray-900 dark:text-gray-100">{alert.message}</span>
                                 </div>
-                                <ExternalLink className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                                <ExternalLink className="w-4 h-4 text-gray-400 dark:text-gray-500"/>
                             </button>
                         ))}
                     </div>
                 ) : (
                     <div className="text-center py-8">
-                        <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2" />
+                        <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2"/>
                         <p className="text-gray-600 dark:text-gray-400">No signals — everything is stable 🎉</p>
                     </div>
                 )}
@@ -984,7 +1036,7 @@ const Dashboard: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                        <Brain className="w-6 h-6 mr-2 text-indigo-600" />
+                        <Brain className="w-6 h-6 mr-2 text-indigo-600"/>
                         Advisor Insights 🤖
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Short recommendations based on your data</p>
@@ -993,8 +1045,9 @@ const Dashboard: React.FC = () => {
                 {insights.length > 0 ? (
                     <div className="space-y-4">
                         {insights.map((insight, index) => (
-                            <div key={index} className="flex items-start space-x-3 p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border border-indigo-200 dark:border-indigo-700">
-                                <Brain className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mt-0.5 flex-shrink-0" />
+                            <div key={index}
+                                 className="flex items-start space-x-3 p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border border-indigo-200 dark:border-indigo-700">
+                                <Brain className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mt-0.5 flex-shrink-0"/>
                                 <p className="text-sm text-indigo-800 dark:text-indigo-200">{insight}</p>
                             </div>
                         ))}
