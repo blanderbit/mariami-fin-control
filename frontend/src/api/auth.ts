@@ -422,7 +422,7 @@ export async function getCashAnalysisRequest(data: CashAnalysisRequest): Promise
 }
 
 export type ExpenseCategoryData = {
-    total_amount: string;
+    total_amount: number;
     spike: boolean;
     new: boolean;
 };
@@ -443,7 +443,14 @@ export type ExpenseBreakdownRequest = {
 export async function getExpenseBreakdownRequest(data: ExpenseBreakdownRequest): Promise<ExpenseBreakdownResponse> {
     try {
         const res = await api.users.usersExpenseBreakdownList(data) as any;
-        return res.data || res;
+        // Handle both wrapped and direct response formats
+        if (res.data && res.data.data) {
+            return res.data.data;
+        } else if (res.data) {
+            return res.data;
+        } else {
+            return res;
+        }
     } catch (error) {
         console.error('Failed to get expense breakdown:', error);
         throw error;

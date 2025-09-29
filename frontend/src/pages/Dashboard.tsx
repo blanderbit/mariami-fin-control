@@ -125,6 +125,7 @@ const Dashboard: React.FC = () => {
     const [expenseBreakdownData, setExpenseBreakdownData] = useState<ExpenseBreakdownResponse | null>(null);
     const [isLoadingExpenseBreakdown, setIsLoadingExpenseBreakdown] = useState(false);
     const [expenseBreakdownError, setExpenseBreakdownError] = useState<string | null>(null);
+    const [showAllCategories, setShowAllCategories] = useState(false);
 
     // Date range picker states
     const [showOverdueDatePicker, setShowOverdueDatePicker] = useState(false);
@@ -413,36 +414,38 @@ const Dashboard: React.FC = () => {
             const getIcon = (category: string) => {
                 switch (category) {
                     case 'Payroll':
-                        return 'users';
-                    case 'Marketing':
-                        return 'zap';
+                        return '💼';
                     case 'Rent':
-                        return 'building';
+                        return '🏢';
+                    case 'Marketing':
+                        return '📣';
                     case 'COGS':
-                        return 'shopping-cart';
-                    case 'Other_Expenses':
-                        return 'more';
+                        return '📦';
+                    case 'Software':
+                        return '💻';
+                    case 'Utilities':
+                        return '🔌';
                     default:
-                        return 'dollar-sign';
+                        return '⋯';
                 }
             };
 
             // Calculate total expenses for percentage calculation
             const totalExpenses = Object.values(expenseBreakdownData).reduce((sum, category) => {
-                return sum + (category ? parseFloat(category.total_amount) : 0);
+                return sum + (category ? category.total_amount : 0);
             }, 0);
 
-            // Helper function to round percentage to 2 decimal places
-            const roundPercentage = (value: number) => Math.round(value * 100) / 100;
+            // Helper function to round percentage to 1 decimal place
+            const roundPercentage = (value: number) => Math.round(value * 10) / 10;
 
             const chips: ExpenseChip[] = [];
-            
+
             Object.entries(expenseBreakdownData).forEach(([category, data]) => {
-                if (data && parseFloat(data.total_amount) > 0) {
+                if (data && data.total_amount > 0) {
                     chips.push({
                         category,
-                        amount: parseFloat(data.total_amount),
-                        pct: totalExpenses > 0 ? roundPercentage((parseFloat(data.total_amount) / totalExpenses) * 100) : 0,
+                        amount: data.total_amount,
+                        pct: totalExpenses > 0 ? roundPercentage((data.total_amount / totalExpenses) * 100) : 0,
                         icon: getIcon(category),
                         spike: data.spike,
                         isNew: data.new
@@ -469,21 +472,23 @@ const Dashboard: React.FC = () => {
         const getIcon = (category: string) => {
             switch (category) {
                 case 'Payroll':
-                    return 'users';
-                case 'Marketing':
-                    return 'zap';
+                    return '💼';
                 case 'Rent':
-                    return 'building';
+                    return '🏢';
+                case 'Marketing':
+                    return '📣';
                 case 'COGS':
-                    return 'shopping-cart';
-                case 'Other_Expenses':
-                    return 'more';
+                    return '📦';
+                case 'Software':
+                    return '💻';
+                case 'Utilities':
+                    return '🔌';
                 default:
-                    return 'dollar-sign';
+                    return '⋯';
             }
         };
 
-        const roundPercentage = (value: number) => Math.round(value * 100) / 100;
+        const roundPercentage = (value: number) => Math.round(value * 10) / 10;
 
         return [
             {
@@ -598,29 +603,41 @@ const Dashboard: React.FC = () => {
         }
     };
 
-    const getChipIcon = (iconKey: string) => {
-        switch (iconKey) {
-            case 'users':
-                return <Users className="w-4 h-4"/>;
-            case 'zap':
-                return <Zap className="w-4 h-4"/>;
-            case 'building':
-                return <BarChart3 className="w-4 h-4"/>;
-            case 'code':
-                return <Target className="w-4 h-4"/>;
-            default:
-                return <DollarSign className="w-4 h-4"/>;
-        }
-    };
 
     const getChipColor = (pct: number, spike?: boolean, isNew?: boolean) => {
-        // Priority: spike > isNew > percentage-based
-        if (spike) return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border-red-200 dark:border-red-700';
-        if (isNew) return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700';
-        if (pct > 30) return 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 border-orange-200 dark:border-orange-700';
-        if (pct > 15) return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-700';
-        if (pct > 10) return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-700';
-        return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-600';
+        // Base color #2762ea with different opacity based on percentage
+        const baseColor = '#2762ea';
+
+        // Calculate opacity based on percentage (higher % = more saturated)
+        let opacity = 0.1;
+        if (pct >= 30) {
+            opacity = 0.8;
+        } else if (pct >= 20) {
+            opacity = 0.6;
+        } else if (pct >= 15) {
+            opacity = 0.5;
+        } else if (pct >= 10) {
+            opacity = 0.4;
+        } else if (pct >= 5) {
+            opacity = 0.3;
+        } else {
+            opacity = 0.2;
+        }
+
+        // If spike, increase opacity for more saturation
+        if (spike) {
+            opacity = Math.min(opacity + 0.2, 0.9);
+        }
+
+        // Create background and border colors
+        const backgroundColor = `${baseColor}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`;
+        const borderColor = `${baseColor}${Math.round(opacity * 255 * 1.2).toString(16).padStart(2, '0')}`;
+
+        return {
+            backgroundColor,
+            borderColor,
+            color: '#ffffff'
+        };
     };
 
     // Prepare stacked chart data
@@ -1098,7 +1115,9 @@ const Dashboard: React.FC = () => {
             {/* Expense Chips */}
             <div ref={expensesCategoryRef} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Expenses by category</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                        Expenses by category ({expenseChips.length} chips)
+                    </h2>
                     {expenseBreakdownError && (
                         <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-md">
                             <p className="text-sm text-red-800 dark:text-red-200">{expenseBreakdownError}</p>
@@ -1115,35 +1134,81 @@ const Dashboard: React.FC = () => {
                     </div>
                 ) : expenseChips.length > 0 ? (
                     <>
-                        <div className="flex flex-wrap gap-3 mb-4">
-                            {expenseChips.map((chip, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => window.location.href = '/scenarios'}
-                                    className={`flex items-center space-x-2 px-4 py-2 rounded-full border transition-all hover:shadow-md ${getChipColor(chip.pct, chip.spike, chip.isNew)}`}
-                                    title={`${chip.category}: ${formatCurrency(chip.amount)} (${chip.pct}%)${chip.spike ? ' - Spike detected' : ''}${chip.isNew ? ' - New category' : ''}`}
-                                >
-                                    {getChipIcon(chip.icon)}
-                                    <span className="font-medium">{chip.category}</span>
-                                    <span className="text-sm mt-0.5">{chip.pct}%</span>
-                                    {chip.spike && (
-                                        <span className="text-xs bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 px-2 py-0.5 rounded-full">
-                                            Spike
-                                        </span>
-                                    )}
-                                    {chip.isNew && (
-                                        <span className="text-xs bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200 px-2 py-0.5 rounded-full">
-                                            New
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Click a chip to see details in Cash Flow. 
-                            <span className="text-red-600 dark:text-red-400">Red</span> indicates spikes, 
-                            <span className="text-green-600 dark:text-green-400">green</span> indicates new categories.
-                        </p>
+                        {/* Handle edge case: only one category */}
+                        {expenseChips.length === 1 ? (
+                            <div className="text-center py-8">
+                                <div className="flex justify-center mb-4">
+                                    <div
+                                        className="flex items-center space-x-2 px-6 py-3 rounded-full border-2"
+                                        style={{
+                                            backgroundColor: getChipColor(expenseChips[0].pct, expenseChips[0].spike, expenseChips[0].isNew).backgroundColor,
+                                            borderColor: getChipColor(expenseChips[0].pct, expenseChips[0].spike, expenseChips[0].isNew).borderColor,
+                                            color: getChipColor(expenseChips[0].pct, expenseChips[0].spike, expenseChips[0].isNew).color
+                                        }}
+                                    >
+                                        <span className="text-lg">{expenseChips[0].icon}</span>
+                                        <span className="font-medium text-lg">{expenseChips[0].category}</span>
+                                        <span className="text-lg font-bold">{expenseChips[0].pct}%</span>
+                                        {expenseChips[0].spike && <span className="text-lg">⚠️</span>}
+                                        {expenseChips[0].isNew && (
+                                            <span className="text-xs bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200 px-2 py-1 rounded-full font-bold">
+                                                NEW
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Add more expense categories in P&L to refine analysis
+                                </p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="flex flex-wrap gap-3 mb-4">
+                                    {(showAllCategories ? expenseChips : expenseChips.slice(0, 12)).map((chip, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => {
+                                                // TODO: Open modal with category details
+                                                console.log('Open category details modal for:', chip.category);
+                                            }}
+                                            className="relative flex items-center space-x-2 px-4 py-2 rounded-full border transition-all hover:shadow-md"
+                                            style={{
+                                                backgroundColor: getChipColor(chip.pct, chip.spike, chip.isNew).backgroundColor,
+                                                borderColor: getChipColor(chip.pct, chip.spike, chip.isNew).borderColor,
+                                                color: getChipColor(chip.pct, chip.spike, chip.isNew).color
+                                            }}
+                                            title={`${chip.category}: ${formatCurrency(chip.amount)} (${chip.pct}%)${chip.spike ? ' - Spike detected' : ''}${chip.isNew ? ' - New category' : ''}`}
+                                        >
+                                            <span className="text-sm">{chip.icon}</span>
+                                            <span className="font-medium">{chip.category}</span>
+                                            <span className="text-sm font-bold">{chip.pct}%</span>
+                                            {chip.spike && <span className="text-sm">⚠️</span>}
+                                            {chip.isNew && (
+                                                <span className="text-xs bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200 px-2 py-0.5 rounded-full font-bold">
+                                                    NEW
+                                                </span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Show "show more" button if there are more than 12 categories */}
+                                {expenseChips.length > 12 && (
+                                    <div className="text-center mb-4">
+                                        <button
+                                            onClick={() => setShowAllCategories(!showAllCategories)}
+                                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 text-sm font-medium"
+                                        >
+                                            {showAllCategories ? 'Show less...' : `Show ${expenseChips.length - 12} more...`}
+                                        </button>
+                                    </div>
+                                )}
+
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    Click a chip to see category details.
+                                </p>
+                            </>
+                        )}
                     </>
                 ) : (
                     <div className="text-center py-8">
