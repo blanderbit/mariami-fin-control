@@ -109,11 +109,13 @@ const Dashboard: React.FC = () => {
     const [isLoadingPnl, setIsLoadingPnl] = useState(false);
     const [pnlError, setPnlError] = useState<string | null>(null);
 
-    // Date picker states
+    // Date range picker states
     const [showOverdueDatePicker, setShowOverdueDatePicker] = useState(false);
     const [showCashDatePicker, setShowCashDatePicker] = useState(false);
-    const [overdueDate, setOverdueDate] = useState('');
-    const [cashDate, setCashDate] = useState('');
+    const [overdueStartDate, setOverdueStartDate] = useState('');
+    const [overdueEndDate, setOverdueEndDate] = useState('');
+    const [cashStartDate, setCashStartDate] = useState('');
+    const [cashEndDate, setCashEndDate] = useState('');
 
     // Get company data
     const company = JSON.parse(localStorage.getItem('company') || '{}');
@@ -701,7 +703,7 @@ const Dashboard: React.FC = () => {
                                     }
                                 }}
                                 className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                                title="Select overdue date">
+                                title="Select overdue date range">
                                 <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                             </button>
                         </div>
@@ -710,29 +712,59 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Date Picker */}
+                    {/* Date Range Picker */}
                     {showOverdueDatePicker && (
                         <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                             <div className="space-y-3">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Overdue as of:
+                                    Overdue date range:
                                 </label>
-                                <input
-                                    type="date"
-                                    value={overdueDate}
-                                    onChange={(e) => setOverdueDate(e.target.value)}
-                                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                                <button
-                                    onClick={() => {
-                                        setShowOverdueDatePicker(false);
-                                        // Here you would apply the date filter
-                                        console.log('Apply overdue date filter:', overdueDate);
-                                    }}
-                                    className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-                                >
-                                    Apply
-                                </button>
+                                <div className="space-y-2">
+                                    <input
+                                        type="date"
+                                        value={overdueStartDate}
+                                        onChange={(e) => setOverdueStartDate(e.target.value)}
+                                        max={overdueEndDate || undefined}
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Start date"
+                                    />
+                                    <input
+                                        type="date"
+                                        value={overdueEndDate}
+                                        onChange={(e) => setOverdueEndDate(e.target.value)}
+                                        min={overdueStartDate || undefined}
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="End date"
+                                    />
+                                </div>
+                                {overdueStartDate && overdueEndDate && overdueStartDate > overdueEndDate && (
+                                    <p className="text-xs text-red-600 dark:text-red-400">
+                                        End date must be on or after start date
+                                    </p>
+                                )}
+                                <div className="space-y-2">
+                                    <button
+                                        onClick={() => {
+                                            setShowOverdueDatePicker(false);
+                                            setOverdueStartDate('');
+                                            setOverdueEndDate('');
+                                        }}
+                                        className="w-full px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowOverdueDatePicker(false);
+                                            // Here you would apply the date range filter
+                                            console.log('Apply overdue date range filter:', { start: overdueStartDate, end: overdueEndDate });
+                                        }}
+                                        disabled={!overdueStartDate || !overdueEndDate || overdueStartDate > overdueEndDate}
+                                        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors"
+                                    >
+                                        Apply
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -757,7 +789,7 @@ const Dashboard: React.FC = () => {
                                     }
                                 }}
                                 className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                                title="Select cash date"
+                                title="Select cash date range"
                             >
                                 <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                             </button>
@@ -767,29 +799,59 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Date Picker */}
+                    {/* Date Range Picker */}
                     {showCashDatePicker && (
                         <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                             <div className="space-y-3">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Cash as of:
+                                    Cash date range:
                                 </label>
-                                <input
-                                    type="date"
-                                    value={cashDate}
-                                    onChange={(e) => setCashDate(e.target.value)}
-                                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                                <button
-                                    onClick={() => {
-                                        setShowCashDatePicker(false);
-                                        // Here you would apply the date filter
-                                        console.log('Apply cash date filter:', cashDate);
-                                    }}
-                                    className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-                                >
-                                    Apply
-                                </button>
+                                <div className="space-y-2">
+                                    <input
+                                        type="date"
+                                        value={cashStartDate}
+                                        onChange={(e) => setCashStartDate(e.target.value)}
+                                        max={cashEndDate || undefined}
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Start date"
+                                    />
+                                    <input
+                                        type="date"
+                                        value={cashEndDate}
+                                        onChange={(e) => setCashEndDate(e.target.value)}
+                                        min={cashStartDate || undefined}
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="End date"
+                                    />
+                                </div>
+                                {cashStartDate && cashEndDate && cashStartDate > cashEndDate && (
+                                    <p className="text-xs text-red-600 dark:text-red-400">
+                                        End date must be on or after start date
+                                    </p>
+                                )}
+                                <div className="space-y-2">
+                                    <button
+                                        onClick={() => {
+                                            setShowCashDatePicker(false);
+                                            setCashStartDate('');
+                                            setCashEndDate('');
+                                        }}
+                                        className="w-full px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowCashDatePicker(false);
+                                            // Here you would apply the date range filter
+                                            console.log('Apply cash date range filter:', { start: cashStartDate, end: cashEndDate });
+                                        }}
+                                        disabled={!cashStartDate || !cashEndDate || cashStartDate > cashEndDate}
+                                        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors"
+                                    >
+                                        Apply
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
