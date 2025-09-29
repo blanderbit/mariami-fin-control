@@ -280,6 +280,86 @@ export interface UsersList {
   profile?: number | null;
 }
 
+/** Metrics for paid invoices */
+export interface InvoiceMetrics {
+  /**
+   * Total count
+   * Total number of invoices
+   */
+  total_count: number;
+  /**
+   * Total amount
+   * Total amount of invoices
+   */
+  total_amount: number;
+}
+
+/** Change in total invoice count */
+export interface ChangeData {
+  /**
+   * Change
+   * Absolute change value
+   */
+  change: number;
+  /**
+   * Percentage change
+   * Percentage change value
+   */
+  percentage_change: number;
+}
+
+/** Changes in paid invoices metrics */
+export interface InvoiceChangeMetrics {
+  /** Change in total invoice count */
+  count_change: ChangeData;
+  /** Change in total invoice count */
+  amount_change: ChangeData;
+}
+
+/** Month-over-month changes */
+export interface PeriodChange {
+  /** Change in total invoice count */
+  total_count: ChangeData;
+  /** Changes in paid invoices metrics */
+  paid_invoices: InvoiceChangeMetrics;
+  /** Changes in paid invoices metrics */
+  overdue_invoices: InvoiceChangeMetrics;
+}
+
+/** Analysis period information */
+export interface PeriodInfo {
+  /**
+   * Start date
+   * Analysis period start date
+   * @format date
+   */
+  start_date: string;
+  /**
+   * End date
+   * Analysis period end date
+   * @format date
+   */
+  end_date: string;
+}
+
+export interface InvoicesAnalysisResponse {
+  /**
+   * Total count
+   * Total number of invoices in the period
+   */
+  total_count: number;
+  /** Metrics for paid invoices */
+  paid_invoices: InvoiceMetrics;
+  /** Metrics for paid invoices */
+  overdue_invoices: InvoiceMetrics;
+  /** Month-over-month changes */
+  month_change: PeriodChange;
+  /** Month-over-month changes */
+  year_change: PeriodChange;
+  /** Analysis period information */
+  period: PeriodInfo;
+}
+
 export interface UploadUserDataResponse {
   /** Success */
   success: boolean;
@@ -848,9 +928,42 @@ export class Api<
       }),
 
     /**
+     * @description Analyze user's invoices data for a specific date range. Returns metrics for paid and overdue invoices with change calculations.
+     *
+     * @tags Invoices Analysis
+     * @name UsersInvoicesAnalysisList
+     * @summary Get invoices analysis
+     * @request GET:/users/invoices-analysis
+     * @secure
+     */
+    usersInvoicesAnalysisList: (
+      query: {
+        /**
+         * Start date for analysis period (YYYY-MM-DD)
+         * @format date
+         */
+        start_date: string;
+        /**
+         * End date for analysis period (YYYY-MM-DD)
+         * @format date
+         */
+        end_date: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<InvoicesAnalysisResponse, void>({
+        path: `/users/invoices-analysis`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Get P&L analysis for a specific date range. This endpoint: 1. Fetches user's P&L data for the specified period 2. Returns the filtered P&L data as a list 3. Calculates total revenue (sum of Revenue column) 4. Calculates total expenses (sum of all expenses fields) 5. Calculates net profit (revenue - expenses) 6. Provides 1-month and 1-year comparison with percentage changes The response includes: - pnl_data: Array of P&L records for the requested period - total_revenue: Sum of all revenue for the period - total_expenses: Sum of all expense categories for the period - net_profit: Total revenue minus total expenses - month_change: Comparison with same period 1 month ago - year_change: Comparison with same period 1 year ago
      *
-     * @tags users
+     * @tags P&L Analysis
      * @name GetPnlAnalysis
      * @request GET:/users/pnl-analysis
      * @secure
