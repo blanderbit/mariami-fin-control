@@ -20,6 +20,9 @@ django.utils.encoding.smart_text = smart_str
 # project secret key
 SECRET_KEY: str = config("SECRET_KEY", cast=str)
 
+# OpenAI API key
+CLAUDE_API_KEY: str = config("CLAUDE_API_KEY", cast=str, default="")
+
 # list of allowed project hosts
 ALLOWED_HOSTS: list[str] = config("ALLOWED_HOSTS", cast=Csv())
 ################################################################

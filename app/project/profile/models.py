@@ -1,5 +1,10 @@
 from django.db import models
 from typing import final
+from djmoney.models.fields import MoneyField
+from config.settings.components.currencies import (
+    SUPPORTED_CURRENCIES, 
+    DEFAULT_CURRENCY
+)
 
 
 @final
@@ -8,18 +13,17 @@ class ProfileModel(models.Model):
     Profile model for storing additional user information during onboarding
     """
 
-    # Business settings
-    UPDATE_FREQUENCY_CHOICES = [
-        ("daily", "Daily"),
-        ("weekly", "Weekly"),
-        ("monthly", "Monthly"),
-    ]
+    class UpdateFrequency(models.TextChoices):
+        DAILY = "daily"
+        WEEKLY = "weekly"
+        MONTHLY = "monthly"
 
-    PRIMARY_FOCUS_CHOICES = [
-        ("cash", "Cash"),
-        ("profit", "Profit"),
-        ("growth", "Growth"),
-    ]
+    class PrimaryFocus(models.TextChoices):
+        CASH = "cash"
+        PROFIT = "profit"
+        GROWTH = "growth"
+
+    # Business settings - keeping old format for compatibility during migration
 
     # Required fields for completing onboarding
     REQUIRED_ONBOARDING_FIELDS = [
@@ -30,6 +34,7 @@ class ProfileModel(models.Model):
         "update_frequency",
         "primary_focus",
         "business_model",
+        "current_cash",
     ]
 
     # Personal information
@@ -43,23 +48,51 @@ class ProfileModel(models.Model):
     industry = models.CharField(max_length=255, null=True, blank=True)
 
     # Financial settings
-    currency = models.CharField(max_length=10, null=True, blank=True)
+    currency = models.CharField(
+        max_length=10,
+        choices=SUPPORTED_CURRENCIES,
+        null=True,
+        blank=True,
+        help_text="Primary business currency"
+    )
     fiscal_year_start = models.DateField(
         null=True, blank=True, help_text="Fiscal year start date"
     )
 
     update_frequency = models.CharField(
-        max_length=10, choices=UPDATE_FREQUENCY_CHOICES, null=True, blank=True
+        max_length=10, 
+        choices=UpdateFrequency.choices, 
+        null=True, 
+        blank=True
     )
 
     primary_focus = models.CharField(
-        max_length=10, choices=PRIMARY_FOCUS_CHOICES, null=True, blank=True
+        max_length=10, 
+        choices=PrimaryFocus.choices, 
+        null=True, 
+        blank=True
     )
 
     business_model = models.CharField(max_length=255, null=True, blank=True)
     multicurrency = models.BooleanField(default=False)
-    capital_reserve_target = models.DecimalField(
-        max_digits=15, decimal_places=2, null=True, blank=True
+    
+    # Money fields
+    capital_reserve_target = MoneyField(
+        max_digits=15,
+        decimal_places=2,
+        default_currency=DEFAULT_CURRENCY,
+        null=True,
+        blank=True,
+        help_text="Target amount for capital reserves"
+    )
+    
+    current_cash = MoneyField(
+        max_digits=15,
+        decimal_places=2,
+        default_currency=DEFAULT_CURRENCY,
+        null=True,
+        blank=True,
+        help_text="Current cash available"
     )
 
     # Timestamps

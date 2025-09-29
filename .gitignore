@@ -97,3 +97,8 @@ qa.txt
 .vscode/
 
 local-data/
+
+# Environment files
+.env
+app/.env
+*.env

@@ -26,6 +26,7 @@ class OnboardingSerializer(ModelSerializer):
             "business_model",
             "multicurrency",
             "capital_reserve_target",
+            "current_cash",
         ]
 
     def update(
