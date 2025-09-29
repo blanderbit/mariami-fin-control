@@ -8,6 +8,9 @@ from users.views import CheckIsUserAdminView
 from users.views.file_upload_views import UploadUserDataAPIView
 from users.views.pnl_analysis_view import PNLAnalysisAPIView
 from users.views.invoices_analysis_view import InvoicesAnalysisView
+from users.views.cash_analysis_view import CashAnalysisView
+from users.views.expense_breakdown_view import ExpenseBreakdownView
+from users.views.ai_insights_view import AIInsightsView
 
 urlpatterns = [
     path("admin/users", UsersListView.as_view(), name="users-list"),
@@ -32,6 +35,21 @@ urlpatterns = [
         "invoices-analysis",
         InvoicesAnalysisView.as_view(),
         name="invoices-analysis"
+    ),
+    path(
+        "cash-analysis",
+        CashAnalysisView.as_view(),
+        name="cash-analysis"
+    ),
+    path(
+        "expense-breakdown",
+        ExpenseBreakdownView.as_view(),
+        name="expense-breakdown"
+    ),
+    path(
+        "ai-insights",
+        AIInsightsView.as_view(),
+        name="ai-insights"
     ),
 ]
     
