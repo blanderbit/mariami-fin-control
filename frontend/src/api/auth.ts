@@ -313,4 +313,141 @@ export async function getPnLAnalysisRequest(data: PnLAnalysisRequest): Promise<P
     }
 }
 
+export type InvoicesAnalysisRequest = {
+    start_date: string;
+    end_date: string;
+};
+
+export interface InvoicesAnalysisResponse {
+    status: string;
+    code: number;
+    data: {
+        total_count: number;
+        paid_invoices: {
+            total_count: number;
+            total_amount: number;
+        };
+        overdue_invoices: {
+            total_count: number;
+            total_amount: number;
+        };
+        month_change: {
+            total_count: {
+                change: number;
+                percentage_change: number;
+            };
+            paid_invoices: {
+                count_change: {
+                    change: number;
+                    percentage_change: number;
+                };
+                amount_change: {
+                    change: number;
+                    percentage_change: number;
+                };
+            };
+            overdue_invoices: {
+                count_change: {
+                    change: number;
+                    percentage_change: number;
+                };
+                amount_change: {
+                    change: number;
+                    percentage_change: number;
+                };
+            };
+        };
+        year_change: {
+            total_count: {
+                change: number;
+                percentage_change: number;
+            };
+            paid_invoices: {
+                count_change: {
+                    change: number;
+                    percentage_change: number;
+                };
+                amount_change: {
+                    change: number;
+                    percentage_change: number;
+                };
+            };
+            overdue_invoices: {
+                count_change: {
+                    change: number;
+                    percentage_change: number;
+                };
+                amount_change: {
+                    change: number;
+                    percentage_change: number;
+                };
+            };
+        };
+        period: {
+            start_date: string;
+            end_date: string;
+        };
+    };
+    message: string | null;
+}
+
+export async function getInvoicesAnalysisRequest(data: InvoicesAnalysisRequest): Promise<InvoicesAnalysisResponse> {
+    try {
+        const res = await api.users.usersInvoicesAnalysisList(data) as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to get invoices analysis:', error);
+        throw error;
+    }
+}
+
+export type CashAnalysisRequest = {
+    start_date: string;
+    end_date: string;
+};
+
+export interface CashAnalysisResponse {
+    total_income: string;
+    total_expense: string;
+}
+
+export async function getCashAnalysisRequest(data: CashAnalysisRequest): Promise<CashAnalysisResponse> {
+    try {
+        const res = await api.users.usersCashAnalysisList(data) as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to get cash analysis:', error);
+        throw error;
+    }
+}
+
+export type ExpenseCategoryData = {
+    total_amount: string;
+    spike: boolean;
+    new: boolean;
+};
+
+export interface ExpenseBreakdownResponse {
+    COGS?: ExpenseCategoryData;
+    Payroll?: ExpenseCategoryData;
+    Rent?: ExpenseCategoryData;
+    Marketing?: ExpenseCategoryData;
+    Other_Expenses?: ExpenseCategoryData;
+}
+
+export type ExpenseBreakdownRequest = {
+    start_date: string;
+    end_date: string;
+};
+
+export async function getExpenseBreakdownRequest(data: ExpenseBreakdownRequest): Promise<ExpenseBreakdownResponse> {
+    try {
+        const res = await api.users.usersExpenseBreakdownList(data) as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to get expense breakdown:', error);
+        throw error;
+    }
+}
+
 

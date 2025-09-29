@@ -47,7 +47,7 @@ import {
 } from 'date-fns';
 import {revenues} from '../data/seedData';
 import {useTheme} from '../contexts/ThemeContext';
-import {getPnLAnalysisRequest, PnLAnalysisResponse, PnLDataItem} from '../api/auth';
+import {getPnLAnalysisRequest, PnLAnalysisResponse, PnLDataItem, getInvoicesAnalysisRequest, InvoicesAnalysisResponse, getCashAnalysisRequest, CashAnalysisResponse, getExpenseBreakdownRequest, ExpenseBreakdownResponse} from '../api/auth';
 
 interface PulseKPI {
     revenue: number;
@@ -69,6 +69,8 @@ interface ExpenseChip {
     amount: number;
     pct: number;
     icon: string;
+    spike?: boolean;
+    isNew?: boolean;
 }
 
 interface Alert {
@@ -108,6 +110,21 @@ const Dashboard: React.FC = () => {
     const [pnlData, setPnlData] = useState<PnLAnalysisResponse | null>(null);
     const [isLoadingPnl, setIsLoadingPnl] = useState(false);
     const [pnlError, setPnlError] = useState<string | null>(null);
+
+    // Invoices Analysis state
+    const [invoicesData, setInvoicesData] = useState<InvoicesAnalysisResponse | null>(null);
+    const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
+    const [invoicesError, setInvoicesError] = useState<string | null>(null);
+
+    // Cash Analysis state
+    const [cashData, setCashData] = useState<CashAnalysisResponse | null>(null);
+    const [isLoadingCash, setIsLoadingCash] = useState(false);
+    const [cashError, setCashError] = useState<string | null>(null);
+
+    // Expense Breakdown state
+    const [expenseBreakdownData, setExpenseBreakdownData] = useState<ExpenseBreakdownResponse | null>(null);
+    const [isLoadingExpenseBreakdown, setIsLoadingExpenseBreakdown] = useState(false);
+    const [expenseBreakdownError, setExpenseBreakdownError] = useState<string | null>(null);
 
     // Date range picker states
     const [showOverdueDatePicker, setShowOverdueDatePicker] = useState(false);
@@ -232,10 +249,61 @@ const Dashboard: React.FC = () => {
         }
     };
 
-    // Load P&L data when period changes (except for custom range)
+    // Load Invoices Analysis data
+    const loadInvoicesData = async (dates: {start_date: string, end_date: string}) => {
+        try {
+            setIsLoadingInvoices(true);
+            setInvoicesError(null);
+            const response = await getInvoicesAnalysisRequest(dates);
+            setInvoicesData(response);
+        } catch (error) {
+            console.error('Failed to load invoices analysis:', error);
+            setInvoicesError('Failed to load invoices data. Please try again.');
+            setInvoicesData(null);
+        } finally {
+            setIsLoadingInvoices(false);
+        }
+    };
+
+    // Load Cash Analysis data
+    const loadCashData = async (dates: {start_date: string, end_date: string}) => {
+        try {
+            setIsLoadingCash(true);
+            setCashError(null);
+            const response = await getCashAnalysisRequest(dates);
+            setCashData(response);
+        } catch (error) {
+            console.error('Failed to load cash analysis:', error);
+            setCashError('Failed to load cash data. Please try again.');
+            setCashData(null);
+        } finally {
+            setIsLoadingCash(false);
+        }
+    };
+
+    // Load Expense Breakdown data
+    const loadExpenseBreakdownData = async (dates: {start_date: string, end_date: string}) => {
+        try {
+            setIsLoadingExpenseBreakdown(true);
+            setExpenseBreakdownError(null);
+            const response = await getExpenseBreakdownRequest(dates);
+            setExpenseBreakdownData(response);
+        } catch (error) {
+            console.error('Failed to load expense breakdown:', error);
+            setExpenseBreakdownError('Failed to load expense breakdown data. Please try again.');
+            setExpenseBreakdownData(null);
+        } finally {
+            setIsLoadingExpenseBreakdown(false);
+        }
+    };
+
+    // Load P&L, Invoices, Cash, and Expense Breakdown data when period changes (except for custom range)
     useEffect(() => {
         if (selectedPeriod !== 'Custom range') {
             loadPnLData();
+            loadInvoicesData(periodDates);
+            loadCashData(periodDates);
+            loadExpenseBreakdownData(periodDates);
         }
     }, [selectedPeriod]);
 
@@ -243,6 +311,9 @@ const Dashboard: React.FC = () => {
     const applyCustomRange = () => {
         if (customStartDate && customEndDate && customStartDate <= customEndDate) {
             loadPnLData();
+            loadInvoicesData({start_date: customStartDate, end_date: customEndDate});
+            loadCashData({start_date: customStartDate, end_date: customEndDate});
+            loadExpenseBreakdownData({start_date: customStartDate, end_date: customEndDate});
         }
     };
 
@@ -290,13 +361,13 @@ const Dashboard: React.FC = () => {
             top_expense_category: topExpense.name || '',
             net_profit: data.net_profit || 0,
             profit_margin: profitMargin || 0,
-            overdue_invoices: 0, // Will be provided by backend when available
-            overdue_count: 0, // Will be provided by backend when available
-            ending_cash: 0, // Will be provided by backend when available
+            overdue_invoices: invoicesData?.data?.overdue_invoices?.total_amount || 0,
+            overdue_count: invoicesData?.data?.overdue_invoices?.total_count || 0,
+            ending_cash: cashData ? parseFloat(cashData.total_income) - parseFloat(cashData.total_expense) : 0,
             cash_buffer_months: 0, // Will be provided by backend when available
             currency: baseCurrency
         };
-    }, [pnlData, baseCurrency]);
+    }, [pnlData, invoicesData, cashData, baseCurrency]);
 
     const chartData = useMemo((): ChartData => {
         if (!pnlData?.data?.pnl_data || pnlData.data.pnl_data.length === 0) {
@@ -337,15 +408,57 @@ const Dashboard: React.FC = () => {
     }, [selectedPeriod, pnlData]);
 
     const expenseChips = useMemo((): ExpenseChip[] => {
+        // Use expense breakdown data if available, otherwise fallback to P&L data
+        if (expenseBreakdownData) {
+            const getIcon = (category: string) => {
+                switch (category) {
+                    case 'Payroll':
+                        return 'users';
+                    case 'Marketing':
+                        return 'zap';
+                    case 'Rent':
+                        return 'building';
+                    case 'COGS':
+                        return 'shopping-cart';
+                    case 'Other_Expenses':
+                        return 'more';
+                    default:
+                        return 'dollar-sign';
+                }
+            };
+
+            // Calculate total expenses for percentage calculation
+            const totalExpenses = Object.values(expenseBreakdownData).reduce((sum, category) => {
+                return sum + (category ? parseFloat(category.total_amount) : 0);
+            }, 0);
+
+            // Helper function to round percentage to 2 decimal places
+            const roundPercentage = (value: number) => Math.round(value * 100) / 100;
+
+            const chips: ExpenseChip[] = [];
+            
+            Object.entries(expenseBreakdownData).forEach(([category, data]) => {
+                if (data && parseFloat(data.total_amount) > 0) {
+                    chips.push({
+                        category,
+                        amount: parseFloat(data.total_amount),
+                        pct: totalExpenses > 0 ? roundPercentage((parseFloat(data.total_amount) / totalExpenses) * 100) : 0,
+                        icon: getIcon(category),
+                        spike: data.spike,
+                        isNew: data.new
+                    });
+                }
+            });
+
+            return chips.sort((a, b) => b.amount - a.amount); // Sort by amount descending
+        }
+
+        // Fallback to P&L data if expense breakdown is not available
         if (!pnlData?.data?.pnl_data || pnlData.data.pnl_data.length === 0) {
-            // Return empty array if no backend data
             return [];
         }
 
-        // Use real P&L data - get latest month data
         const latestMonth = pnlData.data.pnl_data[pnlData.data.pnl_data.length - 1];
-
-        // Check if latestMonth exists and has the required properties
         if (!latestMonth) {
             return [];
         }
@@ -370,7 +483,6 @@ const Dashboard: React.FC = () => {
             }
         };
 
-        // Helper function to round percentage to 2 decimal places
         const roundPercentage = (value: number) => Math.round(value * 100) / 100;
 
         return [
@@ -404,8 +516,8 @@ const Dashboard: React.FC = () => {
                 pct: totalExpenses > 0 ? roundPercentage(((latestMonth.Other_Expenses || 0) / totalExpenses) * 100) : 0,
                 icon: getIcon('Other_Expenses')
             }
-        ].filter(chip => chip.amount > 0); // Only show categories with expenses
-    }, [pnlData]);
+        ].filter(chip => chip.amount > 0);
+    }, [expenseBreakdownData, pnlData]);
 
     const alerts = useMemo((): Alert[] => [
         {
@@ -501,8 +613,11 @@ const Dashboard: React.FC = () => {
         }
     };
 
-    const getChipColor = (pct: number) => {
-        if (pct > 30) return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border-red-200 dark:border-red-700';
+    const getChipColor = (pct: number, spike?: boolean, isNew?: boolean) => {
+        // Priority: spike > isNew > percentage-based
+        if (spike) return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border-red-200 dark:border-red-700';
+        if (isNew) return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700';
+        if (pct > 30) return 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 border-orange-200 dark:border-orange-700';
         if (pct > 15) return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-700';
         if (pct > 10) return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-700';
         return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-600';
@@ -795,16 +910,21 @@ const Dashboard: React.FC = () => {
                                     <button
                                         onClick={() => {
                                             setShowOverdueDatePicker(false);
-                                            // Here you would apply the date range filter
-                                            console.log('Apply overdue date range filter:', {
-                                                start: overdueStartDate,
-                                                end: overdueEndDate
-                                            });
+                                            // Apply the date range filter for invoices analysis
+                                            if (overdueStartDate && overdueEndDate) {
+                                                loadInvoicesData({
+                                                    start_date: overdueStartDate,
+                                                    end_date: overdueEndDate
+                                                });
+                                            }
                                         }}
-                                        disabled={!overdueStartDate || !overdueEndDate || overdueStartDate > overdueEndDate}
-                                        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors"
+                                        disabled={!overdueStartDate || !overdueEndDate || overdueStartDate > overdueEndDate || isLoadingInvoices}
+                                        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors flex items-center justify-center space-x-2"
                                     >
-                                        Apply
+                                        {isLoadingInvoices && (
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        )}
+                                        <span>{isLoadingInvoices ? 'Loading...' : 'Apply'}</span>
                                     </button>
                                 </div>
                             </div>
@@ -889,16 +1009,21 @@ const Dashboard: React.FC = () => {
                                     <button
                                         onClick={() => {
                                             setShowCashDatePicker(false);
-                                            // Here you would apply the date range filter
-                                            console.log('Apply cash date range filter:', {
-                                                start: cashStartDate,
-                                                end: cashEndDate
-                                            });
+                                            // Apply the date range filter for cash analysis
+                                            if (cashStartDate && cashEndDate) {
+                                                loadCashData({
+                                                    start_date: cashStartDate,
+                                                    end_date: cashEndDate
+                                                });
+                                            }
                                         }}
-                                        disabled={!cashStartDate || !cashEndDate || cashStartDate > cashEndDate}
-                                        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors"
+                                        disabled={!cashStartDate || !cashEndDate || cashStartDate > cashEndDate || isLoadingCash}
+                                        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors flex items-center justify-center space-x-2"
                                     >
-                                        Apply
+                                        {isLoadingCash && (
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        )}
+                                        <span>{isLoadingCash ? 'Loading...' : 'Apply'}</span>
                                     </button>
                                 </div>
                             </div>
@@ -971,35 +1096,61 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Expense Chips */}
-            {/* <div ref={expensesCategoryRef} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <div ref={expensesCategoryRef} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Expenses by category</h2>
+                    {expenseBreakdownError && (
+                        <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-md">
+                            <p className="text-sm text-red-800 dark:text-red-200">{expenseBreakdownError}</p>
+                        </div>
+                    )}
                 </div>
 
-                {expenseChips.length > 0 ? (
+                {isLoadingExpenseBreakdown ? (
+                    <div className="text-center py-8">
+                        <div className="flex items-center justify-center space-x-2">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                            <span className="text-gray-600 dark:text-gray-400">Loading expense breakdown...</span>
+                        </div>
+                    </div>
+                ) : expenseChips.length > 0 ? (
                     <>
                         <div className="flex flex-wrap gap-3 mb-4">
                             {expenseChips.map((chip, index) => (
                                 <button
                                     key={index}
                                     onClick={() => window.location.href = '/scenarios'}
-                                    className={`flex items-center space-x-2 px-4 py-2 rounded-full border transition-all hover:shadow-md ${getChipColor(chip.pct)}`}
+                                    className={`flex items-center space-x-2 px-4 py-2 rounded-full border transition-all hover:shadow-md ${getChipColor(chip.pct, chip.spike, chip.isNew)}`}
+                                    title={`${chip.category}: ${formatCurrency(chip.amount)} (${chip.pct}%)${chip.spike ? ' - Spike detected' : ''}${chip.isNew ? ' - New category' : ''}`}
                                 >
                                     {getChipIcon(chip.icon)}
                                     <span className="font-medium">{chip.category}</span>
                                     <span className="text-sm mt-0.5">{chip.pct}%</span>
+                                    {chip.spike && (
+                                        <span className="text-xs bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 px-2 py-0.5 rounded-full">
+                                            Spike
+                                        </span>
+                                    )}
+                                    {chip.isNew && (
+                                        <span className="text-xs bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200 px-2 py-0.5 rounded-full">
+                                            New
+                                        </span>
+                                    )}
                                 </button>
                             ))}
                         </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Click a chip to see details in Cash
-                            Flow</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Click a chip to see details in Cash Flow. 
+                            <span className="text-red-600 dark:text-red-400">Red</span> indicates spikes, 
+                            <span className="text-green-600 dark:text-green-400">green</span> indicates new categories.
+                        </p>
                     </>
                 ) : (
                     <div className="text-center py-8">
                         <p className="text-gray-600 dark:text-gray-400">No expense data available</p>
                     </div>
                 )}
-            </div> */}
+            </div>
 
             {/* Alerts Feed */}
             {/* <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
