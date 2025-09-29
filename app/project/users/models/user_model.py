@@ -45,6 +45,10 @@ class UserModel(AbstractBaseUser):
 
     objects = UserModelManager()
 
+    @staticmethod
+    def bucket_name() -> str:
+        return 'user-data'
+
     @property
     def group_name(self) -> str:
         return "user_%s" % self.id

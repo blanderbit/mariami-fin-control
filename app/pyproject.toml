@@ -42,6 +42,8 @@ ccxt = "^4.0.105"
 psycopg2-binary = "^2.9.8"
 hdwallet = "^2.2.1"
 blockcypher = {git = "https://github.com/Shapranov-Maxim/blockcypher-python.git"}
+openai = "^1.108.0"
+anthropic = "^0.68.0"
 
 [tool.poetry.dev-dependencies]
 
