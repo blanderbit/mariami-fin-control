@@ -11,6 +11,7 @@ from users.views.invoices_analysis_view import InvoicesAnalysisView
 from users.views.cash_analysis_view import CashAnalysisView
 from users.views.expense_breakdown_view import ExpenseBreakdownView
 from users.views.ai_insights_view import AIInsightsView
+from users.views.templates_view import UserTemplatesView
 
 urlpatterns = [
     path("admin/users", UsersListView.as_view(), name="users-list"),
@@ -50,6 +51,11 @@ urlpatterns = [
         "ai-insights",
         AIInsightsView.as_view(),
         name="ai-insights"
+    ),
+    path(
+        "templates",
+        UserTemplatesView.as_view(),
+        name="templates"
     ),
 ]
     

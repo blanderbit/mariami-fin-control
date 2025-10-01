@@ -55,6 +55,10 @@ class UserPNLAnalysisService:
             total_revenue = self._calculate_total_revenue(pnl_data)
             total_expenses = self._calculate_total_expenses(pnl_data)
             net_profit = total_revenue - total_expenses
+            
+            # Calculate margins
+            gross_margin = self._calculate_gross_margin(pnl_data, total_revenue)
+            operating_margin = self._get_industry_operating_margin()
 
             # Calculate changes (1 month and 1 year ago)
             month_changes = self._calculate_period_changes(
@@ -75,6 +79,8 @@ class UserPNLAnalysisService:
                 "total_revenue": float(total_revenue),
                 "total_expenses": float(total_expenses),
                 "net_profit": float(net_profit),
+                "gross_margin": float(gross_margin),
+                "operating_margin": operating_margin,
                 "month_change": {
                     "revenue": month_changes["revenue"],
                     "expenses": month_changes["expenses"],
@@ -557,6 +563,87 @@ Respond with format: "[Main trend] - [specific action]"
                     return True
 
         return False
+
+    def _calculate_gross_margin(self, pnl_data: pd.DataFrame, total_revenue: Decimal) -> Decimal:
+        """Calculate gross margin percentage from PnL data"""
+        try:
+            if total_revenue <= 0:
+                return Decimal("0")
+            
+            # Calculate total COGS for the period
+            total_cogs = Decimal("0")
+            if "COGS" in pnl_data.columns:
+                cogs_sum = pnl_data["COGS"].sum()
+                if not pd.isna(cogs_sum):
+                    total_cogs = Decimal(str(cogs_sum))
+            
+            # Gross Margin = (Revenue - COGS) / Revenue * 100
+            gross_margin_percentage = ((total_revenue - total_cogs) / total_revenue) * 100
+            return gross_margin_percentage.quantize(Decimal('0.01'))
+            
+        except Exception as e:
+            logger.error(f"Error calculating gross margin: {str(e)}")
+            return Decimal("0")
+
+    def _get_industry_operating_margin(self) -> Optional[str]:
+        """Get operating margin range from Industry_norms.csv for user's industry"""
+        try:
+            # Get user's industry from profile
+            if not self.user.profile or not self.user.profile.industry:
+                logger.info(f"No industry set for user {self.user.id}")
+                return None
+
+            user_industry = self.user.profile.industry.strip()
+
+            # Load Industry_norms.csv
+            import os
+            from django.conf import settings
+            
+            csv_path = os.path.join(
+                settings.BASE_DIR, 
+                'templates', 
+                'user_data', 
+                'Industry_norms.csv'
+            )
+            
+            if not os.path.exists(csv_path):
+                logger.warning(f"Industry_norms.csv not found at {csv_path}")
+                return None
+
+            # Read CSV and find matching industry
+            df = pd.read_csv(csv_path)
+            
+            # Try exact match first, then case-insensitive partial match
+            industry_row = df[df['industry'].str.strip() == user_industry]
+            
+            if industry_row.empty:
+                # Try case-insensitive match
+                industry_row = df[
+                    df['industry'].str.strip().str.lower() == 
+                    user_industry.lower()
+                ]
+            
+            if industry_row.empty:
+                # Try partial match for composite industries
+                for _, row in df.iterrows():
+                    if (user_industry.lower() in row['industry'].lower() or
+                        row['industry'].lower() in user_industry.lower()):
+                        industry_row = pd.DataFrame([row])
+                        break
+            
+            if industry_row.empty:
+                logger.info(f"No operating margin found for industry: {user_industry}")
+                return None
+
+            # Extract operating margin range
+            row = industry_row.iloc[0]
+            operating_margin = row.get('Operating_margin_range')
+            
+            return operating_margin if pd.notna(operating_margin) else None
+
+        except Exception as e:
+            logger.error(f"Error loading operating margin from industry norms: {str(e)}")
+            return None
 
     def invalidate_cache(self):
         """Invalidate all cached data for this user"""

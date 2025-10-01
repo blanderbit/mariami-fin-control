@@ -10,6 +10,9 @@ from drf_yasg import openapi
 from users.serializers.analysis_start_end_date_params_serialier import (
     StartAndEndDateParamsSerializer,
 )
+from users.serializers.pnl_analysis_serializers import (
+    PNLAnalysisResponseSerializer,
+)
 from users.services.financial_analysis_service import UserPNLAnalysisService
 from config.utils.error_handlers import (
     create_not_found_error_response,
@@ -71,59 +74,9 @@ class PNLAnalysisAPIView(APIView):
         ],
         tags=["P&L Analysis"],
         responses={
-            200: openapi.Response(
-                description="P&L analysis data",
-                examples={
-                    "application/json": {
-                        "pnl_data": [
-                            {
-                                "Month": "2024-01-01",
-                                "Revenue": 15000.0,
-                                "COGS": 5000.0,
-                                "Payroll": 3000.0,
-                                "Rent": 1000.0,
-                                "Marketing": 500.0,
-                                "Other_Expenses": 200.0,
-                            },
-                            {
-                                "Month": "2024-02-01",
-                                "Revenue": 18000.0,
-                                "COGS": 6000.0,
-                                "Payroll": 3000.0,
-                                "Rent": 1000.0,
-                                "Marketing": 800.0,
-                                "Other_Expenses": 300.0,
-                            },
-                        ],
-                        "total_revenue": 33000.0,
-                        "total_expenses": 19800.0,
-                        "net_profit": 13200.0,
-                        "month_change": {
-                            "revenue": {"change": 2000.0, "percentage_change": 6.45},
-                            "expenses": {"change": -500.0, "percentage_change": -2.46},
-                            "net_profit": {
-                                "change": 2500.0,
-                                "percentage_change": 23.36,
-                            },
-                        },
-                        "year_change": {
-                            "revenue": {"change": 5000.0, "percentage_change": 17.86},
-                            "expenses": {"change": 1000.0, "percentage_change": 5.32},
-                            "net_profit": {
-                                "change": 4000.0,
-                                "percentage_change": 43.48,
-                            },
-                        },
-                        "period": {
-                            "start_date": "2024-01-01",
-                            "end_date": "2024-02-29",
-                        },
-                        "ai_insights": "Strong revenue growth YoY, monitor expense efficiency for margins.",
-                    }
-                },
-            ),
+            200: PNLAnalysisResponseSerializer,
             400: "Invalid parameters",
-            401: "Authentication required",
+            401: "Authentication required", 
             404: "No P&L data found for user",
         },
     )

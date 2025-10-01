@@ -13,3 +13,6 @@ from users.services.expense_breakdown_service import (
 from users.services.ai_insights_service import (
     UserAIInsightsService as UserAIInsightsService
 )
+from users.services.templates_service import (
+    UserTemplatesService as UserTemplatesService
+)
