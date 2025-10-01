@@ -31,8 +31,26 @@ class CashAnalysisView(APIView):
         operation_description=(
             "Analyze user's transaction data to calculate total income "
             "and total expense. Requires transactions_template file to "
-            "be uploaded."
+            "be uploaded. Supports filtering by start_date and end_date."
         ),
+        manual_parameters=[
+            openapi.Parameter(
+                "start_date",
+                openapi.IN_QUERY,
+                description="Start date (YYYY-MM-DD) for filtering",
+                type=openapi.TYPE_STRING,
+                required=False,
+                example="2025-01-01"
+            ),
+            openapi.Parameter(
+                "end_date",
+                openapi.IN_QUERY,
+                description="End date (YYYY-MM-DD) for filtering transactions",
+                type=openapi.TYPE_STRING,
+                required=False,
+                example="2025-01-31"
+            ),
+        ],
         responses={
             200: CashAnalysisResponseSerializer,
             400: openapi.Response(
@@ -70,8 +88,12 @@ class CashAnalysisView(APIView):
         most recent transactions template file.
         """
         try:
+            start_date = request.query_params.get("start_date")
+            end_date = request.query_params.get("end_date")
             service = UserCashAnalysisService(request.user)
-            analysis_result = service.get_cash_analysis()
+            analysis_result = service.get_cash_analysis(
+                start_date=start_date, end_date=end_date
+            )
 
             serializer = CashAnalysisResponseSerializer(data=analysis_result)
             serializer.is_valid(raise_exception=True)
