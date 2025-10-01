@@ -95,8 +95,8 @@ class UserExpenseBreakdownService:
                 total_amount = period_data[category].sum()
                 total_amount = total_amount if not pd.isna(total_amount) else 0
 
-                # Calculate spike status
-                spike = self._calculate_spike_status(
+                # Calculate spike status and monthly change percent
+                spike, monthly_change_percent = self._calculate_spike_status(
                     category, total_amount, total_expenses,
                     period_data, prev_month_data
                 )
@@ -108,7 +108,8 @@ class UserExpenseBreakdownService:
                 result[category] = {
                     "total_amount": float(total_amount),
                     "spike": spike,
-                    "new": new
+                    "new": new,
+                    "monthly_change_percent": monthly_change_percent
                 }
 
         return result
@@ -116,29 +117,43 @@ class UserExpenseBreakdownService:
     def _calculate_spike_status(
         self, category: str, current_amount: float, total_expenses: Decimal,
         period_data: pd.DataFrame, prev_month_data: pd.DataFrame
-    ) -> bool:
+    ) -> tuple[bool, float]:
         """
-        Calculate if category has spike based on:
+        Calculate if category has spike and monthly change percent based on:
         - MoM growth > +20%
         - Category ≥ 3% of total expenses
+        
+        Returns:
+            Tuple of (spike_flag, monthly_change_percent)
         """
+        monthly_change_percent = 0.0
+        spike = False
+        
         # Check if category ≥ 3% of total expenses
         if total_expenses > 0:
-            percentage_of_total = (current_amount / float(total_expenses)) * 100
+            percentage_of_total = (
+                current_amount / float(total_expenses)
+            ) * 100
             if percentage_of_total >= 3:
-                return True
+                spike = True
 
-        # Check MoM growth > 20%
+        # Calculate MoM growth and check if > 20%
         if not prev_month_data.empty and category in prev_month_data.columns:
             prev_amount = prev_month_data[category].sum()
             prev_amount = prev_amount if not pd.isna(prev_amount) else 0
 
             if prev_amount > 0:
-                mom_growth = ((current_amount - prev_amount) / prev_amount) * 100
-                if mom_growth > 20:
-                    return True
+                monthly_change_percent = (
+                    (current_amount - prev_amount) / prev_amount
+                ) * 100
+                if monthly_change_percent > 20:
+                    spike = True
+            elif current_amount > 0:
+                # If no previous data but current amount exists, 100% increase
+                monthly_change_percent = 100.0
+                spike = True
 
-        return False
+        return spike, round(monthly_change_percent, 2)
 
     def _calculate_total_expenses(self, pnl_data: pd.DataFrame) -> Decimal:
         """Calculate total expenses from P&L data"""

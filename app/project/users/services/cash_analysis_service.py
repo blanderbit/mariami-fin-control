@@ -19,13 +19,13 @@ class UserCashAnalysisService:
         self.user = user
         self.minio_client = MINIO_CLIENT
 
-    def get_cash_analysis(self) -> Dict:
+    def get_cash_analysis(self, start_date: Optional[str] = None, end_date: Optional[str] = None) -> Dict:
         """
-        Get cash analysis from transactions data
+        Get cash analysis from transactions data, with optional date filtering
         Returns:
             Dict with total_income and total_expense
         """
-        cache_key = f"cash_analysis_{self.user.id}"
+        cache_key = f"cash_analysis_{self.user.id}_{start_date}_{end_date}"
         cached_result = cache.get(cache_key)
 
         if cached_result:
@@ -34,16 +34,21 @@ class UserCashAnalysisService:
 
         try:
             # Get Transactions DataFrame
-            transactions_df = self._get_dataframe_from_file(
-                "transactions_template"
-            )
+            transactions_df = self._get_dataframe_from_file("transactions_template")
             if transactions_df is None:
                 raise ValueError("No transaction data found for user")
 
+            # Фильтрация по дате, если указаны параметры
+            if start_date or end_date:
+                if "Date" in transactions_df.columns:
+                    transactions_df["Date"] = pd.to_datetime(transactions_df["Date"], errors="coerce")
+                    if start_date:
+                        transactions_df = transactions_df[transactions_df["Date"] >= pd.to_datetime(start_date)]
+                    if end_date:
+                        transactions_df = transactions_df[transactions_df["Date"] <= pd.to_datetime(end_date)]
+
             # Calculate totals
-            total_income, total_expense = self._calculate_totals(
-                transactions_df
-            )
+            total_income, total_expense = self._calculate_totals(transactions_df)
 
             # Build response
             result = {
@@ -53,17 +58,12 @@ class UserCashAnalysisService:
 
             # Store in cache (24 hours)
             cache.set(cache_key, result, timeout=86400)
-            logger.info(
-                f"Calculated and cached cash analysis for user {self.user.id}"
-            )
+            logger.info(f"Calculated and cached cash analysis for user {self.user.id}")
 
             return result
 
         except Exception as e:
-            logger.error(
-                f"Error calculating cash analysis for user "
-                f"{self.user.id}: {str(e)}"
-            )
+            logger.error(f"Error calculating cash analysis for user {self.user.id}: {str(e)}")
             raise e
 
     def _calculate_totals(self, df: pd.DataFrame) -> tuple[Decimal, Decimal]:
@@ -75,25 +75,37 @@ class UserCashAnalysisService:
             Tuple of (total_income, total_expense)
         """
         try:
-            # Ensure required columns exist
-            required_columns = ['Category', 'Amount']
-            missing_columns = [
-                col for col in required_columns if col not in df.columns
-            ]
-            if missing_columns:
+            # Ensure required columns exist - check for both Type and Category
+            type_column = None
+            if 'Type' in df.columns:
+                type_column = 'Type'
+            elif 'Category' in df.columns:
+                type_column = 'Category'
+            else:
                 raise ValueError(
-                    f"Missing required columns: {missing_columns}"
+                    "Missing transaction type column. Expected 'Type' or 'Category'"
                 )
+            
+            if 'Amount' not in df.columns:
+                raise ValueError("Missing required column: Amount")
 
+            # Log initial data info
+            logger.info(f"DataFrame shape: {df.shape}, columns: {list(df.columns)}")
+            logger.info(f"Using column '{type_column}' for transaction types")
+            
             # Convert Amount to numeric, handling any string values
             df['Amount'] = pd.to_numeric(df['Amount'], errors='coerce')
             
             # Filter out rows with NaN amounts
             df = df.dropna(subset=['Amount'])
+            logger.info(f"After filtering NaN amounts, shape: {df.shape}")
 
-            # Calculate totals based on Category
-            income_mask = df['Category'].str.lower() == 'income'
-            expense_mask = df['Category'].str.lower() == 'expense'
+            # Calculate totals based on Type/Category column
+            income_mask = df[type_column].str.lower() == 'income'
+            expense_mask = df[type_column].str.lower() == 'expense'
+            
+            logger.info(f"Income transactions: {income_mask.sum()}")
+            logger.info(f"Expense transactions: {expense_mask.sum()}")
 
             total_income = Decimal(str(df[income_mask]['Amount'].sum()))
             total_expense = Decimal(str(df[expense_mask]['Amount'].sum()))

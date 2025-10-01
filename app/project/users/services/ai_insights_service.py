@@ -106,6 +106,8 @@ class UserAIInsightsService:
             "total_revenue": pnl_data.get("total_revenue", 0),
             "total_expenses": pnl_data.get("total_expenses", 0),
             "net_profit": pnl_data.get("net_profit", 0),
+            "gross_margin": pnl_data.get("gross_margin", 0),
+            "operating_margin": pnl_data.get("operating_margin"),
             "month_change_revenue": pnl_data.get("month_change", {}).get(
                 "revenue", {}
             ).get("percentage_change", 0),
@@ -270,8 +272,8 @@ class UserAIInsightsService:
             expenses = pnl_data["total_expenses"]
             profit = pnl_data["net_profit"]
             
-            # Calculate margins
-            gross_margin = ((revenue - expenses) / revenue * 100) if revenue > 0 else 0
+            # Use calculated gross margin from PnL data
+            gross_margin = pnl_data.get('gross_margin', 0)
             
             prompt_parts.append(f"""
 FINANCIAL PERFORMANCE:
