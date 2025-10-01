@@ -999,7 +999,7 @@ export class Api<
       }),
 
     /**
-     * @description Analyze user's transaction data to calculate total income and total expense for a specific date range. Requires transactions_template file to be uploaded.
+     * @description Analyze user's transaction data to calculate total income and total expense. Requires transactions_template file to be uploaded.
      *
      * @tags Cash Analysis
      * @name UsersCashAnalysisList
@@ -1007,25 +1007,10 @@ export class Api<
      * @request GET:/users/cash-analysis
      * @secure
      */
-    usersCashAnalysisList: (
-      query: {
-        /**
-         * Start date for analysis period (YYYY-MM-DD)
-         * @format date
-         */
-        start_date: string;
-        /**
-         * End date for analysis period (YYYY-MM-DD)
-         * @format date
-         */
-        end_date: string;
-      },
-      params: RequestParams = {},
-    ) =>
+    usersCashAnalysisList: (params: RequestParams = {}) =>
       this.request<CashAnalysisResponse, void>({
         path: `/users/cash-analysis`,
         method: "GET",
-        query: query,
         secure: true,
         format: "json",
         ...params,

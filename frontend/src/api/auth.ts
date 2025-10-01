@@ -46,13 +46,13 @@ export async function loginRequest(email: string, password: string, storage?: To
     // fetch profile with onboarding status
     const profileRes = await api.profile.profileProfileList() as any;
     const user = profileRes.data?.results?.[0] || profileRes.data;
-    
+
     // Получаем статус онбординга для получения is_onboarded
     const onboardingStatus = await getOnboardingStatusRequest();
     if (onboardingStatus && user) {
         user.is_onboarded = onboardingStatus.is_onboarded;
     }
-    
+
     return user as AuthUser | null;
 }
 
@@ -86,13 +86,13 @@ export async function getProfileRequest(): Promise<AuthUser | null> {
     try {
         const res = await api.profile.profileProfileList() as any;
         const profile = res.data?.results?.[0] || res.data;
-        
+
         // Получаем статус онбординга для получения is_onboarded
         const onboardingStatus = await getOnboardingStatusRequest();
         if (onboardingStatus && profile) {
             profile.is_onboarded = onboardingStatus.is_onboarded;
         }
-        
+
         return profile as AuthUser | null;
     } catch (error) {
         console.error('Failed to fetch profile:', error);
@@ -422,7 +422,7 @@ export async function getCashAnalysisRequest(data: CashAnalysisRequest): Promise
 }
 
 export type ExpenseCategoryData = {
-    total_amount: number;
+    total_amount: string;  // API returns decimal as string
     spike: boolean;
     new: boolean;
 };
@@ -453,6 +453,29 @@ export async function getExpenseBreakdownRequest(data: ExpenseBreakdownRequest):
         }
     } catch (error) {
         console.error('Failed to get expense breakdown:', error);
+        throw error;
+    }
+}
+
+export type AIInsightsRequest = {
+    start_date: string;
+    end_date: string;
+};
+
+export interface AIInsightsResponse {
+    insights: string[];
+    period: Record<string, string | null>;
+    data_sources: Record<string, string | null>;
+}
+
+export async function getAIInsightsRequest(data: AIInsightsRequest): Promise<AIInsightsResponse> {
+    try {
+        const res = await api.users.usersAiInsightsList(data) as any;
+        // The API returns wrapped response: { status, code, data: {...}, message }
+        // We need to extract the data field
+        return res.data?.data || res.data || res;
+    } catch (error) {
+        console.error('Failed to get AI insights:', error);
         throw error;
     }
 }

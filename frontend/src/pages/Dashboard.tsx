@@ -47,7 +47,7 @@ import {
 } from 'date-fns';
 import {revenues} from '../data/seedData';
 import {useTheme} from '../contexts/ThemeContext';
-import {getPnLAnalysisRequest, PnLAnalysisResponse, PnLDataItem, getInvoicesAnalysisRequest, InvoicesAnalysisResponse, getCashAnalysisRequest, CashAnalysisResponse, getExpenseBreakdownRequest, ExpenseBreakdownResponse} from '../api/auth';
+import {getPnLAnalysisRequest, PnLAnalysisResponse, PnLDataItem, getInvoicesAnalysisRequest, InvoicesAnalysisResponse, getCashAnalysisRequest, CashAnalysisResponse, getExpenseBreakdownRequest, ExpenseBreakdownResponse, getAIInsightsRequest, AIInsightsResponse} from '../api/auth';
 
 interface PulseKPI {
     revenue: number;
@@ -97,6 +97,9 @@ const Dashboard: React.FC = () => {
     // Refs for scroll targets
     const revenueExpensesRef = useRef<HTMLDivElement>(null);
     const expensesCategoryRef = useRef<HTMLDivElement>(null);
+    
+    // Ref to track if data is currently being loaded (prevents duplicate calls in StrictMode)
+    const isLoadingRef = useRef(false);
 
     // Period selection state
     const [selectedPeriod, setSelectedPeriod] = useState('This month');
@@ -126,6 +129,11 @@ const Dashboard: React.FC = () => {
     const [isLoadingExpenseBreakdown, setIsLoadingExpenseBreakdown] = useState(false);
     const [expenseBreakdownError, setExpenseBreakdownError] = useState<string | null>(null);
     const [showAllCategories, setShowAllCategories] = useState(false);
+
+    // AI Insights state
+    const [aiInsightsData, setAiInsightsData] = useState<AIInsightsResponse | null>(null);
+    const [isLoadingAiInsights, setIsLoadingAiInsights] = useState(false);
+    const [aiInsightsError, setAiInsightsError] = useState<string | null>(null);
 
     // Date range picker states
     const [showOverdueDatePicker, setShowOverdueDatePicker] = useState(false);
@@ -201,16 +209,13 @@ const Dashboard: React.FC = () => {
     // Get current period dates
     const periodDates = getPeriodDates(selectedPeriod);
 
-    // Debug: Log current period dates
-    console.log('Selected period:', selectedPeriod);
-    console.log('Period dates:', periodDates);
-
     // Load P&L data
-    const loadPnLData = async () => {
+    const loadPnLData = async (dates?: {start_date: string, end_date: string}) => {
         try {
             setIsLoadingPnl(true);
             setPnlError(null);
-            const response = await getPnLAnalysisRequest(periodDates);
+            const requestDates = dates || periodDates;
+            const response = await getPnLAnalysisRequest(requestDates);
 
             // Check if response has valid data
             if (response && response.data && response.data.pnl_data && response.data.pnl_data.length > 0) {
@@ -235,7 +240,7 @@ const Dashboard: React.FC = () => {
                             expenses: {change: 0, percentage_change: 0},
                             net_profit: {change: 0, percentage_change: 0}
                         },
-                        period: periodDates,
+                        period: requestDates,
                         ai_insights: 'No data available for the selected period.'
                     },
                     message: null
@@ -298,23 +303,70 @@ const Dashboard: React.FC = () => {
         }
     };
 
+    // Load AI Insights data
+    const loadAiInsightsData = async (dates: {start_date: string, end_date: string}) => {
+        try {
+            setIsLoadingAiInsights(true);
+            setAiInsightsError(null);
+            const response = await getAIInsightsRequest(dates);
+            setAiInsightsData(response);
+        } catch (error) {
+            console.error('Failed to load AI insights:', error);
+            setAiInsightsError('Failed to load AI insights. Please try again.');
+            setAiInsightsData(null);
+        } finally {
+            setIsLoadingAiInsights(false);
+        }
+    };
+
     // Load P&L, Invoices, Cash, and Expense Breakdown data when period changes (except for custom range)
     useEffect(() => {
-        if (selectedPeriod !== 'Custom range') {
-            loadPnLData();
-            loadInvoicesData(periodDates);
-            loadCashData(periodDates);
-            loadExpenseBreakdownData(periodDates);
-        }
+        const loadAllData = async () => {
+            if (selectedPeriod !== 'Custom range') {
+                // Prevent duplicate calls in StrictMode
+                if (isLoadingRef.current) {
+                    console.log('Already loading data, skipping duplicate call');
+                    return;
+                }
+                
+                isLoadingRef.current = true;
+                const dates = getPeriodDates(selectedPeriod);
+                
+                try {
+                    // Load all 4 main requests in parallel
+                    await Promise.all([
+                        loadPnLData(dates),
+                        loadInvoicesData(dates),
+                        loadCashData(dates),
+                        loadExpenseBreakdownData(dates)
+                    ]);
+
+                    // After all requests are done, load AI insights
+                    await loadAiInsightsData(dates);
+                } finally {
+                    isLoadingRef.current = false;
+                }
+            }
+        };
+
+        loadAllData();
     }, [selectedPeriod]);
 
     // Apply custom range
-    const applyCustomRange = () => {
+    const applyCustomRange = async () => {
         if (customStartDate && customEndDate && customStartDate <= customEndDate) {
-            loadPnLData();
-            loadInvoicesData({start_date: customStartDate, end_date: customEndDate});
-            loadCashData({start_date: customStartDate, end_date: customEndDate});
-            loadExpenseBreakdownData({start_date: customStartDate, end_date: customEndDate});
+            const dates = {start_date: customStartDate, end_date: customEndDate};
+
+            // Load all 4 main requests in parallel
+            await Promise.all([
+                loadPnLData(dates),
+                loadInvoicesData(dates),
+                loadCashData(dates),
+                loadExpenseBreakdownData(dates)
+            ]);
+
+            // After all requests are done, load AI insights
+            await loadAiInsightsData(dates);
         }
     };
 
@@ -408,6 +460,15 @@ const Dashboard: React.FC = () => {
         };
     }, [selectedPeriod, pnlData]);
 
+    const formatCurrency = (amount: number, curr: string = baseCurrency) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: curr,
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(amount);
+    };
+
     const expenseChips = useMemo((): ExpenseChip[] => {
         // Use expense breakdown data if available, otherwise fallback to P&L data
         if (expenseBreakdownData) {
@@ -432,7 +493,7 @@ const Dashboard: React.FC = () => {
 
             // Calculate total expenses for percentage calculation
             const totalExpenses = Object.values(expenseBreakdownData).reduce((sum, category) => {
-                return sum + (category ? category.total_amount : 0);
+                return sum + (category ? parseFloat(category.total_amount) : 0);
             }, 0);
 
             // Helper function to round percentage to 1 decimal place
@@ -441,11 +502,12 @@ const Dashboard: React.FC = () => {
             const chips: ExpenseChip[] = [];
 
             Object.entries(expenseBreakdownData).forEach(([category, data]) => {
-                if (data && data.total_amount > 0) {
+                const amount = data ? parseFloat(data.total_amount) : 0;
+                if (data && amount > 0) {
                     chips.push({
                         category,
-                        amount: data.total_amount,
-                        pct: totalExpenses > 0 ? roundPercentage((data.total_amount / totalExpenses) * 100) : 0,
+                        amount: amount,
+                        pct: totalExpenses > 0 ? roundPercentage((amount / totalExpenses) * 100) : 0,
                         icon: getIcon(category),
                         spike: data.spike,
                         isNew: data.new
@@ -524,45 +586,50 @@ const Dashboard: React.FC = () => {
         ].filter(chip => chip.amount > 0);
     }, [expenseBreakdownData, pnlData]);
 
-    const alerts = useMemo((): Alert[] => [
-        {
-            id: '1',
-            severity: 'error',
-            message: 'Cash flow projection shows potential shortage in 45 days',
-            link: '/scenarios'
-        },
-        {
-            id: '2',
-            severity: 'warning',
-            message: '3 invoices overdue by more than 30 days ($8,500 total)',
-            link: '/revenues'
-        },
-        {
-            id: '3',
-            severity: 'info',
-            message: 'Marketing spend 15% above industry average for your sector',
-            link: '/market-intel'
+    const alerts = useMemo((): Alert[] => {
+        const signals: Alert[] = [];
+
+        // Signal 1: Cash gap (critical)
+        // Show if total_expense > total_income OR ending_cash < 0
+        const totalIncome = cashData ? parseFloat(cashData.total_income) : 0;
+        const totalExpense = cashData ? parseFloat(cashData.total_expense) : 0;
+
+        if (totalExpense > totalIncome || pulseKPIs.ending_cash < 0) {
+            // Find the category with the highest percentage (driver)
+            const topCategory = expenseChips.length > 0 ? expenseChips[0] : null;
+            const driver = topCategory ? topCategory.category : 'expenses';
+
+            signals.push({
+                id: 'cash-gap',
+                severity: 'error',
+                message: `Outflows exceed inflows this month - ${driver}`,
+                link: '#'
+            });
         }
-    ], []);
+
+        // Signal 2: Overdue AR
+        // Show if overdue_invoices > 0
+        if (pulseKPIs.overdue_invoices > 0) {
+            signals.push({
+                id: 'overdue-ar',
+                severity: 'warning',
+                message: `Overdue invoices ${formatCurrency(pulseKPIs.overdue_invoices)} (${pulseKPIs.overdue_count} invoices).`,
+                link: '#'
+            });
+        }
+
+        return signals;
+    }, [cashData, pulseKPIs, expenseChips]);
 
     const insights = useMemo((): string[] => {
-        if (!pnlData?.data?.ai_insights) {
+        if (!aiInsightsData?.insights) {
             // Return empty array if no backend insights
             return [];
         }
 
-        // Use AI insights from P&L API
-        return [pnlData.data.ai_insights];
-    }, [pnlData]);
-
-    const formatCurrency = (amount: number, curr: string = baseCurrency) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: curr,
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        }).format(amount);
-    };
+        // Use AI insights from AI Insights API
+        return aiInsightsData.insights;
+    }, [aiInsightsData]);
 
     const getStatusColor = (statusBy: string, value: number, trend?: number) => {
         switch (statusBy) {
@@ -1218,7 +1285,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Alerts Feed */}
-            {/* <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Signals</h2>
                 </div>
@@ -1246,10 +1313,10 @@ const Dashboard: React.FC = () => {
                         <p className="text-gray-600 dark:text-gray-400">No signals — everything is stable 🎉</p>
                     </div>
                 )}
-            </div> */}
+            </div>
 
             {/* AI Advisor Insights */}
-            {/* <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
                         <Brain className="w-6 h-6 mr-2 text-indigo-600"/>
@@ -1258,12 +1325,25 @@ const Dashboard: React.FC = () => {
                     <p className="text-sm text-gray-600 dark:text-gray-400">Short recommendations based on your data</p>
                 </div>
 
-                {insights.length > 0 ? (
+                {aiInsightsError && (
+                    <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-md">
+                        <p className="text-sm text-red-800 dark:text-red-200">{aiInsightsError}</p>
+                    </div>
+                )}
+
+                {isLoadingAiInsights ? (
+                    <div className="text-center py-8">
+                        <div className="flex items-center justify-center space-x-2">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                            <span className="text-gray-600 dark:text-gray-400">Loading AI insights...</span>
+                        </div>
+                    </div>
+                ) : insights.length > 0 ? (
                     <div className="space-y-4">
                         {insights.map((insight, index) => (
                             <div key={index}
-                                 className="flex items-start space-x-3 p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border border-indigo-200 dark:border-indigo-700">
-                                <Brain className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mt-0.5 flex-shrink-0"/>
+                                 className="flex items-center space-x-3 p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border border-indigo-200 dark:border-indigo-700">
+                                <Brain className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0"/>
                                 <p className="text-sm text-indigo-800 dark:text-indigo-200">{insight}</p>
                             </div>
                         ))}
@@ -1273,7 +1353,7 @@ const Dashboard: React.FC = () => {
                         <p className="text-gray-600 dark:text-gray-400">No advice yet — upload more data.</p>
                     </div>
                 )}
-            </div> */}
+            </div>
         </motion.div>
     );
 };
