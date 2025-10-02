@@ -737,6 +737,10 @@ const Dashboard: React.FC = () => {
                 return value > 0 ? 'text-red-600' : 'text-green-600';
             case 'balance':
                 return value > 100000 ? 'text-green-600' : value > 50000 ? 'text-yellow-600' : 'text-red-600';
+            case 'buffer':
+                if (value >= 2) return 'text-green-600';
+                if (value >= 1) return 'text-yellow-600';
+                return 'text-red-600';
             default:
                 return 'text-gray-600';
         }
@@ -750,6 +754,10 @@ const Dashboard: React.FC = () => {
                 return value > 0 ? <AlertTriangle className="w-6 h-6"/> : <CheckCircle className="w-6 h-6"/>;
             case 'balance':
                 return <DollarSign className="w-6 h-6"/>;
+            case 'buffer':
+                if (value >= 2) return <CheckCircle className="w-6 h-6"/>;
+                if (value >= 1) return <AlertTriangle className="w-6 h-6"/>;
+                return <XCircle className="w-6 h-6"/>;
             default:
                 return <BarChart3 className="w-6 h-6"/>;
         }
@@ -1140,7 +1148,7 @@ const Dashboard: React.FC = () => {
                                     <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400"/>
                                 </button>
                             </div>
-                            <div className={getStatusColor('balance', pulseKPIs.ending_cash)}>
+                            <div className={getStatusColor('buffer', pulseKPIs.cash_buffer_months)}>
                                 {getStatusIcon('balance', pulseKPIs.ending_cash)}
                             </div>
                         </div>
