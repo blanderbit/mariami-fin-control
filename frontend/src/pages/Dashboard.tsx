@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo, useRef} from 'react';
+import React, {useState, useEffect, useMemo, useRef, useCallback} from 'react';
 import {
     Calendar,
     DollarSign,
@@ -47,7 +47,7 @@ import {
 } from 'date-fns';
 import {revenues} from '../data/seedData';
 import {useTheme} from '../contexts/ThemeContext';
-import {getPnLAnalysisRequest, PnLAnalysisResponse, PnLDataItem, getInvoicesAnalysisRequest, InvoicesAnalysisResponse, getCashAnalysisRequest, CashAnalysisResponse, getExpenseBreakdownRequest, ExpenseBreakdownResponse, getAIInsightsRequest, AIInsightsResponse} from '../api/auth';
+import {getPnLAnalysisRequest, PnLAnalysisResponse, PnLDataItem, getInvoicesAnalysisRequest, InvoicesAnalysisResponse, getCashAnalysisRequest, CashAnalysisResponse, getExpenseBreakdownRequest, ExpenseBreakdownResponse, getAIInsightsRequest, AIInsightsResponse, getOnboardingStatusRequest, OnboardingData} from '../api/auth';
 
 interface PulseKPI {
     revenue: number;
@@ -62,6 +62,7 @@ interface PulseKPI {
     ending_cash: number;
     cash_buffer_months: number;
     currency: string;
+    cash_card_title: string;
 }
 
 interface ExpenseChip {
@@ -97,7 +98,7 @@ const Dashboard: React.FC = () => {
     // Refs for scroll targets
     const revenueExpensesRef = useRef<HTMLDivElement>(null);
     const expensesCategoryRef = useRef<HTMLDivElement>(null);
-    
+
     // Ref to track if data is currently being loaded (prevents duplicate calls in StrictMode)
     const isLoadingRef = useRef(false);
 
@@ -134,6 +135,15 @@ const Dashboard: React.FC = () => {
     const [aiInsightsData, setAiInsightsData] = useState<AIInsightsResponse | null>(null);
     const [isLoadingAiInsights, setIsLoadingAiInsights] = useState(false);
     const [aiInsightsError, setAiInsightsError] = useState<string | null>(null);
+
+    // Profile data state
+    const [profileData, setProfileData] = useState<OnboardingData | null>(null);
+    const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+
+    // Calculated cash state
+    const [calculatedEndingCash, setCalculatedEndingCash] = useState(0);
+    const [cashCardTitle, setCashCardTitle] = useState('Net Cash');
+    const [cashBufferMonths, setCashBufferMonths] = useState(0);
 
     // Date range picker states
     const [showOverdueDatePicker, setShowOverdueDatePicker] = useState(false);
@@ -319,6 +329,90 @@ const Dashboard: React.FC = () => {
         }
     };
 
+    // Load profile data
+    const loadProfileData = async () => {
+        try {
+            setIsLoadingProfile(true);
+            const onboardingStatus = await getOnboardingStatusRequest();
+            if (onboardingStatus && onboardingStatus.profile) {
+                setProfileData(onboardingStatus.profile);
+            }
+        } catch (error) {
+            console.error('Failed to load profile data:', error);
+        } finally {
+            setIsLoadingProfile(false);
+        }
+    };
+
+    // Calculate ending cash when cash data and profile data are available
+    const calculateEndingCash = useCallback(() => {
+        if (!cashData) {
+            setCalculatedEndingCash(0);
+            setCashCardTitle('Net Cash');
+            setCashBufferMonths(0);
+            return;
+        }
+
+        const totalIncome = parseFloat(cashData.data.total_income) || 0;
+        const totalExpense = parseFloat(cashData.data.total_expense) || 0;
+
+        // Check if user has current_cash in profile
+        if (profileData?.current_cash) {
+            const currentCash = parseFloat(profileData.current_cash);
+            const endingCash = currentCash - totalExpense + totalIncome;
+            setCalculatedEndingCash(endingCash);
+            setCashCardTitle('Ending Cash');
+
+            // Calculate cash buffer
+            calculateCashBuffer(endingCash, totalExpense);
+        } else {
+            const netCash = totalIncome - totalExpense;
+            setCalculatedEndingCash(netCash);
+            setCashCardTitle('Net Cash');
+            setCashBufferMonths(0); // N/A when no current_cash
+        }
+    }, [cashData, profileData, pnlData, selectedPeriod, customStartDate, customEndDate]);
+
+    // Calculate cash buffer based on COGS data and operational expenses
+    const calculateCashBuffer = useCallback((endingCash: number, totalExpense: number) => {
+        if (!pnlData?.data?.pnl_data || pnlData.data.pnl_data.length === 0) {
+            setCashBufferMonths(0);
+            return;
+        }
+
+        // Calculate COGS sum from pnl_data
+        const cogsData = pnlData.data.pnl_data.reduce((sum, item) => {
+            return sum + (item.COGS || 0);
+        }, 0);
+
+        // Calculate number of months in the selected period
+        const periodDates = getPeriodDates(selectedPeriod);
+        const startDate = new Date(periodDates.start_date);
+        const endDate = new Date(periodDates.end_date);
+        const monthsAmount = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30.44))); // Average days per month
+
+        // Calculate operational expenses (OPEX)
+        const opex = (totalExpense - cogsData) / monthsAmount;
+
+        // Calculate buffer: ending cash / monthly operational expenses
+        if (opex > 0) {
+            const buffer = endingCash / opex;
+            setCashBufferMonths(Math.round(buffer * 10) / 10); // Round to 1 decimal place
+        } else {
+            setCashBufferMonths(0);
+        }
+    }, [pnlData, selectedPeriod, customStartDate, customEndDate]);
+
+    // Load profile data on component mount
+    useEffect(() => {
+        loadProfileData();
+    }, []);
+
+    // Calculate ending cash when cash data or profile data changes
+    useEffect(() => {
+        calculateEndingCash();
+    }, [cashData, profileData, calculateEndingCash, calculateCashBuffer]);
+
     // Load P&L, Invoices, Cash, and Expense Breakdown data when period changes (except for custom range)
     useEffect(() => {
         const loadAllData = async () => {
@@ -328,10 +422,10 @@ const Dashboard: React.FC = () => {
                     console.log('Already loading data, skipping duplicate call');
                     return;
                 }
-                
+
                 isLoadingRef.current = true;
                 const dates = getPeriodDates(selectedPeriod);
-                
+
                 try {
                     // Load all 4 main requests in parallel
                     await Promise.all([
@@ -386,7 +480,8 @@ const Dashboard: React.FC = () => {
                 overdue_count: 0,
                 ending_cash: 0,
                 cash_buffer_months: 0,
-                currency: baseCurrency
+                currency: baseCurrency,
+                cash_card_title: 'Net Cash'
             };
         }
 
@@ -406,6 +501,8 @@ const Dashboard: React.FC = () => {
             current.amount > max.amount ? current : max
         );
 
+        // Use calculated ending cash values
+
         return {
             revenue: data.total_revenue || 0,
             revenue_mom: data.month_change?.revenue?.percentage_change || 0,
@@ -416,11 +513,12 @@ const Dashboard: React.FC = () => {
             profit_margin: profitMargin || 0,
             overdue_invoices: invoicesData?.data?.overdue_invoices?.total_amount || 0,
             overdue_count: invoicesData?.data?.overdue_invoices?.total_count || 0,
-            ending_cash: cashData ? parseFloat(cashData.total_income) - parseFloat(cashData.total_expense) : 0,
-            cash_buffer_months: 0, // Will be provided by backend when available
-            currency: baseCurrency
+            ending_cash: calculatedEndingCash,
+            cash_buffer_months: cashBufferMonths,
+            currency: baseCurrency,
+            cash_card_title: cashCardTitle
         };
-    }, [pnlData, invoicesData, cashData, baseCurrency]);
+    }, [pnlData, invoicesData, cashData, baseCurrency, calculatedEndingCash, cashCardTitle, cashBufferMonths]);
 
     const chartData = useMemo((): ChartData => {
         if (!pnlData?.data?.pnl_data || pnlData.data.pnl_data.length === 0) {
@@ -1025,7 +1123,7 @@ const Dashboard: React.FC = () => {
 
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-purple-500">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Ending Cash</h3>
+                        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">{pulseKPIs.cash_card_title}</h3>
                         <div className="flex">
 
                             <div className="mr-1">
@@ -1118,7 +1216,7 @@ const Dashboard: React.FC = () => {
                         {formatCurrency(pulseKPIs.ending_cash)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Buffer: {pulseKPIs.cash_buffer_months} months
+                        Buffer: {profileData?.current_cash ? `${pulseKPIs.cash_buffer_months} months` : 'N/A'}
                     </p>
                 </div>
             </div>
