@@ -23,6 +23,9 @@ interface AuthContextType {
     refreshOnboardingStatus: () => Promise<void>;
     loading: boolean;
     error: string | null;
+    showWelcomeVideo: boolean;
+    setShowWelcomeVideo: (show: boolean) => void;
+    markWelcomeVideoAsSeen: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,6 +35,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
     const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
 
     // Загружаем юзера из storage при маунте и обновляем с бэкенда
     useEffect(() => {
@@ -135,6 +139,11 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
                 localStorage.setItem('user', JSON.stringify(profile));
             } else {
                 sessionStorage.setItem('user', JSON.stringify(profile));
+            }
+
+            // Проверяем, нужно ли показать welcome видео
+            if (shouldShowWelcomeVideo(profile, onboardingStatus)) {
+                setShowWelcomeVideo(true);
             }
 
         } catch (err) {
@@ -244,8 +253,39 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
         }
     }, []);
 
+    // Функции для управления welcome видео
+    const markWelcomeVideoAsSeen = useCallback(() => {
+        localStorage.setItem('welcome_video_seen', 'true');
+        setShowWelcomeVideo(false);
+    }, []);
+
+    // Проверяем, нужно ли показать welcome видео
+    const shouldShowWelcomeVideo = useCallback((user: User | null, onboardingStatus: OnboardingStatus | null) => {
+        // Не показываем если уже видели
+        if (localStorage.getItem('welcome_video_seen') === 'true') {
+            return false;
+        }
+
+        // Показываем только для новых пользователей или тех, кто не прошел онбординг
+        return user && (!user.is_onboarded || !onboardingStatus?.is_onboarded);
+    }, []);
+
     return (
-        <AuthContext.Provider value={{user, onboardingStatus, login, register, logout, clearAuthState, refreshProfile, refreshOnboardingStatus, loading, error}}>
+        <AuthContext.Provider value={{
+            user, 
+            onboardingStatus, 
+            login, 
+            register, 
+            logout, 
+            clearAuthState, 
+            refreshProfile, 
+            refreshOnboardingStatus, 
+            loading, 
+            error,
+            showWelcomeVideo,
+            setShowWelcomeVideo,
+            markWelcomeVideoAsSeen
+        }}>
             {children}
         </AuthContext.Provider>
     );

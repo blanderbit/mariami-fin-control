@@ -10,10 +10,22 @@ import Settings from "./pages/Settings.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
 import Overview from "./pages/Overview.tsx";
 import Benchmark from "./pages/Benchmark.tsx";
+import WelcomeVideoModal from './components/WelcomeVideoModal';
+import { useAuth } from './contexts/AuthContext';
 
-function App() {
+function AppContent() {
+    const { showWelcomeVideo, setShowWelcomeVideo, markWelcomeVideoAsSeen } = useAuth();
+
+    const handleVideoComplete = () => {
+        markWelcomeVideoAsSeen();
+    };
+
+    const handleVideoClose = () => {
+        setShowWelcomeVideo(false);
+    };
+
     return (
-        <Router>
+        <>
             <Routes>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="/signup" element={<Signup/>}/>
@@ -32,6 +44,25 @@ function App() {
 
                 <Route path="*" element={<Navigate to="/login" replace/>}/>
             </Routes>
+
+            <WelcomeVideoModal
+                isOpen={showWelcomeVideo}
+                onClose={handleVideoClose}
+                onComplete={handleVideoComplete}
+                videoSrc="/videos/welcome.mp4"
+                title="Welcome to FinclAI!"
+                description="Let us show you around your new financial AI assistant"
+                showSkipButton={true}
+                autoPlay={true}
+            />
+        </>
+    );
+}
+
+function App() {
+    return (
+        <Router>
+            <AppContent />
         </Router>
     );
 }
