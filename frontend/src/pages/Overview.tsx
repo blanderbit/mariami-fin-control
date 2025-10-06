@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
-import { updateOnboardingRequest, getOnboardingStatusRequest, OnboardingData, getCurrenciesRequest, Currency } from '../api/auth';
+import { updateOnboardingRequest, getOnboardingStatusRequest, OnboardingData, getCurrenciesRequest, Currency, getIndustriesRequest } from '../api/auth';
 
 const countries = [
     { code: 'US', name: 'United States' },
@@ -41,18 +41,6 @@ const countries = [
 ];
 
 
-const industries = [
-    'Services',
-    'E-commerce / Retail',
-    'Trading',
-    'Manufacturing / Production',
-    'Freelancer / Self-employed',
-    'Technology / SaaS / IT',
-    'Healthcare / Wellness / Beauty',
-    'Hospitality / Food & Beverage',
-    'Consulting / Professional Services',
-    'Education / Nonprofit'
-];
 
 interface Integration {
     id: string;
@@ -83,11 +71,14 @@ const Overview: React.FC = () => {
     const [isLoadingProfile, setIsLoadingProfile] = useState(true);
     const [currencies, setCurrencies] = useState<Currency[]>([]);
     const [currenciesLoading, setCurrenciesLoading] = useState(true);
+    const [industries, setIndustries] = useState<string[]>([]);
+    const [industriesLoading, setIndustriesLoading] = useState(true);
 
     useEffect(() => {
         loadProfileData();
         loadIntegrations();
         loadCurrencies();
+        loadIndustries();
     }, []);
 
     const loadProfileData = async () => {
@@ -132,6 +123,17 @@ const Overview: React.FC = () => {
             console.error('Failed to load currencies:', error);
         } finally {
             setCurrenciesLoading(false);
+        }
+    };
+
+    const loadIndustries = async () => {
+        try {
+            const industries = await getIndustriesRequest();
+            setIndustries(industries);
+        } catch (error) {
+            console.error('Failed to load industries:', error);
+        } finally {
+            setIndustriesLoading(false);
         }
     };
 
@@ -534,9 +536,14 @@ const Overview: React.FC = () => {
                                     <select
                                         value={editingProfile.industry || ''}
                                         onChange={(e) => handleProfileChange('industry', e.target.value)}
-                                        className="w-full mt-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                                        disabled={industriesLoading}
+                                        className={`w-full mt-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                                            industriesLoading ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
                                     >
-                                        <option value="">Select industry</option>
+                                        <option value="">
+                                            {industriesLoading ? 'Loading industries...' : 'Select industry'}
+                                        </option>
                                         {industries.map(industry => (
                                             <option key={industry} value={industry}>{industry}</option>
                                         ))}

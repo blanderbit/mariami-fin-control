@@ -23,7 +23,7 @@ import {
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { updateOnboardingRequest, OnboardingData, getCurrenciesRequest, Currency } from '../api/auth';
+import { updateOnboardingRequest, OnboardingData, getCurrenciesRequest, Currency, getIndustriesRequest } from '../api/auth';
 import { getStepData } from '../utils/onboardingUtils';
 import Logo from "../assets/FinclAI Logo Blue.png";
 
@@ -47,18 +47,6 @@ const countries = [
 ];
 
 
-const industries = [
-    'Services',
-    'E-commerce / Retail',
-    'Trading',
-    'Manufacturing / Production',
-    'Freelancer / Self-employed',
-    'Technology / SaaS / IT',
-    'Healthcare / Wellness / Beauty',
-    'Hospitality / Food & Beverage',
-    'Consulting / Professional Services',
-    'Education / Nonprofit'
-];
 
 const businessModels = [
     { label: 'Subscription / Recurring revenue', value: 'recurring' },
@@ -109,21 +97,28 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
     const [loading, setLoading] = useState(false);
     const [currencies, setCurrencies] = useState<Currency[]>([]);
     const [currenciesLoading, setCurrenciesLoading] = useState(true);
+    const [industries, setIndustries] = useState<string[]>([]);
+    const [industriesLoading, setIndustriesLoading] = useState(true);
 
-    // Загружаем список валют при монтировании компонента
+    // Загружаем список валют и индустрий при монтировании компонента
     useEffect(() => {
-        const loadCurrencies = async () => {
+        const loadData = async () => {
             try {
-                const currencies = await getCurrenciesRequest();
+                const [currencies, industries] = await Promise.all([
+                    getCurrenciesRequest(),
+                    getIndustriesRequest()
+                ]);
                 setCurrencies(currencies);
+                setIndustries(industries);
             } catch (error) {
-                console.error('Failed to load currencies:', error);
+                console.error('Failed to load data:', error);
             } finally {
                 setCurrenciesLoading(false);
+                setIndustriesLoading(false);
             }
         };
 
-        loadCurrencies();
+        loadData();
     }, []); // Пустой массив зависимостей - выполняется только при монтировании
 
     // Определяем обязательные поля для каждого степа
@@ -275,11 +270,14 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                     <select
                         value={profile.industry || ''}
                         onChange={(e) => handleInputChange('industry', e.target.value)}
+                        disabled={industriesLoading}
                         className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
                             errors.industry ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-                        }`}
+                        } ${industriesLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        <option value="">Select industry</option>
+                        <option value="">
+                            {industriesLoading ? 'Loading industries...' : 'Select industry'}
+                        </option>
                         {industries.map(industry => (
                             <option key={industry} value={industry}>{industry}</option>
                         ))}

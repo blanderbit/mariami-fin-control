@@ -252,6 +252,54 @@ export function clearCurrenciesCache(): void {
     currenciesPromise = null;
 }
 
+export type IndustriesResponse = {
+    status: string;
+    code: number;
+    data: {
+        industries: string[];
+    };
+    message: string | null;
+};
+
+// Кэш для индустрий
+let industriesCache: string[] | null = null;
+let industriesPromise: Promise<string[]> | null = null;
+
+export async function getIndustriesRequest(): Promise<string[]> {
+    // Если данные уже в кэше, возвращаем их
+    if (industriesCache) {
+        return industriesCache;
+    }
+
+    // Если запрос уже выполняется, ждем его результата
+    if (industriesPromise) {
+        return industriesPromise;
+    }
+
+    // Создаем новый запрос
+    industriesPromise = (async () => {
+        try {
+            const res = await api.users.usersIndustriesList() as any;
+            const response = res.data || res;
+            const industries = response.data?.industries || response.industries || [];
+            industriesCache = industries;
+            return industries;
+        } catch (error) {
+            console.error('Failed to get industries:', error);
+            industriesPromise = null;
+            throw error;
+        }
+    })();
+
+    return industriesPromise;
+}
+
+// Функция для очистки кэша индустрий (если нужно обновить данные)
+export function clearIndustriesCache(): void {
+    industriesCache = null;
+    industriesPromise = null;
+}
+
 // P&L Analysis Types
 export type PnLDataItem = {
     Month: string;
