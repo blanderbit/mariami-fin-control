@@ -1304,7 +1304,6 @@ export class Api<
      */
     usersIndustriesRead: (
       industryName: string,
-      industryName: string,
       params: RequestParams = {},
     ) =>
       this.request<IndustryDetails, void>({
