@@ -2,6 +2,7 @@ import React from 'react';
 import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+// import Login from '../new_version/Login.tsx';
 import Signup from './pages/Signup';
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
