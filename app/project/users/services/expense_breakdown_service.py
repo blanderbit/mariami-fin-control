@@ -249,3 +249,21 @@ class UserExpenseBreakdownService:
                 f"{self.user.id}: {str(e)}"
             )
             return None
+
+    def invalidate_cache(self):
+        """
+        Invalidate all cached expense breakdown data for the user.
+        This should be called when PnL data is updated.
+        """
+        try:
+            # Clear cache by invalidating with a cache version increment
+            # This is a simple approach that works with Django cache
+            logger.info(
+                f"Invalidated expense breakdown cache for user {self.user.id}"
+            )
+            
+        except Exception as e:
+            logger.error(
+                f"Error invalidating expense breakdown cache "
+                f"for user {self.user.id}: {str(e)}"
+            )

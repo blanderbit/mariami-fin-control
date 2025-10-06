@@ -52,3 +52,24 @@ if [ -f "$TEMPLATE_DIR/invoices_template.csv" ]; then
 fi
 
 echo "Template files uploaded successfully with caching headers!"
+
+
+echo "Uploading docs files to templates bucket..."
+DOCS_DIR="/docs"
+
+
+if [ -f "$DOCS_DIR/TermsOfService.md" ]; then
+    mc cp "$DOCS_DIR/TermsOfService.md" minio/templates/TermsOfService.md \
+        --attr "Cache-Control=public, max-age=3600" \
+        --attr "Content-Type=text/csv"
+    echo "Uploaded TermsOfService.md"
+fi
+
+if [ -f "$DOCS_DIR/PrivacyPolicy.md" ]; then
+    mc cp "$DOCS_DIR/PrivacyPolicy.md" minio/templates/PrivacyPolicy.md \
+        --attr "Cache-Control=public, max-age=3600" \
+        --attr "Content-Type=text/csv"
+    echo "Uploaded PrivacyPolicy.md"
+fi
+
+echo "Docs files uploaded successfully with caching headers!"

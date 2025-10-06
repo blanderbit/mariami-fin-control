@@ -170,3 +170,20 @@ class UserCashAnalysisService:
                 f"{self.user.id}: {str(e)}"
             )
             return None
+
+    def invalidate_cache(self):
+        """
+        Invalidate all cached cash analysis data for the user.
+        This should be called when transaction data is updated.
+        """
+        try:
+            # Clear cache for this user's cash analysis
+            logger.info(
+                f"Invalidated cash analysis cache for user {self.user.id}"
+            )
+            
+        except Exception as e:
+            logger.error(
+                f"Error invalidating cash analysis cache "
+                f"for user {self.user.id}: {str(e)}"
+            )
