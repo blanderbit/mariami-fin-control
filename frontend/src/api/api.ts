@@ -314,31 +314,84 @@ export interface CashAnalysisResponse {
   total_expense: string;
 }
 
-export interface ExpenseCategory {
+export interface DocumentsList {
   /**
-   * Total amount
-   * Total amount for this expense category
-   * @format decimal
+   * Terms of service
+   * Public URL for Terms of Service document
+   * @format uri
+   * @minLength 1
    */
-  total_amount: string;
+  terms_of_service?: string | null;
   /**
-   * Spike
-   * True if MoM > +20% or category ≥3% of total expenses
+   * Privacy policy
+   * Public URL for Privacy Policy document
+   * @format uri
+   * @minLength 1
    */
-  spike: boolean;
-  /**
-   * New
-   * True if category appeared first time in period
-   */
-  new: boolean;
+  privacy_policy?: string | null;
 }
 
-export interface ExpenseBreakdownResponse {
-  COGS?: ExpenseCategory;
-  Payroll?: ExpenseCategory;
-  Rent?: ExpenseCategory;
-  Marketing?: ExpenseCategory;
-  Other_Expenses?: ExpenseCategory;
+export interface IndustriesList {
+  /** List of available industries from Industry_norms.csv */
+  industries: string[];
+}
+
+export interface IndustryDetails {
+  /**
+   * Industry
+   * Industry name
+   * @minLength 1
+   * @maxLength 255
+   */
+  industry: string;
+  /**
+   * Gross margin range
+   * Gross margin range for the industry
+   * @maxLength 50
+   */
+  gross_margin_range?: string;
+  /**
+   * Operating margin range
+   * Operating margin range for the industry
+   * @maxLength 50
+   */
+  operating_margin_range?: string;
+  /**
+   * Cash buffer target months
+   * Recommended cash buffer in months
+   * @maxLength 50
+   */
+  cash_buffer_target_months?: string;
+  /**
+   * Dso range
+   * Days Sales Outstanding range
+   * @maxLength 50
+   */
+  dso_range?: string;
+  /**
+   * Inventory days range
+   * Inventory days range
+   * @maxLength 50
+   */
+  inventory_days_range?: string;
+  /**
+   * Expense mix notes
+   * Notes about expense mix for the industry
+   * @maxLength 500
+   */
+  expense_mix_notes?: string;
+  /**
+   * Notes
+   * Additional notes about the industry
+   * @maxLength 500
+   */
+  notes?: string;
+  /**
+   * Source refs
+   * Source references
+   * @maxLength 200
+   */
+  source_refs?: string;
 }
 
 /** Metrics for paid invoices */
@@ -419,6 +472,127 @@ export interface InvoicesAnalysisResponse {
   year_change: PeriodChange;
   /** Analysis period information */
   period: PeriodInfo;
+}
+
+/** Month-over-month changes */
+export interface MonthChange {
+  /**
+   * Revenue
+   * Revenue change data
+   */
+  revenue: Record<string, string | null>;
+  /**
+   * Expenses
+   * Expenses change data
+   */
+  expenses: Record<string, string | null>;
+  /**
+   * Net profit
+   * Net profit change data
+   */
+  net_profit: Record<string, string | null>;
+}
+
+/** Year-over-year changes */
+export interface YearChange {
+  /**
+   * Revenue
+   * Revenue change data
+   */
+  revenue: Record<string, string | null>;
+  /**
+   * Expenses
+   * Expenses change data
+   */
+  expenses: Record<string, string | null>;
+  /**
+   * Net profit
+   * Net profit change data
+   */
+  net_profit: Record<string, string | null>;
+}
+
+/** Analysis period information */
+export interface Period {
+  /**
+   * Start date
+   * Analysis period start date
+   * @format date
+   */
+  start_date: string;
+  /**
+   * End date
+   * Analysis period end date
+   * @format date
+   */
+  end_date: string;
+}
+
+export interface PNLAnalysisResponse {
+  /** Raw P&L data for the period */
+  pnl_data: (string | null)[];
+  /**
+   * Total revenue
+   * Total revenue for the period
+   * @format decimal
+   */
+  total_revenue: string;
+  /**
+   * Total expenses
+   * Total expenses for the period
+   * @format decimal
+   */
+  total_expenses: string;
+  /**
+   * Net profit
+   * Net profit (revenue - expenses)
+   * @format decimal
+   */
+  net_profit: string;
+  /**
+   * Gross margin
+   * Gross margin percentage ((Revenue - COGS) / Revenue * 100)
+   * @format decimal
+   */
+  gross_margin: string;
+  /**
+   * Operating margin
+   * Operating margin range from industry standards
+   * @minLength 1
+   */
+  operating_margin?: string | null;
+  /** Month-over-month changes */
+  month_change: MonthChange;
+  /** Year-over-year changes */
+  year_change: YearChange;
+  /** Analysis period information */
+  period: Period;
+  /** AI-generated business insights */
+  ai_insights: string[];
+}
+
+export interface TemplateList {
+  /**
+   * Pnl
+   * Public URL for P&L template
+   * @format uri
+   * @minLength 1
+   */
+  pnl?: string | null;
+  /**
+   * Transactions
+   * Public URL for transactions template
+   * @format uri
+   * @minLength 1
+   */
+  transactions?: string | null;
+  /**
+   * Invoices
+   * Public URL for invoices template
+   * @format uri
+   * @minLength 1
+   */
+  invoices?: string | null;
 }
 
 export interface UploadUserDataResponse {
@@ -999,7 +1173,7 @@ export class Api<
       }),
 
     /**
-     * @description Analyze user's transaction data to calculate total income and total expense. Requires transactions_template file to be uploaded.
+     * @description Analyze user's transaction data to calculate total income and total expense. Requires transactions_template file to be uploaded. Supports filtering by start_date and end_date.
      *
      * @tags Cash Analysis
      * @name UsersCashAnalysisList
@@ -1007,10 +1181,25 @@ export class Api<
      * @request GET:/users/cash-analysis
      * @secure
      */
-    usersCashAnalysisList: (params: RequestParams = {}) =>
+    usersCashAnalysisList: (
+      query?: {
+        /**
+         * Start date (YYYY-MM-DD) for filtering
+         * @example "2025-01-01"
+         */
+        start_date?: string;
+        /**
+         * End date (YYYY-MM-DD) for filtering transactions
+         * @example "2025-01-31"
+         */
+        end_date?: string;
+      },
+      params: RequestParams = {},
+    ) =>
       this.request<CashAnalysisResponse, void>({
         path: `/users/cash-analysis`,
         method: "GET",
+        query: query,
         secure: true,
         format: "json",
         ...params,
@@ -1040,6 +1229,23 @@ export class Api<
       }),
 
     /**
+     * @description Get public URLs for all document files. Returns cached URLs for optimal performance.
+     *
+     * @tags Documents
+     * @name UsersDocumentsList
+     * @request GET:/users/documents
+     * @secure
+     */
+    usersDocumentsList: (params: RequestParams = {}) =>
+      this.request<DocumentsList, void>({
+        path: `/users/documents`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Analyze user's expense data by category for a specific date range. Returns breakdown with total amounts, spike detection, and new category flags. Requires pnl_template file to be uploaded.
      *
      * @tags Expense Analysis
@@ -1063,10 +1269,47 @@ export class Api<
       },
       params: RequestParams = {},
     ) =>
-      this.request<ExpenseBreakdownResponse, void>({
+      this.request<void, void>({
         path: `/users/expense-breakdown`,
         method: "GET",
         query: query,
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get list of all available industries from Industry_norms.csv file. Returns cached results for optimal performance (24 hours cache).
+     *
+     * @tags Industries
+     * @name UsersIndustriesList
+     * @request GET:/users/industries
+     * @secure
+     */
+    usersIndustriesList: (params: RequestParams = {}) =>
+      this.request<IndustriesList, void>({
+        path: `/users/industries`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get detailed information for a specific industry including margins, cash buffer recommendations, and other financial metrics.
+     *
+     * @tags Industries
+     * @name UsersIndustriesRead
+     * @request GET:/users/industries/{industry_name}
+     * @secure
+     */
+    usersIndustriesRead: (
+      industryName: string,
+      industryName: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<IndustryDetails, void>({
+        path: `/users/industries/${industryName}`,
+        method: "GET",
         secure: true,
         format: "json",
         ...params,
@@ -1130,10 +1373,27 @@ export class Api<
       },
       params: RequestParams = {},
     ) =>
-      this.request<void, void>({
+      this.request<PNLAnalysisResponse, void>({
         path: `/users/pnl-analysis`,
         method: "GET",
         query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get public URLs for all template files (P&L, transactions, invoices). Returns cached URLs for optimal performance.
+     *
+     * @tags Templates
+     * @name UsersTemplatesList
+     * @request GET:/users/templates
+     * @secure
+     */
+    usersTemplatesList: (params: RequestParams = {}) =>
+      this.request<TemplateList, void>({
+        path: `/users/templates`,
+        method: "GET",
         secure: true,
         format: "json",
         ...params,
@@ -1164,6 +1424,16 @@ export class Api<
          * @format binary
          */
         invoices_file?: File;
+        /**
+         * Column name for dates in PnL file
+         * @minLength 1
+         * @maxLength 100
+         */
+        pnl_date_column?: string;
+        /** List of expense column names */
+        pnl_expense_columns?: string[];
+        /** List of revenue column names */
+        pnl_revenue_columns?: string[];
       },
       params: RequestParams = {},
     ) =>
