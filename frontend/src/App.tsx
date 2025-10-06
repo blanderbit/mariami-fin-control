@@ -12,6 +12,8 @@ import Overview from "./pages/Overview.tsx";
 import Benchmark from "./pages/Benchmark.tsx";
 import WelcomeVideoModal from './components/WelcomeVideoModal';
 import { useAuth } from './contexts/AuthContext';
+import Welcome from "./pages/Welcome.tsx";
+import WelcomeVideo from './pages/WelcomeVideo.tsx';
 
 function AppContent() {
     const { showWelcomeVideo, setShowWelcomeVideo, markWelcomeVideoAsSeen } = useAuth();
@@ -27,6 +29,8 @@ function AppContent() {
     return (
         <>
             <Routes>
+                <Route path="/welcome" element={<Welcome />} />
+                <Route path="/welcome-video" element={<WelcomeVideo />} />
                 <Route path="/login" element={<Login/>}/>
                 <Route path="/signup" element={<Signup/>}/>
                 <Route path="/onboarding" element={<Onboarding />} />
@@ -42,7 +46,7 @@ function AppContent() {
                     </Route>
                 </Route>
 
-                <Route path="*" element={<Navigate to="/login" replace/>}/>
+                <Route path="*" element={<Navigate to="/welcome" replace/>}/>
             </Routes>
 
             <WelcomeVideoModal
