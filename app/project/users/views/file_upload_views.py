@@ -14,6 +14,13 @@ from users.serializers.file_upload_serializers import (
 from users.models import UserDataFile, UserModel
 from config.instances.minio_client import MINIO_CLIENT
 from users.services.financial_analysis_service import UserPNLAnalysisService
+from users.services.expense_breakdown_service import (
+    UserExpenseBreakdownService
+)
+from users.services.cash_analysis_service import UserCashAnalysisService
+from users.services.invoices_analysis_service import (
+    UserInvoicesAnalysisService
+)
 
 
 class UploadUserDataAPIView(APIView):
@@ -21,6 +28,68 @@ class UploadUserDataAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser]
+
+    def _invalidate_cache_by_template_type(self, user, template_type):
+        """
+        Invalidate cache based on the template type of uploaded file.
+        
+        Args:
+            user: User instance
+            template_type: Type of template (pnl_template, etc.)
+        """
+        try:
+            if template_type == UserDataFile.TemplateType.PNL_TEMPLATE:
+                # Invalidate PnL analysis cache
+                pnl_service = UserPNLAnalysisService(user)
+                pnl_service.invalidate_cache()
+                
+                # Invalidate expense breakdown cache (depends on PnL data)
+                expense_service = UserExpenseBreakdownService(user)
+                expense_service.invalidate_cache()
+                
+            elif (template_type ==
+                  UserDataFile.TemplateType.TRANSACTIONS_TEMPLATE):
+                # Invalidate cash analysis cache
+                cash_service = UserCashAnalysisService(user)
+                cash_service.invalidate_cache()
+                
+            elif template_type == UserDataFile.TemplateType.INVOICES_TEMPLATE:
+                # Invalidate invoices analysis cache
+                invoices_service = UserInvoicesAnalysisService(user)
+                invoices_service.invalidate_cache()
+                
+        except Exception as e:
+            # Log error but don't fail the upload
+            print(f"Failed to invalidate cache for {template_type}: {str(e)}")
+
+    def _prepare_pnl_metadata(self, validated_data):
+        """
+        Prepare metadata for PnL files from request data.
+        
+        Args:
+            validated_data: Validated serializer data
+            
+        Returns:
+            dict or None: PnL metadata if provided
+        """
+        meta_data = {}
+        
+        # Get PnL-specific metadata fields
+        date_column = validated_data.get('pnl_date_column')
+        expense_columns = validated_data.get('pnl_expense_columns', [])
+        revenue_columns = validated_data.get('pnl_revenue_columns', [])
+        
+        if date_column:
+            meta_data['date_column'] = date_column
+            
+        if expense_columns:
+            meta_data['expense_columns'] = expense_columns
+            
+        if revenue_columns:
+            meta_data['revenue_columns'] = revenue_columns
+            
+        # Return None if no metadata was provided
+        return meta_data if meta_data else None
 
     @swagger_auto_schema(
         request_body=UploadUserDataSerializer,
@@ -87,6 +156,13 @@ class UploadUserDataAPIView(APIView):
                     content_type=file.content_type,
                 )
 
+                # Prepare metadata for PnL files
+                meta_data = None
+                if template_type == UserDataFile.TemplateType.PNL_TEMPLATE:
+                    meta_data = self._prepare_pnl_metadata(
+                        serializer.validated_data
+                    )
+
                 # Create or update database record
                 user_data_file, created = UserDataFile.objects.update_or_create(
                     user=request.user,
@@ -98,17 +174,14 @@ class UploadUserDataAPIView(APIView):
                         "file_path": object_name,
                         "file_size": file.size,
                         "upload_time": datetime.datetime.now(),
+                        "meta_data": meta_data,
                     },
                 )
 
-                # Invalidate PnL analysis cache if P&L template was uploaded
-                if template_type == 'pnl_template':
-                    try:
-                        pnl_service = UserPNLAnalysisService(request.user)
-                        pnl_service.invalidate_cache()
-                    except Exception as e:
-                        # Log error but don't fail the upload
-                        print(f"Failed to invalidate cache: {str(e)}")
+                # Invalidate relevant caches based on template type
+                self._invalidate_cache_by_template_type(
+                    request.user, template_type
+                )
 
                 uploaded_files_info.append(
                     {

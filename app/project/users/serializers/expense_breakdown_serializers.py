@@ -18,16 +18,3 @@ class ExpenseCategorySerializer(serializers.Serializer):
     monthly_change_percent = serializers.FloatField(
         help_text="Month-over-month change percentage"
     )
-
-
-class ExpenseBreakdownResponseSerializer(serializers.Serializer):
-    """Serializer for expense breakdown response"""
-    
-    COGS = ExpenseCategorySerializer(required=False)
-    Payroll = ExpenseCategorySerializer(required=False)
-    Rent = ExpenseCategorySerializer(required=False)
-    Marketing = ExpenseCategorySerializer(required=False)
-    Other_Expenses = ExpenseCategorySerializer(required=False)
-    
-    class Meta:
-        ref_name = "ExpenseBreakdownResponse"
