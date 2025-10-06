@@ -5,7 +5,7 @@ Views for documents API endpoints.
 import logging
 
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAnyPermission
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -25,7 +25,7 @@ class DocumentsView(APIView):
     Returns all available document URLs similar to templates API.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAnyPermission]
 
     @swagger_auto_schema(
         operation_description="""
