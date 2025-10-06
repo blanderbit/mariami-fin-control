@@ -600,7 +600,7 @@ Respond with format: "[Main trend] - [specific action]"
             from django.conf import settings
             
             csv_path = os.path.join(
-                settings.BASE_DIR, 
+                settings._BASE_DIR, 
                 'templates', 
                 'user_data', 
                 'Industry_norms.csv'

@@ -175,7 +175,7 @@ class UserAIInsightsService:
 
             # Load Industry_norms.csv
             csv_path = os.path.join(
-                settings.BASE_DIR, 
+                settings._BASE_DIR, 
                 'templates', 
                 'user_data', 
                 'Industry_norms.csv'

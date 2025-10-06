@@ -13,7 +13,7 @@ django.utils.encoding.smart_text = smart_str
 
 ################################################################
 
-# Build paths inside the project like this: BASE_DIR.joinpath('some')
+# Build paths inside the project like this: _BASE_DIR.joinpath('some')
 # `pathlib` is better than writing: dirname(dirname(dirname(__file__)))
 
 

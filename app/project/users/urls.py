@@ -12,6 +12,11 @@ from users.views.cash_analysis_view import CashAnalysisView
 from users.views.expense_breakdown_view import ExpenseBreakdownView
 from users.views.ai_insights_view import AIInsightsView
 from users.views.templates_view import UserTemplatesView
+from users.views.industry_norms_view import (
+    IndustriesListView,
+    IndustryDetailsView,
+)
+from users.views.documents_view import DocumentsView
 
 urlpatterns = [
     path("admin/users", UsersListView.as_view(), name="users-list"),
@@ -56,6 +61,21 @@ urlpatterns = [
         "templates",
         UserTemplatesView.as_view(),
         name="templates"
+    ),
+    path(
+        "industries",
+        IndustriesListView.as_view(),
+        name="industries-list"
+    ),
+    path(
+        "industries/<str:industry_name>",
+        IndustryDetailsView.as_view(),
+        name="industry-details"
+    ),
+    path(
+        "documents",
+        DocumentsView.as_view(),
+        name="documents"
     ),
 ]
     

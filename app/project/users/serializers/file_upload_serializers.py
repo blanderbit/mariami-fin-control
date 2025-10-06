@@ -19,18 +19,38 @@ class UserDataFileSerializer(serializers.ModelSerializer):
             "file_size",
             "upload_time",
             "is_active",
+            "meta_data",
         ]
 
 
 class UploadUserDataSerializer(serializers.Serializer):
     """Serializer for file upload validation"""
 
-    pnl_file = serializers.FileField(required=False, help_text="P&L template file")
+    pnl_file = serializers.FileField(
+        required=False, help_text="P&L template file"
+    )
     transactions_file = serializers.FileField(
         required=False, help_text="Transactions template file"
     )
     invoices_file = serializers.FileField(
         required=False, help_text="Invoices template file"
+    )
+
+    # PnL metadata fields
+    pnl_date_column = serializers.CharField(
+        required=False,
+        help_text="Column name for dates in PnL file",
+        max_length=100
+    )
+    pnl_expense_columns = serializers.ListField(
+        child=serializers.CharField(max_length=100),
+        required=False,
+        help_text="List of expense column names"
+    )
+    pnl_revenue_columns = serializers.ListField(
+        child=serializers.CharField(max_length=100),
+        required=False,
+        help_text="List of revenue column names"
     )
 
     def validate(self, attrs):

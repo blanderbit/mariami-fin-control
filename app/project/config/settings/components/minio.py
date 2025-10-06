@@ -2,6 +2,7 @@ from decouple import config
 
 # MinIO settings
 MINIO_ENDPOINT = config("MINIO_ENDPOINT", default="mariami-minio-dev:9000")
+MINIO_DOMAIN_URL = config("MINIO_DOMAIN_URL", default=None)
 MINIO_ACCESS_KEY = config("MINIO_ACCESS_KEY", default="minioadmin")
 MINIO_SECRET_KEY = config("MINIO_SECRET_KEY", default="minioadmin")
 MINIO_USE_HTTPS = config("MINIO_USE_HTTPS", default=False, cast=bool)

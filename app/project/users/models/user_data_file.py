@@ -27,6 +27,11 @@ class UserDataFile(models.Model):
     file_size = models.PositiveIntegerField()  # Size in bytes
     upload_time = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+    meta_data = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="Metadata for the file (e.g., PnL column configurations)"
+    )
 
     class Meta:
         db_table = "user_data_files"
@@ -37,7 +42,10 @@ class UserDataFile(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user.email} - {self.template_type} - {self.original_filename}"
+        return (
+            f"{self.user.email} - {self.template_type} - "
+            f"{self.original_filename}"
+        )
 
     @classmethod
     def deactivate_existing(cls, user, template_type):

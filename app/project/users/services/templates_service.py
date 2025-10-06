@@ -52,10 +52,15 @@ class UserTemplatesService:
         
         try:
             # Construct public URLs for templates bucket
-            minio_endpoint = getattr(
-                settings, 'MINIO_ENDPOINT', 'localhost:9000'
-            )
-            base_url = f"http://{minio_endpoint}/{self.TEMPLATES_BUCKET}/"
+            # Use MINIO_DOMAIN_URL if available, fallback to MINIO_ENDPOINT
+            minio_domain = getattr(settings, 'MINIO_DOMAIN_URL', None)
+            if not minio_domain:
+                minio_endpoint = getattr(
+                    settings, 'MINIO_ENDPOINT', 'localhost:9000'
+                )
+                minio_domain = f"http://{minio_endpoint}"
+            
+            base_url = f"{minio_domain}/{self.TEMPLATES_BUCKET}/"
             
             for template_name, filename in self.AVAILABLE_TEMPLATES.items():
                 # Check if file exists in bucket
@@ -101,11 +106,16 @@ class UserTemplatesService:
             filename = self.AVAILABLE_TEMPLATES[template_name]
             
             if self._template_exists(filename):
-                minio_endpoint = getattr(
-                    settings, 'MINIO_ENDPOINT', 'localhost:9000'
-                )
+                # Use MINIO_DOMAIN_URL if available, fallback to MINIO_ENDPOINT
+                minio_domain = getattr(settings, 'MINIO_DOMAIN_URL', None)
+                if not minio_domain:
+                    minio_endpoint = getattr(
+                        settings, 'MINIO_ENDPOINT', 'localhost:9000'
+                    )
+                    minio_domain = f"http://{minio_endpoint}"
+                
                 bucket = self.TEMPLATES_BUCKET
-                url = f"http://{minio_endpoint}/{bucket}/{filename}"
+                url = f"{minio_domain}/{bucket}/{filename}"
                 
                 # Cache the individual URL
                 cache.set(cache_key, url, self.CACHE_TIMEOUT)

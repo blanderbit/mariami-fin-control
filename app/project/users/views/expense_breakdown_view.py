@@ -6,14 +6,10 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from users.services.financial_analysis_service import UserPNLAnalysisService
-from users.serializers.expense_breakdown_serializers import (
-    ExpenseBreakdownResponseSerializer,
-)
 from users.serializers.analysis_start_end_date_params_serialier import (
     StartAndEndDateParamsSerializer,
 )
 from config.utils.error_handlers import (
-    create_not_found_error_response,
     create_server_error_response,
 )
 
@@ -39,7 +35,6 @@ class ExpenseBreakdownView(APIView):
         ),
         query_serializer=StartAndEndDateParamsSerializer,
         responses={
-            200: ExpenseBreakdownResponseSerializer,
             400: openapi.Response(
                 description="Bad Request - Invalid parameters or no data",
                 examples={
@@ -48,14 +43,7 @@ class ExpenseBreakdownView(APIView):
                     }
                 },
             ),
-            404: openapi.Response(
-                description="Not Found - User data file not found",
-                examples={
-                    "application/json": {
-                        "error": "P&L data file not found"
-                    }
-                },
-            ),
+
             500: openapi.Response(
                 description="Internal Server Error",
                 examples={
@@ -88,22 +76,21 @@ class ExpenseBreakdownView(APIView):
             service = UserPNLAnalysisService(request.user)
             breakdown_result = service.get_expense_breakdown(start_date, end_date)
 
-            serializer = ExpenseBreakdownResponseSerializer(data=breakdown_result)
-            serializer.is_valid(raise_exception=True)
-
             return Response(
-                serializer.validated_data,
+                breakdown_result,
                 status=status.HTTP_200_OK
             )
 
         except ValueError as e:
             error_message = str(e)
-            if "No P&L data found" in error_message:
-                return create_not_found_error_response(
-                    "P&L data file not found"
+            if ("No P&L data found" in error_message or
+                    "No data found for the specified period" in error_message):
+                # Return empty breakdown data instead of 404
+                empty_breakdown = {}
+                return Response(
+                    empty_breakdown,
+                    status=status.HTTP_200_OK
                 )
-            elif "No data found for the specified period" in error_message:
-                return create_not_found_error_response(error_message)
             return create_server_error_response(
                 "Error processing expense data"
             )
