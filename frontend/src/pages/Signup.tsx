@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {Brain, Mail, Lock, Building, ArrowRight, AlertCircle, CheckCircle, Sun, Moon} from 'lucide-react';
+import {Brain, Mail, Lock, Building, ArrowRight, AlertCircle, CheckCircle, Sun, Moon, ExternalLink} from 'lucide-react';
 import {useTheme} from "../contexts/ThemeContext.tsx";
 import {motion} from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import { getDocumentsRequest, DocumentsData } from '../api/auth';
 
 import Logo from "../assets/FinclAI Logo Blue.png";
 
@@ -21,6 +22,40 @@ const Signup: React.FC = () => {
     });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [isLoading, setIsLoading] = useState(false);
+    const [documents, setDocuments] = useState<DocumentsData | null>(null);
+    const [documentsLoading, setDocumentsLoading] = useState(true);
+
+    const loadDocuments = async () => {
+        try {
+            setDocumentsLoading(true);
+            const documentsData = await getDocumentsRequest();
+            setDocuments(documentsData);
+        } catch (error) {
+            console.error('Failed to load documents:', error);
+        } finally {
+            setDocumentsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadDocuments();
+    }, []);
+
+    const openDocument = (documentType: 'terms_of_service' | 'privacy_policy') => {
+        if (!documents) {
+            console.error('Documents not loaded yet');
+            return;
+        }
+
+        const url = documents[documentType];
+        if (!url) {
+            console.error(`Document URL not found for ${documentType}`);
+            return;
+        }
+
+        // Открываем документ в новом окне
+        window.open(url, '_blank', 'noopener,noreferrer');
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
@@ -212,13 +247,29 @@ const Signup: React.FC = () => {
                             />
                             <label htmlFor="acceptTerms" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
                                 I accept the{' '}
-                                <Link to="/terms" className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                <button
+                                    type="button"
+                                    onClick={() => openDocument('terms_of_service')}
+                                    disabled={documentsLoading || !documents}
+                                    className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
+                                >
                                     Terms of Service
-                                </Link>{' '}
+                                    {!documentsLoading && documents && (
+                                        <ExternalLink className="w-3 h-3 ml-1" />
+                                    )}
+                                </button>{' '}
                                 and{' '}
-                                <Link to="/privacy" className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                <button
+                                    type="button"
+                                    onClick={() => openDocument('privacy_policy')}
+                                    disabled={documentsLoading || !documents}
+                                    className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
+                                >
                                     Privacy Policy
-                                </Link>
+                                    {!documentsLoading && documents && (
+                                        <ExternalLink className="w-3 h-3 ml-1" />
+                                    )}
+                                </button>
                             </label>
                         </div>
                         {errors.acceptTerms && <p className="text-sm text-red-600 dark:text-red-400">{errors.acceptTerms}</p>}

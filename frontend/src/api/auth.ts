@@ -351,6 +351,56 @@ export function clearTemplatesCache(): void {
     templatesPromise = null;
 }
 
+export type DocumentsResponse = {
+    status: string;
+    code: number;
+    data: {
+        terms_of_service: string;
+        privacy_policy: string;
+    };
+    message: string | null;
+};
+
+export type DocumentsData = {
+    terms_of_service: string;
+    privacy_policy: string;
+};
+
+// Кэш для документов
+let documentsCache: DocumentsData | null = null;
+let documentsPromise: Promise<DocumentsData> | null = null;
+
+export async function getDocumentsRequest(): Promise<DocumentsData> {
+    if (documentsCache) {
+        return documentsCache;
+    }
+
+    if (documentsPromise) {
+        return documentsPromise;
+    }
+
+    documentsPromise = (async () => {
+        try {
+            const res = await api.users.usersDocumentsList() as any;
+            const response = res.data || res;
+            const documents = response.data || response;
+            documentsCache = documents;
+            return documents;
+        } catch (error) {
+            console.error('Failed to get documents:', error);
+            documentsPromise = null;
+            throw error;
+        }
+    })();
+
+    return documentsPromise;
+}
+
+export function clearDocumentsCache(): void {
+    documentsCache = null;
+    documentsPromise = null;
+}
+
 // P&L Analysis Types
 export type PnLDataItem = {
     Month: string;
