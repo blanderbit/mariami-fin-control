@@ -45,7 +45,6 @@ import {
     startOfDay,
     endOfDay
 } from 'date-fns';
-import {revenues} from '../data/seedData';
 import {useTheme} from '../contexts/ThemeContext';
 import {getPnLAnalysisRequest, PnLAnalysisResponse, PnLDataItem, getInvoicesAnalysisRequest, InvoicesAnalysisResponse, getCashAnalysisRequest, CashAnalysisResponse, getExpenseBreakdownRequest, ExpenseBreakdownResponse, getAIInsightsRequest, AIInsightsResponse, getOnboardingStatusRequest, OnboardingData} from '../api/auth';
 
@@ -57,6 +56,8 @@ interface PulseKPI {
     top_expense_category: string;
     net_profit: number;
     profit_margin: number;
+    gross_margin: number;
+    operating_margin: number;
     overdue_invoices: number;
     overdue_count: number;
     ending_cash: number;
@@ -476,6 +477,8 @@ const Dashboard: React.FC = () => {
                 top_expense_category: '',
                 net_profit: 0,
                 profit_margin: 0,
+                gross_margin: 0,
+                operating_margin: 0,
                 overdue_invoices: 0,
                 overdue_count: 0,
                 ending_cash: 0,
@@ -487,6 +490,15 @@ const Dashboard: React.FC = () => {
 
         const data = pnlData.data;
         const profitMargin = data.total_revenue > 0 ? Math.round(((data.net_profit / data.total_revenue) * 100) * 100) / 100 : 0;
+
+        // Use gross margin from API
+        const grossMargin = data.gross_margin || 0;
+
+        // Parse operating margin from API (it comes as string like "10-15%")
+        // Extract the first number as the sector operating margin
+        const operatingMarginStr = data.operating_margin || "0%";
+        const operatingMarginMatch = operatingMarginStr.match(/(\d+(?:\.\d+)?)/);
+        const operatingMargin = operatingMarginMatch ? parseFloat(operatingMarginMatch[1]) : 0;
 
         // Find top expense category
         const latestMonth = data.pnl_data && data.pnl_data.length > 0 ? data.pnl_data[data.pnl_data.length - 1] : null;
@@ -511,6 +523,8 @@ const Dashboard: React.FC = () => {
             top_expense_category: topExpense.name || '',
             net_profit: data.net_profit || 0,
             profit_margin: profitMargin || 0,
+            gross_margin: grossMargin || 0,
+            operating_margin: operatingMargin || 0,
             overdue_invoices: invoicesData?.data?.overdue_invoices?.total_amount || 0,
             overdue_count: invoicesData?.data?.overdue_invoices?.total_count || 0,
             ending_cash: calculatedEndingCash,
@@ -712,6 +726,28 @@ const Dashboard: React.FC = () => {
                 id: 'overdue-ar',
                 severity: 'warning',
                 message: `Overdue invoices ${formatCurrency(pulseKPIs.overdue_invoices)} (${pulseKPIs.overdue_count} invoices).`,
+                link: '#'
+            });
+        }
+
+        // Signal 3: Low margin (warn)
+        // Show if operating_margin && gross_margin && gross_margin < operating_margin
+        if (pulseKPIs.operating_margin && pulseKPIs.gross_margin && pulseKPIs.gross_margin < pulseKPIs.operating_margin) {
+            signals.push({
+                id: 'low-margin',
+                severity: 'warning',
+                message: `Operating margin ${pulseKPIs.gross_margin}% vs sector ${pulseKPIs.operating_margin}%.`,
+                link: '#'
+            });
+        }
+
+        // Signal 4: Low cash buffer (warn)
+        // Show if cash_buffer_months < 1
+        if (pulseKPIs.cash_buffer_months < 1) {
+            signals.push({
+                id: 'low-cash-buffer',
+                severity: 'warning',
+                message: `Cash buffer ${pulseKPIs.cash_buffer_months} months; aim for ≥2.`,
                 link: '#'
             });
         }

@@ -428,6 +428,8 @@ export type PnLAnalysisResponse = {
     code: number;
     data: {
         pnl_data: PnLDataItem[];
+        gross_margin: number;
+        operating_margin: string;
         total_revenue: number;
         total_expenses: number;
         net_profit: number;
