@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain } from 'lucide-react';
+
+import Logo from '../assets/FinclAI Logo Blue.png';
 
 const Welcome: React.FC = () => {
     const navigate = useNavigate();
@@ -30,7 +31,7 @@ const Welcome: React.FC = () => {
             <div
                 className="absolute inset-0"
                 style={{
-                    background: 'linear-gradient(to bottom, #0B0E1A 0%, #0F1626 100%)'
+                    background: 'linear-gradient(to bottom, #0F0F10 0%, #2E2E2E 100%)'
                 }}
             />
 
@@ -39,12 +40,12 @@ const Welcome: React.FC = () => {
                     <div
                         className="absolute inset-0 pointer-events-none"
                         style={{
-                            background: 'radial-gradient(circle, rgba(37,97,229,0.22) 0%, transparent 70%)',
-                            filter: 'blur(200px)',
-                            width: '130%',
-                            height: '130%',
-                            left: '-15%',
-                            top: '-15%'
+                            background: 'radial-gradient(circle, rgba(37,97,229,0.50) 0%, rgba(37,97,229,0.20) 40%, transparent 70%)',
+                            filter: 'blur(120px)',
+                            width: '225%',
+                            height: '180%',
+                            left: '-60%',
+                            top: '-40%'
                         }}
                     />
 
@@ -59,7 +60,7 @@ const Welcome: React.FC = () => {
                     >
                         <div className="flex justify-center mb-6">
                             <div className="flex items-center justify-center w-10 h-10">
-                                <Brain className="w-6 h-6 text-[#BDBDBD]" />
+                                <img src={Logo} alt="FinclAI Logo" className="w-8 h-8 object-contain" />
                             </div>
                         </div>
 
@@ -143,7 +144,7 @@ const Welcome: React.FC = () => {
 
                 <div className="text-center space-y-2">
                     <div className="flex items-center justify-center space-x-2">
-                        <Brain className="w-5 h-5 text-[#BDBDBD]" />
+                        <img src={Logo} alt="FinclAI Logo" className="w-6 h-6 object-contain" />
                         <span className="text-white text-lg font-medium">FinCl AI</span>
                     </div>
                     <p className="text-[#6F7D99] text-sm">Protecting profits. Driving growth.</p>
