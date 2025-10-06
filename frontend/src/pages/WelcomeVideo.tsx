@@ -26,9 +26,9 @@ const WelcomeVideo: React.FC = () => {
                 }}
             />
 
-            <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
-                <div className="w-full max-w-5xl">
-                    <div className="relative mb-12">
+            <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-8">
+                <div className="w-full max-w-4xl">
+                    <div className="relative mb-8">
                         <div
                             className="absolute inset-0 pointer-events-none"
                             style={{
@@ -45,6 +45,8 @@ const WelcomeVideo: React.FC = () => {
                             className="relative rounded-2xl overflow-hidden"
                             style={{
                                 backgroundColor: 'rgba(14,27,51,0.85)',
+                                boxShadow: '0 0 20px rgba(37,97,229,0.4), 0 0 40px rgba(37,97,229,0.2), inset 0 0 20px rgba(37,97,229,0.1)',
+                                border: '1px solid rgba(37,97,229,0.3)',
                                 animation: 'fadeIn 420ms ease-out forwards',
                                 opacity: 0
                             }}
@@ -68,22 +70,22 @@ const WelcomeVideo: React.FC = () => {
                     </div>
 
                     <div
-                        className="text-center space-y-6"
+                        className="text-center space-y-4"
                         style={{
                             animation: 'fadeInUp 520ms ease-out forwards',
                             animationDelay: '200ms',
                             opacity: 0
                         }}
                     >
-                        <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight">
+                        <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
                             Welcome to FinCl AI — Where your data becomes clarity.
                         </h1>
 
-                        <p className="text-lg md:text-xl text-[#C9D2E3] max-w-2xl mx-auto leading-relaxed">
+                        <p className="text-base md:text-lg text-[#C9D2E3] max-w-2xl mx-auto leading-relaxed">
                             Transform your financial operations with intelligent insights, automated reporting, and real-time decision support.
                         </p>
 
-                        <div className="pt-6">
+                        <div className="pt-4">
                             <button
                                 onClick={handleContinue}
                                 className="inline-flex items-center px-8 py-4 rounded-xl text-white font-medium text-base transition-all duration-300 hover:shadow-[0_0_12px_rgba(37,97,229,0.6)] hover:scale-105"
