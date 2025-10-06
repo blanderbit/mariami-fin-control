@@ -11,7 +11,7 @@ import {
     Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { uploadDataFilesRequest, UploadDataFilesResponse, updateOnboardingRequest, getOnboardingStatusRequest } from '../api/auth';
+import { uploadDataFilesRequest, UploadDataFilesResponse, updateOnboardingRequest, getOnboardingStatusRequest, getTemplatesRequest, TemplatesData } from '../api/auth';
 
 interface UploadedFile {
     name: string;
@@ -31,37 +31,52 @@ const DataImport: React.FC = () => {
     const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
     const [isUpdatingCash, setIsUpdatingCash] = useState<boolean>(false);
     const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(true);
+    const [templates, setTemplates] = useState<TemplatesData | null>(null);
+    const [templatesLoading, setTemplatesLoading] = useState<boolean>(true);
 
     // Get company data
     const company = JSON.parse(localStorage.getItem('company') || '{}');
     const baseCurrency = company.profile?.baseCurrency || 'USD';
 
-    const downloadTemplate = (templateType: string) => {
-        let csvContent = '';
+    const downloadTemplate = async (templateType: string) => {
+        if (!templates) {
+            console.error('Templates not loaded yet');
+            return;
+        }
+
+        let templateUrl = '';
         let filename = '';
 
         switch (templateType) {
             case 'pnl':
-                csvContent = `Category,Amount,Currency,Period\nSales,50000,${baseCurrency},2024-01\nCOGS,-20000,${baseCurrency},2024-01\nPayroll,-15000,${baseCurrency},2024-01\nRent,-3000,${baseCurrency},2024-01\nMarketing,-2000,${baseCurrency},2024-01\nOther,-1000,${baseCurrency},2024-01`;
+                templateUrl = templates.pnl;
                 filename = 'pnl_template.csv';
                 break;
             case 'transactions':
-                csvContent = `Date,Type,Category,Description,Amount,Currency,Client_Supplier\n2024-01-15,Income,Sales,Product Sale,1500,${baseCurrency},Client ABC\n2024-01-16,Expense,Marketing,Google Ads,-200,${baseCurrency},Google\n2024-01-17,Income,Sales,Service Revenue,2500,${baseCurrency},Client XYZ\n2024-01-18,Expense,Payroll,Salary Payment,-5000,${baseCurrency},Employee`;
+                templateUrl = templates.transactions;
                 filename = 'transactions_template.csv';
                 break;
             case 'invoices':
-                csvContent = `Invoice_ID,Date,Due_Date,Client,Description,Amount,Currency,Status\nINV-001,2024-01-15,2024-02-15,Client ABC,Consulting Services,5000,${baseCurrency},Paid\nINV-002,2024-01-20,2024-02-20,Client XYZ,Product Sale,3000,${baseCurrency},Unpaid\nINV-003,2024-01-25,2024-02-25,Client DEF,Monthly Subscription,1500,${baseCurrency},Overdue`;
+                templateUrl = templates.invoices;
                 filename = 'invoices_template.csv';
                 break;
         }
 
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
+        if (!templateUrl) {
+            console.error(`Template URL not found for ${templateType}`);
+            return;
+        }
+
+        try {
+            // Создаем временную ссылку для скачивания
+            const a = document.createElement('a');
+            a.href = templateUrl;
+            a.download = filename;
+            a.target = '_blank';
+            a.click();
+        } catch (error) {
+            console.error('Failed to download template:', error);
+        }
     };
 
     const loadProfileData = async () => {
@@ -78,6 +93,18 @@ const DataImport: React.FC = () => {
         }
     };
 
+    const loadTemplates = async () => {
+        try {
+            setTemplatesLoading(true);
+            const templatesData = await getTemplatesRequest();
+            setTemplates(templatesData);
+        } catch (error) {
+            console.error('Failed to load templates:', error);
+        } finally {
+            setTemplatesLoading(false);
+        }
+    };
+
     const updateCurrentCashBalance = async (value: number) => {
         try {
             setIsUpdatingCash(true);
@@ -89,9 +116,10 @@ const DataImport: React.FC = () => {
         }
     };
 
-    // Загружаем данные профиля при монтировании компонента
+    // Загружаем данные профиля и шаблоны при монтировании компонента
     useEffect(() => {
         loadProfileData();
+        loadTemplates();
     }, []);
 
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, fileType: string) => {
@@ -202,10 +230,19 @@ const DataImport: React.FC = () => {
                         <div className="flex space-x-3 mb-4">
                             <button
                                 onClick={() => downloadTemplate('pnl')}
-                                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+                                disabled={templatesLoading || !templates}
+                                className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                                    templatesLoading || !templates
+                                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600'
+                                }`}
                             >
-                                <Download className="w-4 h-4 mr-2" />
-                                Download P&L template
+                                {templatesLoading ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Download className="w-4 h-4 mr-2" />
+                                )}
+                                {templatesLoading ? 'Loading...' : 'Download P&L template'}
                             </button>
 
                             <label className={`flex items-center px-4 py-2 rounded-lg transition-colors cursor-pointer ${
@@ -260,10 +297,19 @@ const DataImport: React.FC = () => {
                         <div className="flex space-x-3 mb-4">
                             <button
                                 onClick={() => downloadTemplate('transactions')}
-                                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+                                disabled={templatesLoading || !templates}
+                                className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                                    templatesLoading || !templates
+                                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600'
+                                }`}
                             >
-                                <Download className="w-4 h-4 mr-2" />
-                                Download Transactions template
+                                {templatesLoading ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Download className="w-4 h-4 mr-2" />
+                                )}
+                                {templatesLoading ? 'Loading...' : 'Download Transactions template'}
                             </button>
 
                             <label className={`flex items-center px-4 py-2 rounded-lg transition-colors cursor-pointer ${
@@ -318,10 +364,19 @@ const DataImport: React.FC = () => {
                         <div className="flex space-x-3 mb-4">
                             <button
                                 onClick={() => downloadTemplate('invoices')}
-                                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+                                disabled={templatesLoading || !templates}
+                                className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                                    templatesLoading || !templates
+                                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600'
+                                }`}
                             >
-                                <Download className="w-4 h-4 mr-2" />
-                                Download Invoices template
+                                {templatesLoading ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Download className="w-4 h-4 mr-2" />
+                                )}
+                                {templatesLoading ? 'Loading...' : 'Download Invoices template'}
                             </button>
 
                             <label className={`flex items-center px-4 py-2 rounded-lg transition-colors cursor-pointer ${

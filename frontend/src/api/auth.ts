@@ -300,6 +300,57 @@ export function clearIndustriesCache(): void {
     industriesPromise = null;
 }
 
+export type TemplatesResponse = {
+    status: string;
+    code: number;
+    data: {
+        pnl: string;
+        transactions: string;
+        invoices: string;
+    };
+    message: string | null;
+};
+
+export type TemplatesData = {
+    pnl: string;
+    transactions: string;
+    invoices: string;
+};
+
+let templatesCache: TemplatesData | null = null;
+let templatesPromise: Promise<TemplatesData> | null = null;
+
+export async function getTemplatesRequest(): Promise<TemplatesData> {
+    if (templatesCache) {
+        return templatesCache;
+    }
+
+    if (templatesPromise) {
+        return templatesPromise;
+    }
+
+    templatesPromise = (async () => {
+        try {
+            const res = await api.users.usersTemplatesList() as any;
+            const response = res.data || res;
+            const templates = response.data || response;
+            templatesCache = templates;
+            return templates;
+        } catch (error) {
+            console.error('Failed to get templates:', error);
+            templatesPromise = null;
+            throw error;
+        }
+    })();
+
+    return templatesPromise;
+}
+
+export function clearTemplatesCache(): void {
+    templatesCache = null;
+    templatesPromise = null;
+}
+
 // P&L Analysis Types
 export type PnLDataItem = {
     Month: string;
