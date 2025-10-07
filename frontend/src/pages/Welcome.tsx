@@ -40,12 +40,12 @@ const Welcome: React.FC = () => {
                     <div
                         className="absolute inset-0 pointer-events-none"
                         style={{
-                            background: 'radial-gradient(circle, rgba(37,97,229,0.50) 0%, rgba(37,97,229,0.20) 40%, transparent 70%)',
+                            background: 'radial-gradient(circle, rgba(37,97,229,0.7) 0%, rgba(37,97,229,0.4) 40%, transparent 70%)',
                             filter: 'blur(120px)',
                             width: '225%',
                             height: '180%',
-                            left: '-60%',
-                            top: '-40%'
+                            left: '-65%',
+                            top: '-35%'
                         }}
                     />
 

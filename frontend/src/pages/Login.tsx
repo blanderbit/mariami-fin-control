@@ -89,8 +89,8 @@ const Login: React.FC = () => {
                 className="absolute inset-0 pointer-events-none"
                 style={{
                     background: theme === 'dark'
-                        ? 'radial-gradient(ellipse at center 55%, rgba(37,97,229,0.30) 0%, rgba(37,97,229,0.00) 50%)'
-                        : 'radial-gradient(ellipse at center 55%, rgba(37,97,229,0.25) 0%, rgba(37,97,229,0.00) 50%)'
+                        ? 'radial-gradient(ellipse at center 60%, rgba(37,97,229,0.30) 0%, rgba(37,97,229,0.00) 45%)'
+                        : 'radial-gradient(ellipse at center 60%, rgba(37,97,229,0.25) 0%, rgba(37,97,229,0.00) 45%)'
                 }}
             />
 
