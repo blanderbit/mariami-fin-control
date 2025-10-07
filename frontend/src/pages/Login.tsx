@@ -177,10 +177,21 @@ const Login: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:text-white dark:focus:ring-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full flex items-center justify-center px-4 py-3 border-none text-sm font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{
+                                    background: 'linear-gradient(to bottom, #3A75F2, #1E4FCC)',
+                                    color: '#FFFFFF'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!isLoading) {
+                                        e.currentTarget.style.boxShadow = '0 0 12px rgba(37,97,229,0.60)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.boxShadow = 'none';
+                                }}
                             >
-                                {isLoading ? 'Signing in...' : 'Log in'}
-                                {!isLoading && <ArrowRight className="ml-2 w-4 h-4"/>}
+                                {isLoading ? 'Signing in...' : 'Log in →'}
                             </button>
                         </form>
 
