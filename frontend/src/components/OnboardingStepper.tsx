@@ -527,24 +527,44 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
             initial={{y: 20, opacity: 0}}
             animate={{y: 0, opacity: 1}}
             transition={{duration: 0.5, delay: 0.2}}
-            className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-900 flex items-center justify-center px-4"
+            className="relative min-h-screen overflow-hidden"
         >
-            <button
-                onClick={toggleTheme}
-                className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
-                {theme === 'dark' ? <Sun size={20}/> : <Moon size={20}/>}
-            </button>
-            <div className="max-w-2xl w-full space-y-8">
-                <div className="text-center">
-                    <div className="flex justify-center">
-                        <img src={Logo} alt="FinclAI Logo" className="w-20 h-20 object-contain"/>
-                    </div>
-                    <h2 className="mt-3 text-3xl font-bold text-gray-900 dark:text-gray-100">Setup Your Account</h2>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Let's configure your financial AI assistant</p>
-                </div>
+            <div
+                className="absolute inset-0"
+                style={{
+                    background: theme === 'dark'
+                        ? 'linear-gradient(to bottom, #0F0F10 0%, #2E2E2E 100%)'
+                        : 'linear-gradient(to bottom, #F2F5FB 0%, #FFFFFF 100%)'
+                }}
+            />
 
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+            <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                    background: theme === 'dark'
+                        ? 'radial-gradient(ellipse at center 65%, rgba(37,97,229,0.30) 20%, rgba(37,97,229,0.00) 65%)'
+                        : 'radial-gradient(ellipse at center 65%, rgba(37,97,229,0.25) 20%, rgba(37,97,229,0.00) 65%)'
+                }}
+            />
+
+            <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
+                <button
+                    onClick={toggleTheme}
+                    className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                    aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+                    {theme === 'dark' ? <Sun size={20}/> : <Moon size={20}/>}
+                </button>
+
+                <div className="max-w-2xl w-full space-y-8">
+                    <div className="text-center">
+                        <div className="flex justify-center">
+                            <img src={Logo} alt="FinclAI Logo" className="w-20 h-20 object-contain"/>
+                        </div>
+                        <h2 className="mt-3 text-3xl font-bold text-gray-900 dark:text-gray-100">Setup Your Account</h2>
+                        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Let's configure your financial AI assistant</p>
+                    </div>
+
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
                     <div className="flex items-center mb-8">
                         {[1, 2, 3].map((step) => (
                             <React.Fragment key={step}>
@@ -616,6 +636,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                                 <Check className="w-4 h-4 ml-2" />
                             </button>
                         )}
+                    </div>
                     </div>
                 </div>
             </div>
