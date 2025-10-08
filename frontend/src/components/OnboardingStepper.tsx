@@ -581,7 +581,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                     </div>
                 )}
 
-                {showOptions && chatQuestions[currentQuestion].textInput && (
+                {showOptions && chatQuestions[currentQuestion].textInput && !showSummary && (
                     <div className="pl-2 space-y-3">
                         <textarea
                             value={textInputValue}
@@ -596,15 +596,13 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                             style={{ minHeight: '80px' }}
                             placeholder="Type your answer here..."
                         />
-                        {!showSummary &&
-                            <button
-                                onClick={handleTextSubmit}
-                                disabled={!textInputValue.trim()}
-                                className="w-full px-4 py-3 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-b from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 text-white hover:shadow-lg"
-                            >
-                                Continue →
-                            </button>
-                        }
+                        <button
+                            onClick={handleTextSubmit}
+                            disabled={!textInputValue.trim()}
+                            className="w-full px-4 py-3 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-b from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 text-white hover:shadow-lg"
+                        >
+                            Continue →
+                        </button>
                     </div>
                 )}
 
