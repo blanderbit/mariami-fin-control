@@ -190,13 +190,11 @@ const Signup: React.FC = () => {
                                         required
                                         value={formData.companyName}
                                         onChange={handleChange}
-                                        className={`w-full pl-10 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-[#2561E5] focus:outline-none transition-all ${
-                                            errors.companyName ? 'border-red-300' : ''
+                                        className={`w-full pl-10 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-[#2561E5] focus:outline-none transition-all bg-white dark:bg-gray-800 border text-gray-900 dark:text-gray-100 ${
+                                            errors.companyName 
+                                                ? 'border-red-300 dark:border-red-500' 
+                                                : 'border-gray-300 dark:border-gray-600'
                                         }`}
-                                        style={{
-                                            backgroundColor: '#FFFFFF',
-                                            border: errors.companyName ? '1px solid #FCA5A5' : '1px solid #DEE3EE'
-                                        }}
                                         placeholder="Enter your company name"
                                     />
                                 </div>
@@ -219,13 +217,11 @@ const Signup: React.FC = () => {
                                         required
                                         value={formData.email}
                                         onChange={handleChange}
-                                        className={`w-full pl-10 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-[#2561E5] focus:outline-none transition-all ${
-                                            errors.email ? 'border-red-300' : ''
+                                        className={`w-full pl-10 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-[#2561E5] focus:outline-none transition-all bg-white dark:bg-gray-800 border text-gray-900 dark:text-gray-100 ${
+                                            errors.email 
+                                                ? 'border-red-300 dark:border-red-500' 
+                                                : 'border-gray-300 dark:border-gray-600'
                                         }`}
-                                        style={{
-                                            backgroundColor: '#FFFFFF',
-                                            border: errors.email ? '1px solid #FCA5A5' : '1px solid #DEE3EE'
-                                        }}
                                         placeholder="Enter your work email"
                                     />
                                 </div>
@@ -249,13 +245,11 @@ const Signup: React.FC = () => {
                                         minLength={8}
                                         value={formData.password}
                                         onChange={handleChange}
-                                        className={`w-full pl-10 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-[#2561E5] focus:outline-none transition-all ${
-                                            errors.password ? 'border-red-300' : ''
+                                        className={`w-full pl-10 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-[#2561E5] focus:outline-none transition-all bg-white dark:bg-gray-800 border text-gray-900 dark:text-gray-100 ${
+                                            errors.password 
+                                                ? 'border-red-300 dark:border-red-500' 
+                                                : 'border-gray-300 dark:border-gray-600'
                                         }`}
-                                        style={{
-                                            backgroundColor: '#FFFFFF',
-                                            border: errors.password ? '1px solid #FCA5A5' : '1px solid #DEE3EE'
-                                        }}
                                         placeholder="Create a password (min 8 characters)"
                                     />
                                 </div>
@@ -278,13 +272,11 @@ const Signup: React.FC = () => {
                                         required
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
-                                        className={`w-full pl-10 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-[#2561E5] focus:outline-none transition-all ${
-                                            errors.confirmPassword ? 'border-red-300' : ''
+                                        className={`w-full pl-10 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-[#2561E5] focus:outline-none transition-all bg-white dark:bg-gray-800 border text-gray-900 dark:text-gray-100 ${
+                                            errors.confirmPassword 
+                                                ? 'border-red-300 dark:border-red-500' 
+                                                : 'border-gray-300 dark:border-gray-600'
                                         }`}
-                                        style={{
-                                            backgroundColor: '#FFFFFF',
-                                            border: errors.confirmPassword ? '1px solid #FCA5A5' : '1px solid #DEE3EE'
-                                        }}
                                         placeholder="Confirm your password"
                                     />
                                 </div>
@@ -378,6 +370,10 @@ const Signup: React.FC = () => {
             <style>{`
                 input::placeholder {
                     color: #9AA3B2;
+                }
+                
+                .dark input::placeholder {
+                    color: #6B7280;
                 }
 
                 input:focus {
