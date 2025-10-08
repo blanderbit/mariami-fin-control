@@ -44,6 +44,7 @@ const countries = [
     { code: 'JP', name: 'Japan' },
     { code: 'SG', name: 'Singapore' },
     { code: 'HK', name: 'Hong Kong' },
+    { code: 'IE', name: 'Ireland' },
 ];
 
 

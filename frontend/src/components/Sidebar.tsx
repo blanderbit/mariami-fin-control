@@ -32,10 +32,14 @@ const Sidebar: React.FC = () => {
                 isCollapsed ? 'w-20' : 'w-64'
             }`}
         >
-            <div className={`p-6 ${isCollapsed ? 'flex justify-center' : ''}`}>
-                <div className="flex items-center justify-center space-x-2">
-                    <img src={Logo} alt="FinclAI Logo" className="w-20 h-20 object-contain"/>
-                </div>
+            <div className={`p-6 flex items-center justify-center transition-all duration-300`}>
+                <img
+                    src={Logo}
+                    alt="FinclAI Logo"
+                    className={`object-contain transition-all duration-300 ${
+                        isCollapsed ? 'w-12 h-12' : 'w-20 h-20'
+                    }`}
+                />
             </div>
 
             <button
@@ -67,10 +71,18 @@ const Sidebar: React.FC = () => {
                         >
                             {({ isActive }) => (
                                 <>
-                                    <item.icon className={`w-5 h-5 ${isCollapsed ? '' : 'mr-3'} ${item.pulse && !isActive ? 'ai-pulse' : ''}`} />
-                                    {!isCollapsed && item.name}
+                                    <item.icon className={`w-5 h-5 flex-shrink-0 transition-all duration-300 ${isCollapsed ? '' : 'mr-3'} ${item.pulse && !isActive ? 'ai-pulse' : ''}`} />
+                                    <span className={`whitespace-nowrap transition-all duration-300 ${
+                                        isCollapsed
+                                            ? 'opacity-0 w-0 overflow-hidden'
+                                            : 'opacity-100 w-auto'
+                                    }`}>
+                                        {item.name}
+                                    </span>
                                     {item.pulse && !isCollapsed && (
-                                        <span className="ml-auto w-2 h-2 bg-[#2561E5] rounded-full ai-pulse"></span>
+                                        <span className={`ml-auto w-2 h-2 bg-[#2561E5] rounded-full ai-pulse transition-opacity duration-300 ${
+                                            isCollapsed ? 'opacity-0' : 'opacity-100'
+                                        }`}></span>
                                     )}
                                 </>
                             )}
@@ -90,8 +102,14 @@ const Sidebar: React.FC = () => {
                         }
                         title={isCollapsed ? 'Settings' : ''}
                     >
-                        <Settings className={`w-5 h-5 ${isCollapsed ? '' : 'mr-3'}`} />
-                        {!isCollapsed && 'Settings'}
+                        <Settings className={`w-5 h-5 flex-shrink-0 transition-all duration-300 ${isCollapsed ? '' : 'mr-3'}`} />
+                        <span className={`whitespace-nowrap transition-all duration-300 ${
+                            isCollapsed
+                                ? 'opacity-0 w-0 overflow-hidden'
+                                : 'opacity-100 w-auto'
+                        }`}>
+                            Settings
+                        </span>
                     </NavLink>
                 </div>
             </nav>

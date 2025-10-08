@@ -38,6 +38,7 @@ const countries = [
     { code: 'JP', name: 'Japan' },
     { code: 'SG', name: 'Singapore' },
     { code: 'HK', name: 'Hong Kong' },
+    { code: 'IE', name: 'Ireland' },
 ];
 
 
@@ -87,7 +88,7 @@ const Overview: React.FC = () => {
             const onboardingStatus = await getOnboardingStatusRequest();
             if (onboardingStatus && onboardingStatus.profile) {
                 setProfileData(onboardingStatus.profile);
-                
+
                 // Update company data with profile data
                 const companyData = JSON.parse(localStorage.getItem('company') || '{}');
                 const updatedCompany = {
@@ -304,10 +305,10 @@ const Overview: React.FC = () => {
     const handleSaveProfile = async () => {
         try {
             setIsSaving(true);
-            
+
             // Обновляем данные через API
             await updateOnboardingRequest(editingProfile);
-            
+
             // Обновляем локальные данные
             const updatedCompany = {
                 ...company,
@@ -321,16 +322,16 @@ const Overview: React.FC = () => {
                     fiscalYearStart: editingProfile.fiscal_year_start,
                 }
             };
-            
+
             setCompany(updatedCompany);
             localStorage.setItem('company', JSON.stringify(updatedCompany));
-            
+
             // Обновляем данные профиля
             setProfileData(prev => ({
                 ...prev,
                 ...editingProfile
             }));
-            
+
             setIsEditingProfile(false);
         } catch (error) {
             console.error('Failed to save profile:', error);
