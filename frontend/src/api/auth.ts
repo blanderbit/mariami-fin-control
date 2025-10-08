@@ -79,7 +79,17 @@ export async function refreshTokens() {
 }
 
 export async function registerRequest(data: { email: string; password: string; re_password: string; country?: string; name?: string; last_name?: string; }) {
-    await api.auth.authRegistrationCreate(data);
+    const res = await api.auth.authRegistrationCreate(data) as any;
+    
+    // Extract tokens from response
+    const access = res.data?.data?.access || '';
+    const refresh = res.data?.data?.refresh || '';
+    
+    if (!access || !refresh) {
+        throw new Error('Invalid registration response: tokens missing');
+    }
+    
+    return { access, refresh };
 }
 
 export async function getProfileRequest(): Promise<AuthUser | null> {

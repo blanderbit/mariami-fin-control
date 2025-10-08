@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useState, useEffect, useCallback} from 'react';
 import {loginRequest, logoutRequest, registerRequest, getProfileRequest, getOnboardingStatusRequest, OnboardingStatus} from '../api/auth';
-import {setTokenStorage, TokenStorage, clearTokens, getTokens} from '../api/http';
+import {setTokenStorage, TokenStorage, clearTokens, getTokens, setTokens} from '../api/http';
 
 interface User {
     id: number;
@@ -160,8 +160,12 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
         setError(null);
 
         try {
-            // Выполняем регистрацию
-            await registerRequest({
+            // Устанавливаем storage для токенов
+            const storage: TokenStorage = 'local';
+            setTokenStorage(storage);
+
+            // Выполняем регистрацию и получаем токены
+            const tokens = await registerRequest({
                 email,
                 password,
                 re_password,
@@ -169,11 +173,11 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
                 last_name
             });
 
-            // После успешной регистрации автоматически логинимся
-            const storage: TokenStorage = 'local';
-            setTokenStorage(storage);
-            
-            const profile = await loginRequest(email, password, storage);
+            // Сохраняем токены с помощью setTokens
+            setTokens(tokens);
+
+            // Получаем профиль пользователя
+            const profile = await getProfileRequest();
             if (!profile) throw new Error('Failed to fetch profile after registration');
 
             setUser(profile);
