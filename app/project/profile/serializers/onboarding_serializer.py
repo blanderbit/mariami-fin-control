@@ -19,6 +19,7 @@ class OnboardingSerializer(ModelSerializer):
             "company_name",
             "employees_count",
             "industry",
+            "company_info",
             "currency",
             "fiscal_year_start",
             "update_frequency",

@@ -46,6 +46,11 @@ class ProfileModel(models.Model):
     company_name = models.CharField(max_length=255, null=True, blank=True)
     employees_count = models.PositiveIntegerField(null=True, blank=True)
     industry = models.CharField(max_length=255, null=True, blank=True)
+    company_info = models.TextField(
+        null=True, 
+        blank=True, 
+        help_text="Detailed description of the business"
+    )
 
     # Financial settings
     currency = models.CharField(
@@ -93,6 +98,13 @@ class ProfileModel(models.Model):
         null=True,
         blank=True,
         help_text="Current cash available"
+    )
+
+    # AI-generated insights
+    ai_insight = models.TextField(
+        null=True,
+        blank=True,
+        help_text="AI-generated business insight based on profile data"
     )
 
     # Timestamps
