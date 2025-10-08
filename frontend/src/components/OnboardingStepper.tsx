@@ -226,7 +226,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
         const question = chatQuestions[currentQuestion];
         // TODO: Backend integration - get selected values
         const selected = "Selected options"; // Placeholder
-        
+
         setChatMessages(prev => [...prev, { type: 'user', content: selected }]);
         setShowOptions(false);
 
@@ -366,9 +366,12 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
             await refreshOnboardingStatus();
             // Обновляем профиль пользователя чтобы получить актуальный is_onboarded
             await refreshProfile();
+            // Редирект на dashboard после завершения онбоардинга
             navigate('/dashboard');
         } catch (error) {
             console.error('Failed to finish onboarding:', error);
+            // Все равно редиректим на dashboard даже если произошла ошибка
+            navigate('/dashboard');
         } finally {
             setLoading(false);
         }
@@ -529,8 +532,8 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                                     key={option}
                                     onClick={() => {
                                         if (chatQuestions[currentQuestion].multiSelect) {
-                                            setMultiSelectTemp(prev => 
-                                                prev.includes(option) 
+                                            setMultiSelectTemp(prev =>
+                                                prev.includes(option)
                                                     ? prev.filter(v => v !== option)
                                                     : [...prev, option]
                                             );
@@ -560,7 +563,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                                     setChatMessages(prev => [...prev, { type: 'user', content: selected }]);
                                     setShowOptions(false);
                                     setMultiSelectTemp([]);
-                                    
+
                                     if (currentQuestion < chatQuestions.length - 1) {
                                         setTimeout(() => {
                                             addBotMessage(chatQuestions[currentQuestion + 1].question);
@@ -579,21 +582,29 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                 )}
 
                 {showOptions && chatQuestions[currentQuestion].textInput && (
-                    <div className="pl-2">
+                    <div className="pl-2 space-y-3">
                         <textarea
                             value={textInputValue}
                             onChange={(e) => setTextInputValue(e.target.value)}
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey && textInputValue.trim()) {
+                                    e.preventDefault();
+                                    handleTextSubmit();
+                                }
+                            }}
                             className="w-full px-4 py-3 rounded-xl resize-none focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100"
                             style={{ minHeight: '80px' }}
                             placeholder="Type your answer here..."
                         />
-                        <button
-                            onClick={handleTextSubmit}
-                            disabled={!textInputValue.trim()}
-                            className="w-full px-4 py-3 rounded-xl text-sm font-medium transition-all mt-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-b from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 text-white hover:shadow-lg"
-                        >
-                            Submit →
-                        </button>
+                        {!showSummary &&
+                            <button
+                                onClick={handleTextSubmit}
+                                disabled={!textInputValue.trim()}
+                                className="w-full px-4 py-3 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-b from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 text-white hover:shadow-lg"
+                            >
+                                Continue →
+                            </button>
+                        }
                     </div>
                 )}
 
