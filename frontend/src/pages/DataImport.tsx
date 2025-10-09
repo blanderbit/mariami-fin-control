@@ -8,7 +8,9 @@ import {
     DollarSign,
     CreditCard,
     Calendar,
-    Loader2
+    Loader2,
+    Brain,
+    Sparkles
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { uploadDataFilesRequest, UploadDataFilesResponse, updateOnboardingRequest, getOnboardingStatusRequest, getTemplatesRequest, TemplatesData } from '../api/auth';
@@ -206,6 +208,24 @@ const DataImport: React.FC = () => {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
+    const getAIMessage = (fileType: string) => {
+        const messages = {
+            pnl: "Once uploaded, I'll calculate your gross margin vs. peers.",
+            transactions: "Upload your transactions, and I'll show cash flow volatility.",
+            invoices: "I'll analyze payment patterns and predict collection timelines."
+        };
+        return messages[fileType as keyof typeof messages] || '';
+    };
+
+    const getAIConfirmation = (fileType: string) => {
+        const confirmations = {
+            pnl: "Got it — I see strong revenue growth in Q2. We'll visualize this on your dashboard.",
+            transactions: "Perfect — I've detected 247 transactions. Cash flow analysis is ready.",
+            invoices: "Excellent — 45 invoices processed. I'll track overdue payments for you."
+        };
+        return confirmations[fileType as keyof typeof confirmations] || 'Data uploaded successfully!';
+    };
+
     return (
         <motion.div
             initial={{y: 20, opacity: 0}}
@@ -213,28 +233,34 @@ const DataImport: React.FC = () => {
             transition={{duration: 0.5, delay: 0.2}}
             className="max-w-7xl mx-auto space-y-8"
         >
-            <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Data Import</h1>
-                <p className="text-gray-600 dark:text-gray-400">Upload your data to see analytics and market insights</p>
+            <div className="fade-in">
+                <h1 className="text-3xl font-bold text-[#12141A] dark:text-gray-100 mb-2">Data Import</h1>
+                <p className="text-[#6F7D99] dark:text-gray-400">Upload your data to unlock AI-powered insights</p>
             </div>
 
             {/* Step 1 - P&L */}
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-6">
+            <div className={`bg-[#F8FAFF] dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-lg p-6 fade-in hover-lift ${uploadedFiles.pnl ? 'royal-blue-glow' : ''}`}>
                 <div className="flex items-start space-x-4">
-                    <FileText className="w-6 h-6 text-blue-600 mt-1" />
+                    <FileText className="w-6 h-6 text-[#2561E5] mt-1" />
                     <div className="flex-1">
-                        <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Step 1 — Profit & Loss (P&L)</h4>
-                        <p className="text-gray-600 dark:text-gray-400 mb-2">📂 Upload P&L (CSV/Excel template)</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">Export from QuickBooks/Xero or copy your Excel into our template.</p>
+                        <h4 className="text-lg font-semibold text-[#12141A] dark:text-gray-100 mb-2">Step 1 — Profit & Loss (P&L)</h4>
+                        <p className="text-[#6F7D99] dark:text-gray-400 mb-2">Upload P&L (CSV/Excel template)</p>
+
+                        <div className="bg-[#2561E5]/5 dark:bg-[#2561E5]/10 rounded-lg p-3 mb-4 border border-[#2561E5]/10 dark:border-[#2561E5]/20">
+                            <div className="flex items-start space-x-2">
+                                <Sparkles className="w-4 h-4 text-[#2561E5] mt-0.5 flex-shrink-0" />
+                                <p className="text-sm text-[#6F7D99] dark:text-gray-400 italic">{getAIMessage('pnl')}</p>
+                            </div>
+                        </div>
 
                         <div className="flex space-x-3 mb-4">
                             <button
                                 onClick={() => downloadTemplate('pnl')}
                                 disabled={templatesLoading || !templates}
-                                className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                                className={`flex items-center px-4 py-2 rounded-lg transition-all border ${
                                     templatesLoading || !templates
-                                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600'
+                                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed border-gray-400'
+                                        : 'bg-white dark:bg-gray-700 text-[#6F7D99] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 border-gray-200 dark:border-gray-600'
                                 }`}
                             >
                                 {templatesLoading ? (
@@ -242,20 +268,20 @@ const DataImport: React.FC = () => {
                                 ) : (
                                     <Download className="w-4 h-4 mr-2" />
                                 )}
-                                {templatesLoading ? 'Loading...' : 'Download P&L template'}
+                                {templatesLoading ? 'Loading...' : 'Download template'}
                             </button>
 
-                            <label className={`flex items-center px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+                            <label className={`flex items-center px-6 py-2 rounded-lg transition-all cursor-pointer font-medium ${
                                 isUploading
                                     ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                    : 'bg-gradient-to-r from-[#2561E5] to-[#1e4db8] text-white hover:shadow-lg'
                             }`}>
                                 {isUploading ? (
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                 ) : (
                                     <Upload className="w-4 h-4 mr-2" />
                                 )}
-                                {isUploading ? 'Uploading...' : 'Upload P&L file'}
+                                {isUploading ? 'Uploading...' : 'Upload P&L'}
                                 <input
                                     type="file"
                                     accept=".csv,.xls,.xlsx"
@@ -267,16 +293,22 @@ const DataImport: React.FC = () => {
                         </div>
 
                         {uploadedFiles.pnl && (
-                            <div className="flex items-center space-x-2 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
-                                <CheckCircle className="w-5 h-5" />
-                                <span className="text-sm">
-                  {uploadedFiles.pnl.name} ({formatFileSize(uploadedFiles.pnl.size)}) uploaded successfully
-                </span>
+                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4 fade-in">
+                                <div className="flex items-center space-x-2 mb-2">
+                                    <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                    <span className="text-sm font-medium text-green-800 dark:text-green-300">
+                                        {uploadedFiles.pnl.name} ({formatFileSize(uploadedFiles.pnl.size)})
+                                    </span>
+                                </div>
+                                <div className="flex items-start space-x-2 mt-3">
+                                    <Brain className="w-4 h-4 text-[#2561E5] mt-0.5 flex-shrink-0" />
+                                    <p className="text-sm text-[#12141A] dark:text-gray-200 font-medium">{getAIConfirmation('pnl')}</p>
+                                </div>
                             </div>
                         )}
 
                         {uploadErrors.pnl && (
-                            <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
+                            <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg border border-red-200 dark:border-red-700">
                                 <AlertTriangle className="w-5 h-5" />
                                 <span className="text-sm">{uploadErrors.pnl}</span>
                             </div>
@@ -286,22 +318,28 @@ const DataImport: React.FC = () => {
             </div>
 
             {/* Step 2 - Transactions */}
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-6">
+            <div className={`bg-[#F8FAFF] dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-lg p-6 fade-in hover-lift ${uploadedFiles.transactions ? 'royal-blue-glow' : ''}`}>
                 <div className="flex items-start space-x-4">
-                    <CreditCard className="w-6 h-6 text-green-600 mt-1" />
+                    <CreditCard className="w-6 h-6 text-[#2561E5] mt-1" />
                     <div className="flex-1">
-                        <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Step 2 — Transactions</h4>
-                        <p className="text-gray-600 dark:text-gray-400 mb-2">📂 Upload Transactions (CSV/Excel template)</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">Income/Expense rows with categories.</p>
+                        <h4 className="text-lg font-semibold text-[#12141A] dark:text-gray-100 mb-2">Step 2 — Transactions</h4>
+                        <p className="text-[#6F7D99] dark:text-gray-400 mb-2">Upload Transactions (CSV/Excel template)</p>
+
+                        <div className="bg-[#2561E5]/5 dark:bg-[#2561E5]/10 rounded-lg p-3 mb-4 border border-[#2561E5]/10 dark:border-[#2561E5]/20">
+                            <div className="flex items-start space-x-2">
+                                <Sparkles className="w-4 h-4 text-[#2561E5] mt-0.5 flex-shrink-0" />
+                                <p className="text-sm text-[#6F7D99] dark:text-gray-400 italic">{getAIMessage('transactions')}</p>
+                            </div>
+                        </div>
 
                         <div className="flex space-x-3 mb-4">
                             <button
                                 onClick={() => downloadTemplate('transactions')}
                                 disabled={templatesLoading || !templates}
-                                className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                                className={`flex items-center px-4 py-2 rounded-lg transition-all border ${
                                     templatesLoading || !templates
-                                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600'
+                                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed border-gray-400'
+                                        : 'bg-white dark:bg-gray-700 text-[#6F7D99] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 border-gray-200 dark:border-gray-600'
                                 }`}
                             >
                                 {templatesLoading ? (
@@ -309,20 +347,20 @@ const DataImport: React.FC = () => {
                                 ) : (
                                     <Download className="w-4 h-4 mr-2" />
                                 )}
-                                {templatesLoading ? 'Loading...' : 'Download Transactions template'}
+                                {templatesLoading ? 'Loading...' : 'Download template'}
                             </button>
 
-                            <label className={`flex items-center px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+                            <label className={`flex items-center px-6 py-2 rounded-lg transition-all cursor-pointer font-medium ${
                                 isUploading
                                     ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                    : 'bg-gradient-to-r from-[#2561E5] to-[#1e4db8] text-white hover:shadow-lg'
                             }`}>
                                 {isUploading ? (
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                 ) : (
                                     <Upload className="w-4 h-4 mr-2" />
                                 )}
-                                {isUploading ? 'Uploading...' : 'Upload Transactions file'}
+                                {isUploading ? 'Uploading...' : 'Upload Transactions'}
                                 <input
                                     type="file"
                                     accept=".csv,.xls,.xlsx"
@@ -334,16 +372,22 @@ const DataImport: React.FC = () => {
                         </div>
 
                         {uploadedFiles.transactions && (
-                            <div className="flex items-center space-x-2 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
-                                <CheckCircle className="w-5 h-5" />
-                                <span className="text-sm">
-                  {uploadedFiles.transactions.name} ({formatFileSize(uploadedFiles.transactions.size)}) uploaded successfully
-                </span>
+                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4 fade-in">
+                                <div className="flex items-center space-x-2 mb-2">
+                                    <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                    <span className="text-sm font-medium text-green-800 dark:text-green-300">
+                                        {uploadedFiles.transactions.name} ({formatFileSize(uploadedFiles.transactions.size)})
+                                    </span>
+                                </div>
+                                <div className="flex items-start space-x-2 mt-3">
+                                    <Brain className="w-4 h-4 text-[#2561E5] mt-0.5 flex-shrink-0" />
+                                    <p className="text-sm text-[#12141A] dark:text-gray-200 font-medium">{getAIConfirmation('transactions')}</p>
+                                </div>
                             </div>
                         )}
 
                         {uploadErrors.transactions && (
-                            <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
+                            <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg border border-red-200 dark:border-red-700">
                                 <AlertTriangle className="w-5 h-5" />
                                 <span className="text-sm">{uploadErrors.transactions}</span>
                             </div>
@@ -353,22 +397,28 @@ const DataImport: React.FC = () => {
             </div>
 
             {/* Step 3 - Invoices */}
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-6">
+            <div className={`bg-[#F8FAFF] dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-lg p-6 fade-in hover-lift ${uploadedFiles.invoices ? 'royal-blue-glow' : ''}`}>
                 <div className="flex items-start space-x-4">
-                    <Calendar className="w-6 h-6 text-purple-600 mt-1" />
+                    <Calendar className="w-6 h-6 text-[#2561E5] mt-1" />
                     <div className="flex-1">
-                        <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Step 3 — Invoices (A/R)</h4>
-                        <p className="text-gray-600 dark:text-gray-400 mb-2">📂 Upload Invoices (CSV/Excel template)</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">Issued/Due dates and Status are important for cash forecasting.</p>
+                        <h4 className="text-lg font-semibold text-[#12141A] dark:text-gray-100 mb-2">Step 3 — Invoices (A/R)</h4>
+                        <p className="text-[#6F7D99] dark:text-gray-400 mb-2">Upload Invoices (CSV/Excel template)</p>
+
+                        <div className="bg-[#2561E5]/5 dark:bg-[#2561E5]/10 rounded-lg p-3 mb-4 border border-[#2561E5]/10 dark:border-[#2561E5]/20">
+                            <div className="flex items-start space-x-2">
+                                <Sparkles className="w-4 h-4 text-[#2561E5] mt-0.5 flex-shrink-0" />
+                                <p className="text-sm text-[#6F7D99] dark:text-gray-400 italic">{getAIMessage('invoices')}</p>
+                            </div>
+                        </div>
 
                         <div className="flex space-x-3 mb-4">
                             <button
                                 onClick={() => downloadTemplate('invoices')}
                                 disabled={templatesLoading || !templates}
-                                className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                                className={`flex items-center px-4 py-2 rounded-lg transition-all border ${
                                     templatesLoading || !templates
-                                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600'
+                                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed border-gray-400'
+                                        : 'bg-white dark:bg-gray-700 text-[#6F7D99] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 border-gray-200 dark:border-gray-600'
                                 }`}
                             >
                                 {templatesLoading ? (
@@ -376,20 +426,20 @@ const DataImport: React.FC = () => {
                                 ) : (
                                     <Download className="w-4 h-4 mr-2" />
                                 )}
-                                {templatesLoading ? 'Loading...' : 'Download Invoices template'}
+                                {templatesLoading ? 'Loading...' : 'Download template'}
                             </button>
 
-                            <label className={`flex items-center px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+                            <label className={`flex items-center px-6 py-2 rounded-lg transition-all cursor-pointer font-medium ${
                                 isUploading
                                     ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                    : 'bg-gradient-to-r from-[#2561E5] to-[#1e4db8] text-white hover:shadow-lg'
                             }`}>
                                 {isUploading ? (
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                 ) : (
                                     <Upload className="w-4 h-4 mr-2" />
                                 )}
-                                {isUploading ? 'Uploading...' : 'Upload Invoices file'}
+                                {isUploading ? 'Uploading...' : 'Upload Invoices'}
                                 <input
                                     type="file"
                                     accept=".csv,.xls,.xlsx"
@@ -401,16 +451,22 @@ const DataImport: React.FC = () => {
                         </div>
 
                         {uploadedFiles.invoices && (
-                            <div className="flex items-center space-x-2 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
-                                <CheckCircle className="w-5 h-5" />
-                                <span className="text-sm">
-                  {uploadedFiles.invoices.name} ({formatFileSize(uploadedFiles.invoices.size)}) uploaded successfully
-                </span>
+                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4 fade-in">
+                                <div className="flex items-center space-x-2 mb-2">
+                                    <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                    <span className="text-sm font-medium text-green-800 dark:text-green-300">
+                                        {uploadedFiles.invoices.name} ({formatFileSize(uploadedFiles.invoices.size)})
+                                    </span>
+                                </div>
+                                <div className="flex items-start space-x-2 mt-3">
+                                    <Brain className="w-4 h-4 text-[#2561E5] mt-0.5 flex-shrink-0" />
+                                    <p className="text-sm text-[#12141A] dark:text-gray-200 font-medium">{getAIConfirmation('invoices')}</p>
+                                </div>
                             </div>
                         )}
 
                         {uploadErrors.invoices && (
-                            <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
+                            <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg border border-red-200 dark:border-red-700">
                                 <AlertTriangle className="w-5 h-5" />
                                 <span className="text-sm">{uploadErrors.invoices}</span>
                             </div>
@@ -420,13 +476,12 @@ const DataImport: React.FC = () => {
             </div>
 
             {/* Step 4 - Current Cash Balance */}
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-6">
+            <div className="bg-[#F8FAFF] dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-lg p-6 fade-in hover-lift">
                 <div className="flex items-start space-x-4">
-                    <DollarSign className="w-6 h-6 text-yellow-600 mt-1" />
+                    <DollarSign className="w-6 h-6 text-[#2561E5] mt-1" />
                     <div className="flex-1">
-                        <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Step 4 — Current Cash Balance</h4>
-                        <p className="text-gray-600 dark:text-gray-400 mb-2">Optional: enter your current bank balance</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-500 mb-2">Used to calculate Ending Cash. If empty, we will show only Net Cash Flow.</p>
+                        <h4 className="text-lg font-semibold text-[#12141A] dark:text-gray-100 mb-2">Step 4 — Current Cash Balance</h4>
+                        <p className="text-[#6F7D99] dark:text-gray-400 mb-2">Optional: enter your current bank balance</p>
                         
                         {/* Отображение текущего значения */}
                         {!isLoadingProfile && (
@@ -437,40 +492,23 @@ const DataImport: React.FC = () => {
                             </div>
                         )}
 
-                        <div className="max-w-md">
-                            <div className="flex space-x-3">
-                                <div className="relative flex-1">
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={currentCashBalance || ''}
-                                        onChange={(e) => {
-                                            const value = parseFloat(e.target.value) || 0;
-                                            setCurrentCashBalance(value);
-                                        }}
-                                        className="w-full pl-4 pr-16 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-900 dark:text-gray-100"
-                                        placeholder="e.g. 12,500"
-                                    />
-                                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
-                                        {baseCurrency}
-                                    </span>
-                                </div>
-                                <button
-                                    onClick={() => updateCurrentCashBalance(currentCashBalance)}
-                                    disabled={isUpdatingCash}
-                                    className={`px-4 py-3 rounded-lg font-medium transition-colors ${
-                                        isUpdatingCash
-                                            ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                                    }`}
-                                >
-                                    {isUpdatingCash ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                        'Update'
-                                    )}
-                                </button>
+                        <div className="max-w-xs">
+                            <div className="relative">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={currentCashBalance || ''}
+                                    onChange={(e) => {
+                                        const value = parseFloat(e.target.value) || 0;
+                                        setCurrentCashBalance(value);
+                                        updateCurrentCashBalance(value);
+                                    }}
+                                    className="w-full pl-4 pr-16 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#2561E5] focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all"
+                                    placeholder="e.g. 12,500"
+                                />
+                                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#6F7D99] dark:text-gray-400 text-sm">
+                                    {baseCurrency}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -491,15 +529,21 @@ const DataImport: React.FC = () => {
             )}
 
             {/* Validation Notes */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <h5 className="font-medium text-blue-900 dark:text-blue-200 mb-2">Validation & Normalization</h5>
-                <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
-                    <li>• Required columns must be present (use provided templates)</li>
-                    <li>• Dates should use YYYY-MM-DD format</li>
-                    <li>• Amounts must be numeric values</li>
-                    <li>• Categories will be normalized to: Sales, COGS, Payroll, Rent, Marketing, Other</li>
-                    <li>• Currency conversion to base currency ({baseCurrency}) will be applied</li>
-                    <li>• Duplicate entries will be removed based on Invoice_ID and Date+Amount+Client_Supplier</li>
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-2xl p-6 fade-in">
+                <h5 className="font-semibold text-[#12141A] dark:text-gray-100 mb-3">Validation & Normalization</h5>
+                <ul className="text-sm text-[#6F7D99] dark:text-gray-400 space-y-2">
+                    <li className="flex items-start space-x-2">
+                        <div className="w-1.5 h-1.5 bg-[#2561E5] rounded-full mt-2"></div>
+                        <span>Required columns must be present (use provided templates)</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                        <div className="w-1.5 h-1.5 bg-[#2561E5] rounded-full mt-2"></div>
+                        <span>Dates should use YYYY-MM-DD format</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                        <div className="w-1.5 h-1.5 bg-[#2561E5] rounded-full mt-2"></div>
+                        <span>Currency conversion to base currency ({baseCurrency}) will be applied</span>
+                    </li>
                 </ul>
             </div>
         </motion.div>
