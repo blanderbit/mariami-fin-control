@@ -11,7 +11,7 @@ import Logo from "../assets/FinclAI Logo Blue.png";
 const Signup: React.FC = () => {
     const navigate = useNavigate();
     const {theme, toggleTheme} = useTheme();
-    const {register} = useAuth();
+    const {register, user, loading} = useAuth();
 
     const [formData, setFormData] = useState({
         companyName: '',
@@ -40,6 +40,22 @@ const Signup: React.FC = () => {
     useEffect(() => {
         loadDocuments();
     }, []);
+
+    useEffect(() => {
+        // Ждем пока загрузятся данные
+        if (loading) {
+            return;
+        }
+
+        // Если пользователь уже авторизован, редиректим
+        if (user) {
+            if (user.is_onboarded) {
+                navigate('/dashboard');
+            } else {
+                navigate('/onboarding');
+            }
+        }
+    }, [user, loading, navigate]);
 
     const openDocument = (documentType: 'terms_of_service' | 'privacy_policy') => {
         if (!documents) {

@@ -10,7 +10,7 @@ import Logo from '../assets/FinclAI Logo Blue.png';
 const Login: React.FC = () => {
     const navigate = useNavigate();
     const {theme, toggleTheme} = useTheme();
-    const {login, clearAuthState} = useAuth();
+    const {login, clearAuthState, user, loading} = useAuth();
 
     const [formData, setFormData] = useState({
         email: 'd.utyuzh@codeska.com',
@@ -66,8 +66,24 @@ const Login: React.FC = () => {
     };
 
     useEffect(() => {
+        // Ждем пока загрузятся данные
+        if (loading) {
+            return;
+        }
+
+        // Если пользователь уже авторизован, редиректим
+        if (user) {
+            if (user.is_onboarded) {
+                navigate('/dashboard');
+            } else {
+                navigate('/onboarding');
+            }
+            return;
+        }
+
+        // Только если пользователь НЕ авторизован, очищаем состояние
         clearAuthState();
-    }, []);
+    }, [user, loading, navigate, clearAuthState]);
 
     return (
         <motion.div

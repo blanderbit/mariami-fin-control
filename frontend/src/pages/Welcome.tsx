@@ -1,22 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 import Logo from '../assets/FinclAI Logo Blue.png';
 
 const Welcome: React.FC = () => {
     const navigate = useNavigate();
+    const { user, loading } = useAuth();
     const [showBubble, setShowBubble] = useState(false);
     const [showTyping, setShowTyping] = useState(false);
     const [showButtons, setShowButtons] = useState(false);
 
     useEffect(() => {
+        // Ждем пока загрузятся данные
+        if (loading) {
+            return;
+        }
+
+        // Если пользователь уже авторизован, редиректим
+        if (user) {
+            if (user.is_onboarded) {
+                navigate('/dashboard');
+            } else {
+                navigate('/onboarding');
+            }
+            return;
+        }
+
+        // Анимации для неавторизованных пользователей
         setTimeout(() => setShowBubble(true), 300);
         setTimeout(() => setShowTyping(true), 700);
         setTimeout(() => {
             setShowTyping(false);
             setShowButtons(true);
         }, 1900);
-    }, []);
+    }, [user, loading, navigate]);
 
     const handleNewUser = () => {
         navigate('/welcome-video', { state: { isNewUser: true } });

@@ -120,6 +120,18 @@ export async function getOnboardingStatusRequest() {
     }
 }
 
+export async function getAISummaryRequest(): Promise<string | null> {
+    try {
+        const res = await api.profile.profileProfileAiSummaryList() as any;
+        // Извлекаем AI summary из ответа
+        const summary = res.data?.data?.ai_insight || res.data?.ai_insight || null;
+        return typeof summary === 'string' ? summary : null;
+    } catch (error) {
+        console.error('Failed to fetch AI summary:', error);
+        return null;
+    }
+}
+
 export type OnboardingData = {
     name?: string;
     last_name?: string;
@@ -134,7 +146,8 @@ export type OnboardingData = {
     business_model?: string;
     multicurrency?: boolean;
     capital_reserve_target?: string | null;
-    current_cash?: string | null;
+    current_cash?: number | null;
+    company_info?: string | null;
 };
 
 export type OnboardingStatus = {

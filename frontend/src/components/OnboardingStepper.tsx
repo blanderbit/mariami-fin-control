@@ -23,7 +23,7 @@ import {
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { updateOnboardingRequest, OnboardingData, getCurrenciesRequest, Currency, getIndustriesRequest } from '../api/auth';
+import { updateOnboardingRequest, OnboardingData, getCurrenciesRequest, Currency, getIndustriesRequest, getAISummaryRequest } from '../api/auth';
 import { getStepData } from '../utils/onboardingUtils';
 import Logo from "../assets/FinclAI Logo Blue.png";
 
@@ -115,6 +115,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
     const [textInputValue, setTextInputValue] = useState('');
     const [showSummary, setShowSummary] = useState(false);
     const [multiSelectTemp, setMultiSelectTemp] = useState<string[]>([]);
+    const [chatAnswers, setChatAnswers] = useState<Record<string, any>>({});
 
     const chatQuestions = [
         {
@@ -142,6 +143,11 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
         {
             question: "What's your current cash balance?",
             field: 'current_cash',
+            textInput: true
+        },
+        {
+            question: "Tell me about your business. What do you do and what makes it unique?",
+            field: 'company_info',
             textInput: true
         }
     ];
@@ -195,15 +201,14 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
 
         if (question.multiSelect) {
             // For multiselect, toggle selection without moving to next question
-            // TODO: Backend integration - handle multiselect values
             return;
         }
 
         setChatMessages(prev => [...prev, { type: 'user', content: option }]);
         setShowOptions(false);
 
-        // TODO: Backend integration - save the answer
-        // setProfile(prev => ({ ...prev, [question.field]: option }));
+        // Save the answer
+        setChatAnswers(prev => ({ ...prev, [question.field]: option.toLowerCase() }));
 
         if (option === 'Custom' && question.field === 'capital_reserve_target') {
             setTimeout(() => {
@@ -224,11 +229,14 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
 
     const handleMultiSelectContinue = () => {
         const question = chatQuestions[currentQuestion];
-        // TODO: Backend integration - get selected values
-        const selected = "Selected options"; // Placeholder
+        const selected = multiSelectTemp.join(', ');
 
         setChatMessages(prev => [...prev, { type: 'user', content: selected }]);
         setShowOptions(false);
+        
+        // Save the answer (join multiple values for display, but save as array if needed)
+        setChatAnswers(prev => ({ ...prev, [question.field]: multiSelectTemp.join(', ').toLowerCase() }));
+        setMultiSelectTemp([]);
 
         if (currentQuestion < chatQuestions.length - 1) {
             setTimeout(() => {
@@ -240,26 +248,65 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
         }
     };
 
-    const handleTextSubmit = () => {
+    const handleTextSubmit = async () => {
         if (!textInputValue.trim()) return;
 
         const question = chatQuestions[currentQuestion];
 
         setChatMessages(prev => [...prev, { type: 'user', content: textInputValue }]);
-        // TODO: Backend integration - save the answer
-        // setProfile(prev => ({ ...prev, [question.field]: textInputValue }));
+        
+        // Save the answer - convert to number if it's current_cash field
+        const value = question.field === 'current_cash' ? parseFloat(textInputValue) : textInputValue;
+        const updatedAnswers = { ...chatAnswers, [question.field]: value };
+        setChatAnswers(updatedAnswers);
+        
         setShowTextInput(false);
         setTextInputValue('');
 
-        if (question.field === 'capital_reserve_target') {
-            if (currentQuestion < chatQuestions.length - 1) {
-                setTimeout(() => {
-                    addBotMessage(chatQuestions[currentQuestion + 1].question);
-                    setCurrentQuestion(prev => prev + 1);
-                }, 600);
-            } else {
+        // Check if this is the last question
+        const isLastQuestion = currentQuestion >= chatQuestions.length - 1;
+
+        // If this is the last question (company_info), send data to backend and get AI summary
+        if (isLastQuestion && question.field === 'company_info') {
+            try {
+                // Show loading message
+                setChatMessages(prev => [...prev, { type: 'bot', content: 'Analyzing your business...', isTyping: true }]);
+                
+                // Send all chat answers to backend
+                await updateOnboardingRequest(updatedAnswers);
+                
+                // Get AI summary
+                const aiSummary = await getAISummaryRequest();
+                
+                // Remove loading message and show AI summary
+                setChatMessages(prev => prev.slice(0, -1));
+                
+                if (aiSummary) {
+                    setTimeout(() => {
+                        setChatMessages(prev => [...prev, { type: 'bot', content: aiSummary }]);
+                        setTimeout(() => {
+                            setShowSummary(true);
+                        }, 100);
+                    }, 300);
+                } else {
+                    // Fallback message if AI summary fails
+                    showFinalSummary();
+                }
+            } catch (error) {
+                console.error('Failed to get AI summary:', error);
+                // Show fallback message
+                setChatMessages(prev => prev.slice(0, -1));
                 showFinalSummary();
             }
+            return;
+        }
+
+        // Continue to next question
+        if (currentQuestion < chatQuestions.length - 1) {
+            setTimeout(() => {
+                addBotMessage(chatQuestions[currentQuestion + 1].question);
+                setCurrentQuestion(prev => prev + 1);
+            }, 600);
         } else {
             showFinalSummary();
         }
@@ -354,6 +401,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
             setShowSummary(false);
             setTextInputValue('');
             setMultiSelectTemp([]);
+            setChatAnswers({});
         }
         setCurrentStep(prev => prev - 1);
     };
@@ -583,19 +631,37 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
 
                 {showOptions && chatQuestions[currentQuestion].textInput && !showSummary && (
                     <div className="pl-2 space-y-3">
-                        <textarea
-                            value={textInputValue}
-                            onChange={(e) => setTextInputValue(e.target.value)}
-                            onKeyPress={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey && textInputValue.trim()) {
-                                    e.preventDefault();
-                                    handleTextSubmit();
-                                }
-                            }}
-                            className="w-full px-4 py-3 rounded-xl resize-none focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-                            style={{ minHeight: '80px' }}
-                            placeholder="Type your answer here..."
-                        />
+                        {chatQuestions[currentQuestion].field === 'current_cash' ? (
+                            <input
+                                type="number"
+                                value={textInputValue}
+                                onChange={(e) => setTextInputValue(e.target.value)}
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter' && textInputValue.trim()) {
+                                        e.preventDefault();
+                                        handleTextSubmit();
+                                    }
+                                }}
+                                className="w-full px-4 py-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                                placeholder="Enter your current cash balance..."
+                                min="0"
+                                step="0.01"
+                            />
+                        ) : (
+                            <textarea
+                                value={textInputValue}
+                                onChange={(e) => setTextInputValue(e.target.value)}
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey && textInputValue.trim()) {
+                                        e.preventDefault();
+                                        handleTextSubmit();
+                                    }
+                                }}
+                                className="w-full px-4 py-3 rounded-xl resize-none focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                                style={{ minHeight: '80px' }}
+                                placeholder="Type your answer here..."
+                            />
+                        )}
                         <button
                             onClick={handleTextSubmit}
                             disabled={!textInputValue.trim()}
