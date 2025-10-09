@@ -162,6 +162,11 @@ export interface Onboarding {
    */
   industry?: string | null;
   /**
+   * Company info
+   * Detailed description of the business
+   */
+  company_info?: string | null;
+  /**
    * Currency
    * Primary business currency
    */
@@ -1086,6 +1091,29 @@ export class Api<
         query: query,
         secure: true,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Generate and return AI insight for the current user's profile
+     *
+     * @tags profile
+     * @name ProfileProfileAiSummaryList
+     * @request GET:/profile/profile-ai-summary
+     * @secure
+     */
+    profileProfileAiSummaryList: (
+      query?: {
+        /** A page number within the paginated result set. */
+        page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/profile/profile-ai-summary`,
+        method: "GET",
+        query: query,
+        secure: true,
         ...params,
       }),
   };
