@@ -6,10 +6,28 @@ import OnboardingStepper from '../components/OnboardingStepper';
 
 const Onboarding: React.FC = () => {
     const navigate = useNavigate();
-    const { user, onboardingStatus } = useAuth();
+    const { user, onboardingStatus, loading } = useAuth();
+
+    // Определяем начальный степ на основе заполненных полей
+    // useMemo должны быть ДО любых условных return!
+    const currentStep = useMemo(() => {
+        if (!onboardingStatus?.profile) return 1;
+        return getCurrentOnboardingStep(onboardingStatus.profile) || 1;
+    }, [onboardingStatus?.profile]);
+
+    // Мемоизируем пропсы для OnboardingStepper
+    const stepperProps = useMemo(() => ({
+        initialStep: currentStep,
+        initialData: onboardingStatus?.profile
+    }), [currentStep, onboardingStatus?.profile]);
 
     useEffect(() => {
-        // Если пользователь не авторизован, перенаправляем на логин
+        // Не редиректим пока данные загружаются
+        if (loading) {
+            return;
+        }
+
+        // Если пользователь не авторизован после загрузки, перенаправляем на логин
         if (!user) {
             navigate('/login');
             return;
@@ -32,10 +50,10 @@ const Onboarding: React.FC = () => {
             // Данные будут загружены через AuthContext
             return;
         }
-    }, [user, onboardingStatus, navigate]);
+    }, [user, onboardingStatus, loading, navigate]);
 
     // Если данные еще загружаются, показываем загрузку
-    if (!user || !onboardingStatus) {
+    if (loading || !user || !onboardingStatus) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-900 flex items-center justify-center">
                 <div className="text-center">
@@ -45,17 +63,6 @@ const Onboarding: React.FC = () => {
         </div>
     );
     }
-
-    // Определяем начальный степ на основе заполненных полей
-    const currentStep = useMemo(() => {
-        return getCurrentOnboardingStep(onboardingStatus.profile) || 1;
-    }, [onboardingStatus.profile]);
-
-    // Мемоизируем пропсы для OnboardingStepper
-    const stepperProps = useMemo(() => ({
-        initialStep: currentStep,
-        initialData: onboardingStatus.profile
-    }), [currentStep, onboardingStatus.profile]);
 
     return (
         <OnboardingStepper {...stepperProps} />
