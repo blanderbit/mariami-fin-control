@@ -11,6 +11,7 @@ import {
     ChevronLeft,
     ChevronRight
 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 import Logo from '../assets/FinclAI Logo Blue.png';
 
@@ -25,10 +26,11 @@ const navigationItems = [
 
 const Sidebar: React.FC = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const { theme } = useTheme();
 
     return (
         <div
-            className={`bg-white border-r border-gray-200 shadow-sm transition-all duration-300 relative ${
+            className={`bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300 relative ${
                 isCollapsed ? 'w-20' : 'w-64'
             }`}
         >
@@ -44,13 +46,13 @@ const Sidebar: React.FC = () => {
 
             <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="absolute -right-3 top-8 bg-white border border-gray-200 rounded-full p-1 shadow-md hover:bg-gray-50 transition-colors z-10"
+                className="absolute -right-3 top-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full p-1 shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors z-10"
                 title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
                 {isCollapsed ? (
-                    <ChevronRight className="w-4 h-4 text-gray-600" />
+                    <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                 ) : (
-                    <ChevronLeft className="w-4 h-4 text-gray-600" />
+                    <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                 )}
             </button>
 
@@ -63,8 +65,8 @@ const Sidebar: React.FC = () => {
                             className={({ isActive }) =>
                                 `flex items-center ${isCollapsed ? 'justify-center' : ''} px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover-lift group relative ${
                                     isActive
-                                        ? 'bg-[#2561E5]/10 text-[#2561E5] royal-blue-glow'
-                                        : 'text-[#6F7D99] hover:bg-gray-100 hover:text-[#12141A]'
+                                        ? 'bg-[#2561E5]/10 dark:bg-[#2561E5]/20 text-[#2561E5] dark:text-[#60A5FA] royal-blue-glow'
+                                        : 'text-[#6F7D99] dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-[#12141A] dark:hover:text-gray-200'
                                 }`
                             }
                             title={isCollapsed ? item.name : ''}
@@ -90,14 +92,14 @@ const Sidebar: React.FC = () => {
                     ))}
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-gray-200">
+                <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
                     <NavLink
                         to="/settings"
                         className={({ isActive }) =>
                             `flex items-center ${isCollapsed ? 'justify-center' : ''} px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover-lift ${
                                 isActive
-                                    ? 'bg-[#2561E5]/10 text-[#2561E5]'
-                                    : 'text-[#6F7D99] hover:bg-gray-100 hover:text-[#12141A]'
+                                    ? 'bg-[#2561E5]/10 dark:bg-[#2561E5]/20 text-[#2561E5] dark:text-[#60A5FA]'
+                                    : 'text-[#6F7D99] dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-[#12141A] dark:hover:text-gray-200'
                             }`
                         }
                         title={isCollapsed ? 'Settings' : ''}
