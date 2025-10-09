@@ -57,7 +57,7 @@ class ClaudeClient:
     def chat_completion(
         self,
         messages: List[Dict[str, str]],
-        model: str = "claude-3-sonnet-20240229",
+        model: str = "claude-sonnet-4-20250514",
         max_tokens: int = 1000,
         temperature: float = 0.7,
         system: Optional[str] = None,
