@@ -142,8 +142,8 @@ export type OnboardingData = {
     currency?: string;
     fiscal_year_start?: string | null;
     update_frequency?: "daily" | "weekly" | "monthly";
-    primary_focus?: "cash" | "profit" | "growth";
-    business_model?: string;
+    primary_focus?: string[];
+    business_model?: string[];
     multicurrency?: boolean;
     capital_reserve_target?: string | null;
     current_cash?: number | null;

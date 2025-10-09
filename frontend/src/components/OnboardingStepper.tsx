@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Brain,
@@ -53,27 +53,6 @@ const countries = [
     { code: 'IE', name: 'Ireland' },
 ];
 
-
-
-const businessModels = [
-    { label: 'Subscription / Recurring revenue', value: 'recurring' },
-    { label: 'One-time sales', value: 'one_time' },
-    { label: 'Services (time-based/project-based)', value: 'services' },
-    { label: 'Hybrid', value: 'hybrid' }
-];
-
-const updateFrequencyOptions = [
-    { label: 'Daily', value: 'daily' },
-    { label: 'Weekly', value: 'weekly' },
-    { label: 'Monthly', value: 'monthly' }
-];
-
-const primaryFocusOptions = [
-    { label: 'Cash – focus on liquidity', value: 'cash' },
-    { label: 'Profit – focus on margins', value: 'profit' },
-    { label: 'Growth – focus on scaling', value: 'growth' }
-];
-
 interface OnboardingStepperProps {
     initialStep?: number;
     initialData?: OnboardingData;
@@ -94,8 +73,8 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
         employees_count: null,
         fiscal_year_start: null,
         update_frequency: undefined,
-        primary_focus: undefined,
-        business_model: '',
+        primary_focus: [],
+        business_model: [],
         multicurrency: false,
         capital_reserve_target: null,
         current_cash: null,
@@ -116,6 +95,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
     const [showSummary, setShowSummary] = useState(false);
     const [multiSelectTemp, setMultiSelectTemp] = useState<string[]>([]);
     const [chatAnswers, setChatAnswers] = useState<Record<string, any>>({});
+    const chatContainerRef = useRef<HTMLDivElement>(null);
 
     const chatQuestions = [
         {
@@ -176,11 +156,27 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
     // Initialize chat when entering step 2
     useEffect(() => {
         if (currentStep === 2 && chatMessages.length === 0) {
-            setTimeout(() => {
+            const timer = setTimeout(() => {
                 addBotMessage(chatQuestions[0].question);
             }, 500);
+
+            return () => clearTimeout(timer);
         }
-    }, [currentStep]);
+    }, [currentStep, chatMessages.length]);
+
+    // Auto-scroll chat to bottom when messages change or options appear
+    useEffect(() => {
+        if (currentStep === 2 && chatContainerRef.current) {
+            const timer = setTimeout(() => {
+                chatContainerRef.current?.scrollTo({
+                    top: chatContainerRef.current.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 100);
+
+            return () => clearTimeout(timer);
+        }
+    }, [currentStep, chatMessages, showOptions, showTextInput, showSummary]);
 
     // Chat functions
     const addBotMessage = (content: string) => {
@@ -207,8 +203,17 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
         setChatMessages(prev => [...prev, { type: 'user', content: option }]);
         setShowOptions(false);
 
-        // Save the answer
-        setChatAnswers(prev => ({ ...prev, [question.field]: option.toLowerCase() }));
+        // Save the answer - convert to correct format based on field
+        let value: any = option.toLowerCase();
+
+        // capital_reserve_target can be number (months) or "custom"
+        // Keep as string for backend (decimal field)
+        if (question.field === 'capital_reserve_target' && option !== 'Custom') {
+            value = option; // Keep original number as string
+        }
+
+        const updatedAnswers = { ...chatAnswers, [question.field]: value };
+        setChatAnswers(updatedAnswers);
 
         if (option === 'Custom' && question.field === 'capital_reserve_target') {
             setTimeout(() => {
@@ -233,9 +238,13 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
 
         setChatMessages(prev => [...prev, { type: 'user', content: selected }]);
         setShowOptions(false);
-        
-        // Save the answer (join multiple values for display, but save as array if needed)
-        setChatAnswers(prev => ({ ...prev, [question.field]: multiSelectTemp.join(', ').toLowerCase() }));
+
+        // Save the answer as array of strings for both primary_focus and business_model
+        const value = multiSelectTemp.map(v => v.toLowerCase());
+
+        const updatedAnswers = { ...chatAnswers, [question.field]: value };
+        console.log('[Chat] Multiselect answer saved:', { field: question.field, value, allAnswers: updatedAnswers });
+        setChatAnswers(updatedAnswers);
         setMultiSelectTemp([]);
 
         if (currentQuestion < chatQuestions.length - 1) {
@@ -254,12 +263,13 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
         const question = chatQuestions[currentQuestion];
 
         setChatMessages(prev => [...prev, { type: 'user', content: textInputValue }]);
-        
+
         // Save the answer - convert to number if it's current_cash field
         const value = question.field === 'current_cash' ? parseFloat(textInputValue) : textInputValue;
         const updatedAnswers = { ...chatAnswers, [question.field]: value };
+        console.log('[Chat] Text answer saved:', { field: question.field, value, allAnswers: updatedAnswers });
         setChatAnswers(updatedAnswers);
-        
+
         setShowTextInput(false);
         setTextInputValue('');
 
@@ -271,16 +281,16 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
             try {
                 // Show loading message
                 setChatMessages(prev => [...prev, { type: 'bot', content: 'Analyzing your business...', isTyping: true }]);
-                
+
                 // Send all chat answers to backend
                 await updateOnboardingRequest(updatedAnswers);
-                
+
                 // Get AI summary
                 const aiSummary = await getAISummaryRequest();
-                
+
                 // Remove loading message and show AI summary
                 setChatMessages(prev => prev.slice(0, -1));
-                
+
                 if (aiSummary) {
                     setTimeout(() => {
                         setChatMessages(prev => [...prev, { type: 'bot', content: aiSummary }]);
@@ -540,7 +550,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
 
     const renderStep2 = () => {
         return (
-            <div className="space-y-4 min-h-[400px] max-h-[500px] overflow-y-auto">
+            <div ref={chatContainerRef} className="space-y-4 min-h-[400px] max-h-[500px] overflow-y-auto">
                 {chatMessages.map((msg, idx) => (
                     <div
                         key={idx}
@@ -614,6 +624,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
 
                                     if (currentQuestion < chatQuestions.length - 1) {
                                         setTimeout(() => {
+                                            debugger
                                             addBotMessage(chatQuestions[currentQuestion + 1].question);
                                             setCurrentQuestion(prev => prev + 1);
                                         }, 600);
