@@ -874,32 +874,56 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
 
                     {currentStep !== 2 && (
                         <div className="flex justify-between mt-8">
-                            <button
-                                onClick={handleBack}
-                                disabled={currentStep === 1}
-                                className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back
-                            </button>
+                            {currentStep === 1 ? (
+                                <div />
+                            ) : (
+                                <button
+                                    onClick={handleBack}
+                                    className="flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all"
+                                    style={{
+                                        color: '#6F7D99',
+                                        backgroundColor: 'transparent'
+                                    }}
+                                >
+                                    <ArrowLeft className="w-4 h-4 mr-2" />
+                                    Back
+                                </button>
+                            )}
 
                             {currentStep < 3 ? (
                                 <button
                                     onClick={handleNext}
-                                    disabled={loading}
-                                    className="flex items-center px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 disabled:opacity-50"
+                                    className="flex items-center px-6 py-3 text-sm font-medium rounded-lg transition-all"
+                                    style={{
+                                        background: 'linear-gradient(to bottom, #3A75F2, #1E4FCC)',
+                                        color: '#FFFFFF'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.boxShadow = '0 0 12px rgba(37,97,229,0.60)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.boxShadow = 'none';
+                                    }}
                                 >
-                                    {loading ? 'Saving...' : 'Next'}
+                                    Next
                                     <ArrowRight className="w-4 h-4 ml-2" />
                                 </button>
                             ) : (
                                 <button
                                     onClick={handleFinish}
-                                    disabled={loading}
-                                    className="flex items-center px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 disabled:opacity-50"
+                                    className="flex items-center px-6 py-3 text-sm font-medium rounded-lg transition-all"
+                                    style={{
+                                        background: 'linear-gradient(to bottom, #3A75F2, #1E4FCC)',
+                                        color: '#FFFFFF'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.boxShadow = '0 0 12px rgba(37,97,229,0.60)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.boxShadow = 'none';
+                                    }}
                                 >
-                                    {loading ? 'Finishing...' : 'Finish onboarding'}
-                                    <Check className="w-4 h-4 ml-2" />
+                                    Finish Setup →
                                 </button>
                             )}
                         </div>
@@ -909,7 +933,11 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                         <div className="flex justify-start mt-8">
                             <button
                                 onClick={handleBack}
-                                className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+                                className="flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all"
+                                style={{
+                                    color: '#6F7D99',
+                                    backgroundColor: 'transparent'
+                                }}
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Back
