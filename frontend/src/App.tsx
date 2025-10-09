@@ -16,6 +16,7 @@ import { useAuth } from './contexts/AuthContext';
 import Welcome from "./pages/Welcome.tsx";
 import WelcomeVideo from './pages/WelcomeVideo.tsx';
 import WelcomeUser from './pages/WelcomeUser.tsx';
+import Assistant from "./pages/Assistant.tsx";
 
 function AppContent() {
     const { showWelcomeVideo, setShowWelcomeVideo, markWelcomeVideoAsSeen } = useAuth();
@@ -45,6 +46,7 @@ function AppContent() {
                         <Route path="dashboard" element={<Dashboard/>}/>
                         <Route path="data-import" element={<DataImport/>}/>
                         <Route path="benchmark" element={<Benchmark />} />
+                        <Route path="assistant" element={<Assistant />} />
                         <Route path="settings" element={<Settings />} />
                     </Route>
                 </Route>

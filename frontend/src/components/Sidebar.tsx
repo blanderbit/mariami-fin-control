@@ -21,7 +21,6 @@ const navigationItems = [
     { name: 'Data Import', path: '/data-import', icon: Database },
     { name: 'Benchmark', path: '/benchmark', icon: TrendingUp },
     { name: 'AI Assistant', path: '/assistant', icon: Bot, pulse: true },
-    { name: 'Settings', path: '/settings', icon: Settings },
 ];
 
 const Sidebar: React.FC = () => {
