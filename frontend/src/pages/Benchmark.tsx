@@ -313,50 +313,50 @@ const Benchmark: React.FC = () => {
             case 'good':
                 return 'text-green-600';
             case 'warning':
-                return 'text-yellow-600';
+                return 'text-yellow-600 dark:text-yellow-400';
             case 'critical':
-                return 'text-red-600';
+                return 'text-red-600 dark:text-red-400';
             default:
-                return 'text-gray-600';
+                return 'text-gray-600 dark:text-gray-400';
         }
     };
 
     const getStatusIcon = (status: string) => {
         switch (status) {
             case 'good':
-                return <CheckCircle className="w-5 h-5 text-green-500" />;
+                return <CheckCircle className="w-5 h-5 text-green-500 dark:text-green-400" />;
             case 'warning':
                 return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
             case 'critical':
-                return <XCircle className="w-5 h-5 text-red-500" />;
+                return <XCircle className="w-5 h-5 text-red-500 dark:text-red-400" />;
             default:
-                return <Info className="w-5 h-5 text-gray-500" />;
+                return <Info className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
         }
     };
 
     const getSignalIcon = (severity: string) => {
         switch (severity) {
             case 'critical':
-                return <XCircle className="w-5 h-5 text-red-500" />;
+                return <XCircle className="w-5 h-5 text-red-500 dark:text-red-400" />;
             case 'warning':
                 return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
             case 'info':
                 return <Info className="w-5 h-5 text-blue-500" />;
             default:
-                return <CheckCircle className="w-5 h-5 text-green-500" />;
+                return <CheckCircle className="w-5 h-5 text-green-500 dark:text-green-400" />;
         }
     };
 
     const getPressureColor = (pressure: string) => {
         switch (pressure) {
             case 'low':
-                return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700';
+                return 'bg-green-100 text-green-800 border-green-200';
             case 'medium':
-                return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-700';
+                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
             case 'high':
-                return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border-red-200 dark:border-red-700';
+                return 'bg-red-100 text-red-800 border-red-200';
             default:
-                return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-600';
+                return 'bg-gray-100 text-gray-800 border-gray-200';
         }
     };
 
@@ -382,49 +382,49 @@ const Benchmark: React.FC = () => {
     }));
 
     const renderMarketOverview = () => (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 border border-gray-200 dark:border-gray-700">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Market Overview</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Inflation Card */}
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="font-semibold text-gray-900 dark:text-gray-100">Inflation</h3>
                         <div className="relative group">
                             <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
-                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-100 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                 {marketData.inflation.tooltip}
                             </div>
                         </div>
                     </div>
-                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
-                        {marketData.inflation.value}% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Aug 2025)</span>
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 dark:text-red-400 mb-3">
+                        {marketData.inflation.value}% <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-400 font-normal">(Aug 2025)</span>
                     </div>
                     <div className="space-y-2 text-sm">
                         <p className="text-gray-700 dark:text-gray-300">{marketData.inflation.explanation}</p>
                         <div className="flex items-start space-x-2">
-                            <XCircle className="w-4 h-4 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                            <XCircle className="w-4 h-4 text-red-500 dark:text-red-400 dark:text-red-400 mt-0.5 flex-shrink-0" />
                             <p className="text-red-700 dark:text-red-300">{marketData.inflation.risk}</p>
                         </div>
                         <div className="flex items-start space-x-2">
-                            <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400 dark:text-green-400 mt-0.5 flex-shrink-0" />
                             <p className="text-green-700 dark:text-green-300">{marketData.inflation.opportunity}</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Wage Growth Card */}
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="font-semibold text-gray-900 dark:text-gray-100">Wage Growth</h3>
                         <div className="relative group">
                             <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
-                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-100 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                 {marketData.wageGrowth.tooltip}
                             </div>
                         </div>
                     </div>
                     <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-3">
-                        +{marketData.wageGrowth.value}% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">YoY (Jun 2025)</span>
+                        +{marketData.wageGrowth.value}% <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-400 font-normal">YoY (Jun 2025)</span>
                     </div>
                     <div className="space-y-2 text-sm">
                         <p className="text-gray-700 dark:text-gray-300">{marketData.wageGrowth.explanation}</p>
@@ -440,18 +440,18 @@ const Benchmark: React.FC = () => {
                 </div>
 
                 {/* E-commerce Penetration Card */}
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="font-semibold text-gray-900 dark:text-gray-100">E-commerce Penetration</h3>
                         <div className="relative group">
                             <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
-                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-100 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                 {marketData.ecommercePenetration.tooltip}
                             </div>
                         </div>
                     </div>
                     <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-3">
-                        {marketData.ecommercePenetration.value} <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">of retail (2025)</span>
+                        {marketData.ecommercePenetration.value} <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-400 font-normal">of retail (2025)</span>
                     </div>
                     <div className="space-y-2 text-sm">
                         <p className="text-gray-700 dark:text-gray-300">{marketData.ecommercePenetration.explanation}</p>
@@ -467,18 +467,18 @@ const Benchmark: React.FC = () => {
                 </div>
 
                 {/* Consumer Confidence Card */}
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="font-semibold text-gray-900 dark:text-gray-100">Consumer Confidence</h3>
                         <div className="relative group">
                             <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
-                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-100 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                 {marketData.consumerConfidence.tooltip}
                             </div>
                         </div>
                     </div>
                     <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
-                        {marketData.consumerConfidence.value} <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Sep 2025)</span>
+                        {marketData.consumerConfidence.value} <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-400 font-normal">(Sep 2025)</span>
                     </div>
                     <div className="space-y-2 text-sm">
                         <p className="text-gray-700 dark:text-gray-300">{marketData.consumerConfidence.explanation}</p>
@@ -494,18 +494,18 @@ const Benchmark: React.FC = () => {
                 </div>
 
                 {/* Energy & Utilities Card */}
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="font-semibold text-gray-900 dark:text-gray-100">Energy & Utilities</h3>
                         <div className="relative group">
                             <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
-                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-100 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                 {marketData.energyCosts.tooltip}
                             </div>
                         </div>
                     </div>
                     <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
-                        {marketData.energyCosts.value} <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">vs pre-crisis</span>
+                        {marketData.energyCosts.value} <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-400 font-normal">vs pre-crisis</span>
                     </div>
                     <div className="space-y-2 text-sm">
                         <p className="text-gray-700 dark:text-gray-300">{marketData.energyCosts.explanation}</p>
@@ -521,18 +521,18 @@ const Benchmark: React.FC = () => {
                 </div>
 
                 {/* Interest Rate Card */}
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="font-semibold text-gray-900 dark:text-gray-100">Interest Rate</h3>
                         <div className="relative group">
                             <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
-                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-100 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                 {marketData.interestRate.tooltip}
                             </div>
                         </div>
                     </div>
                     <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
-                        {marketData.interestRate.value}% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Sep 2025)</span>
+                        {marketData.interestRate.value}% <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-400 font-normal">(Sep 2025)</span>
                     </div>
                     <div className="space-y-2 text-sm">
                         <p className="text-gray-700 dark:text-gray-300">{marketData.interestRate.explanation}</p>
@@ -553,12 +553,12 @@ const Benchmark: React.FC = () => {
     const renderBenchmarkCards = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             {benchmarkKPIs.map((kpi, index) => (
-                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-indigo-500 hover:shadow-xl transition-shadow">
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-indigo-500 dark:border-indigo-400 hover:shadow-xl transition-shadow">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{kpi.title}</h3>
                         <div className="relative group">
                             <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-100 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                 {kpi.tooltip}
                             </div>
                         </div>
@@ -608,7 +608,7 @@ const Benchmark: React.FC = () => {
                             </div>
                             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 relative overflow-hidden">
                                 <div
-                                    className="h-3 rounded-full bg-gray-400 transition-all duration-500"
+                                    className="h-3 rounded-full bg-gray-400 dark:bg-gray-500 transition-all duration-500"
                                     style={{
                                         width: `${Math.min((kpi.sectorNorm / Math.max(kpi.yourValue, kpi.sectorNorm)) * 100, 100)}%`
                                     }}
@@ -625,14 +625,14 @@ const Benchmark: React.FC = () => {
                                         // For DSO, lower is better, so we use (sector - you) / you * 100
                                         kpi.sectorNorm > kpi.yourValue ? (
                                             <>
-                                                <ArrowUpRight className="w-4 h-4 text-green-500" />
+                                                <ArrowUpRight className="w-4 h-4 text-green-500 dark:text-green-400" />
                                                 <span className="text-sm font-medium text-green-600 dark:text-green-400">
                           +{(((kpi.sectorNorm - kpi.yourValue) / kpi.yourValue) * 100).toFixed(1)}%
                         </span>
                                             </>
                                         ) : (
                                             <>
-                                                <ArrowDownRight className="w-4 h-4 text-red-500" />
+                                                <ArrowDownRight className="w-4 h-4 text-red-500 dark:text-red-400" />
                                                 <span className="text-sm font-medium text-red-600 dark:text-red-400">
                           {(((kpi.sectorNorm - kpi.yourValue) / kpi.yourValue) * 100).toFixed(1)}%
                         </span>
@@ -642,14 +642,14 @@ const Benchmark: React.FC = () => {
                                         // For other metrics, higher is better
                                         kpi.yourValue > kpi.sectorNorm ? (
                                             <>
-                                                <ArrowUpRight className="w-4 h-4 text-green-500" />
+                                                <ArrowUpRight className="w-4 h-4 text-green-500 dark:text-green-400" />
                                                 <span className="text-sm font-medium text-green-600 dark:text-green-400">
                         +{((kpi.yourValue - kpi.sectorNorm) / kpi.sectorNorm * 100).toFixed(1)}%
                       </span>
                                             </>
                                         ) : (
                                             <>
-                                                <ArrowDownRight className="w-4 h-4 text-red-500" />
+                                                <ArrowDownRight className="w-4 h-4 text-red-500 dark:text-red-400" />
                                                 <span className="text-sm font-medium text-red-600 dark:text-red-400">
                         {((kpi.yourValue - kpi.sectorNorm) / kpi.sectorNorm * 100).toFixed(1)}%
                       </span>
@@ -670,10 +670,10 @@ const Benchmark: React.FC = () => {
             {benchmarkKPIs.map((kpi, index) => (
                 <div key={index} className="bg-white rounded-lg shadow p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-medium text-gray-600">{kpi.title}</h3>
+                        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">{kpi.title}</h3>
                         <div className="relative group">
-                            <HelpCircle className="w-4 h-4 text-gray-400 cursor-help" />
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                 {kpi.tooltip}
                             </div>
                         </div>
@@ -681,7 +681,7 @@ const Benchmark: React.FC = () => {
 
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">You</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">You</span>
                             <span className="text-sm font-medium">{kpi.yourValue}{kpi.unit}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -691,8 +691,8 @@ const Benchmark: React.FC = () => {
                             ></div>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500">Sector</span>
-                            <span className="text-sm font-medium text-gray-600">{kpi.sectorNorm}{kpi.unit}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Sector</span>
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{kpi.sectorNorm}{kpi.unit}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                             <div
@@ -708,34 +708,27 @@ const Benchmark: React.FC = () => {
     );
 
     const renderSectorContext = () => (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Sector Context</h3>
-            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Sector Context</h3>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center space-x-2">
                     <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    <span className="text-sm text-blue-800 dark:text-blue-200">{getSectorContextBadge()}</span>
+                    <span className="text-sm text-blue-800">{getSectorContextBadge()}</span>
                 </div>
             </div>
         </div>
     );
 
     const renderExpenseMix = () => (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Expense Mix vs Peers</h2>
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Expense Mix vs Peers</h2>
             <div className="h-80 mb-4">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={expenseChartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} />
-                        <XAxis dataKey="category" stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} />
-                        <YAxis tickFormatter={(value) => `${value}%`} stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} />
-                        <Tooltip 
-                            formatter={(value: number, name: string) => [`${value}%`, name === 'yours' ? 'Your %' : 'Sector %']}
-                            contentStyle={{
-                                backgroundColor: theme === 'dark' ? '#374151' : '#ffffff',
-                                border: theme === 'dark' ? '1px solid #4b5563' : '1px solid #e5e7eb',
-                                color: theme === 'dark' ? '#f9fafb' : '#111827'
-                            }}
-                        />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="category" />
+                        <YAxis tickFormatter={(value) => `${value}%`} />
+                        <Tooltip formatter={(value: number, name: string) => [`${value}%`, name === 'yours' ? 'Your %' : 'Sector %']} />
                         <Bar dataKey="yours" fill="#4f46e5" name="yours" />
                         <Bar dataKey="sector" fill="#9ca3af" name="sector" />
                     </BarChart>
@@ -744,9 +737,9 @@ const Benchmark: React.FC = () => {
 
             <div className="space-y-2">
                 {expenseMix.filter(item => Math.abs(item.deviation) >= 5).map((item, index) => (
-                    <div key={index} className="flex items-center space-x-2 p-2 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+                    <div key={index} className="flex items-center space-x-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
-                        <span className="text-sm text-yellow-800 dark:text-yellow-200">
+                        <span className="text-sm text-yellow-800">
               {item.category} {item.yourPct}% vs peers {item.sectorPct}%
               ({item.deviation > 0 ? '+' : ''}{item.deviation}pp)
             </span>
@@ -757,13 +750,13 @@ const Benchmark: React.FC = () => {
     );
 
     const renderIndustryInsights = () => (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Industry Insights</h2>
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Industry Insights</h2>
             <div className="space-y-3">
                 {industryInsights.map((insight, index) => (
-                    <div key={index} className="flex items-start space-x-3 p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border border-indigo-200 dark:border-indigo-700">
+                    <div key={index} className="flex items-start space-x-3 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
                         <Target className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-indigo-800 dark:text-indigo-200">{insight}</p>
+                        <p className="text-sm text-indigo-800">{insight}</p>
                     </div>
                 ))}
             </div>
@@ -771,20 +764,20 @@ const Benchmark: React.FC = () => {
     );
 
     const renderSignalsFeed = () => (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Signals Feed</h2>
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Signals Feed</h2>
             <div className="space-y-3">
                 {signals.map((signal) => (
                     <button
                         key={signal.id}
                         onClick={() => window.location.href = signal.link}
-                        className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all text-left"
+                        className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:shadow-md transition-all text-left"
                     >
                         <div className="flex items-center space-x-3">
                             {getSignalIcon(signal.severity)}
-                            <span className="font-medium text-gray-900 dark:text-gray-100">{signal.message}</span>
+                            <span className="font-medium text-gray-900">{signal.message}</span>
                         </div>
-                        <Eye className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                        <Eye className="w-4 h-4 text-gray-400" />
                     </button>
                 ))}
             </div>
@@ -792,53 +785,53 @@ const Benchmark: React.FC = () => {
     );
 
     const renderSWOTAnalysis = () => (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">SWOT Analysis</h2>
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">SWOT Analysis</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg p-4">
-                    <h3 className="font-semibold text-green-800 dark:text-green-200 mb-3 flex items-center">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-green-800 mb-3 flex items-center">
                         <CheckCircle className="w-5 h-5 mr-2" />
                         Strengths
                     </h3>
                     <ul className="space-y-2">
                         {swotAnalysis.strengths.map((item, index) => (
-                            <li key={index} className="text-sm text-green-700 dark:text-green-300">• {item.text}</li>
+                            <li key={index} className="text-sm text-green-700">• {item.text}</li>
                         ))}
                     </ul>
                 </div>
 
-                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4">
-                    <h3 className="font-semibold text-red-800 dark:text-red-200 mb-3 flex items-center">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-red-800 mb-3 flex items-center">
                         <XCircle className="w-5 h-5 mr-2" />
                         Weaknesses
                     </h3>
                     <ul className="space-y-2">
                         {swotAnalysis.weaknesses.map((item, index) => (
-                            <li key={index} className="text-sm text-red-700 dark:text-red-300">• {item.text}</li>
+                            <li key={index} className="text-sm text-red-700">• {item.text}</li>
                         ))}
                     </ul>
                 </div>
 
-                <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
-                    <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-blue-800 mb-3 flex items-center">
                         <TrendingUp className="w-5 h-5 mr-2" />
                         Opportunities
                     </h3>
                     <ul className="space-y-2">
                         {swotAnalysis.opportunities.map((item, index) => (
-                            <li key={index} className="text-sm text-blue-700 dark:text-blue-300">• {item.text}</li>
+                            <li key={index} className="text-sm text-blue-700">• {item.text}</li>
                         ))}
                     </ul>
                 </div>
 
-                <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
-                    <h3 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-3 flex items-center">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-yellow-800 mb-3 flex items-center">
                         <AlertTriangle className="w-5 h-5 mr-2" />
                         Threats
                     </h3>
                     <ul className="space-y-2">
                         {swotAnalysis.threats.map((item, index) => (
-                            <li key={index} className="text-sm text-yellow-700 dark:text-yellow-300">• {item.text}</li>
+                            <li key={index} className="text-sm text-yellow-700">• {item.text}</li>
                         ))}
                     </ul>
                 </div>
@@ -847,8 +840,8 @@ const Benchmark: React.FC = () => {
     );
 
     const renderPorterAnalysis = () => (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Porter's 5 Forces</h2>
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Porter's 5 Forces</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {porterForces.map((force, index) => (
                     <div key={index} className={`p-4 rounded-lg border ${getPressureColor(force.pressure)}`}>
@@ -866,13 +859,13 @@ const Benchmark: React.FC = () => {
     );
 
     const renderStrategicInsights = () => (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Strategic Insights</h2>
+        <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Strategic Insights</h2>
             <div className="space-y-3">
                 {strategicInsights.map((insight, index) => (
-                    <div key={index} className="flex items-start space-x-3 p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg border border-purple-200 dark:border-purple-700">
-                        <Zap className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-purple-800 dark:text-purple-200">{insight}</p>
+                    <div key={index} className="flex items-start space-x-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <Zap className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-purple-800">{insight}</p>
                     </div>
                 ))}
             </div>
@@ -885,18 +878,18 @@ const Benchmark: React.FC = () => {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Benchmark</h1>
-                    <p className="text-gray-600 dark:text-gray-400">Compare your performance against industry standards</p>
+                    <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400">Compare your performance against industry standards</p>
                 </div>
 
                 <div className="flex items-center space-x-4">
                     {/* Tab Selector */}
-                    <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                    <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
                         <button
                             onClick={() => setActiveTab('market')}
                             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                                 activeTab === 'market'
-                                    ? 'bg-white dark:bg-gray-600 text-indigo-700 dark:text-indigo-300 shadow-sm'
-                                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+                                    ? 'bg-white dark:bg-gray-700 text-indigo-700 dark:text-indigo-400 shadow-sm'
+                                    : 'text-gray-600 dark:text-gray-400 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                             }`}
                         >
                             Market Overview
@@ -905,8 +898,8 @@ const Benchmark: React.FC = () => {
                             onClick={() => setActiveTab('strategic')}
                             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                                 activeTab === 'strategic'
-                                    ? 'bg-white dark:bg-gray-600 text-indigo-700 dark:text-indigo-300 shadow-sm'
-                                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+                                    ? 'bg-white dark:bg-gray-700 text-indigo-700 dark:text-indigo-400 shadow-sm'
+                                    : 'text-gray-600 dark:text-gray-400 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                             }`}
                         >
                             Strategic Analysis
