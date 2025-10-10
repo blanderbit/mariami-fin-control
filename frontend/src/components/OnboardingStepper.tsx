@@ -104,8 +104,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                 'Daily',
                 'Weekly',
                 'Monthly',
-                // TODO return to this
-                // 'Other'
+                'Other'
             ],
             field: 'update_frequency'
         },
@@ -633,7 +632,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                     </div>
                 )}
 
-                {showOptions && chatQuestions[currentQuestion].textInput && !showSummary && (
+                {showOptions && chatQuestions[currentQuestion].textInput && !showSummary && !chatMessages.some(msg => msg.isTyping) && (
                     <div className="pl-2 space-y-3">
                         {chatQuestions[currentQuestion].field === 'current_cash' ? (
                             <input

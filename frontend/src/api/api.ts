@@ -189,7 +189,7 @@ export interface Onboarding {
    */
   fiscal_year_start?: string | null;
   /** Update frequency */
-  update_frequency?: "daily" | "weekly" | "monthly" | null;
+  update_frequency?: "daily" | "weekly" | "monthly" | "other" | null;
   /** Primary business focus areas (multi-select) */
   primary_focus?: ("cash" | "profit" | "growth")[];
   /** Business model types (multi-select) */
