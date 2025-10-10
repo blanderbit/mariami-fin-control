@@ -1,5 +1,6 @@
 from django.db import models
 from typing import final
+from django.contrib.postgres.fields import ArrayField
 from djmoney.models.fields import MoneyField
 from config.settings.components.currencies import (
     SUPPORTED_CURRENCIES, 
@@ -22,6 +23,13 @@ class ProfileModel(models.Model):
         CASH = "cash"
         PROFIT = "profit"
         GROWTH = "growth"
+
+    class BusinessModelChoices(models.TextChoices):
+        SUBSCRIPTION = "subscription"
+        SERVICES = "services"
+        HYBRID = "hybrid"
+        ONE_TIME = "one_time"
+        OTHER = "other"
 
     # Business settings - keeping old format for compatibility during migration
 
@@ -54,7 +62,7 @@ class ProfileModel(models.Model):
 
     # Financial settings
     currency = models.CharField(
-        max_length=10,
+        max_length=255,
         choices=SUPPORTED_CURRENCIES,
         null=True,
         blank=True,
@@ -65,20 +73,25 @@ class ProfileModel(models.Model):
     )
 
     update_frequency = models.CharField(
-        max_length=10, 
+        max_length=255, 
         choices=UpdateFrequency.choices, 
         null=True, 
         blank=True
     )
 
-    primary_focus = models.CharField(
-        max_length=10, 
-        choices=PrimaryFocus.choices, 
-        null=True, 
-        blank=True
+    primary_focus = ArrayField(
+        models.CharField(max_length=255, choices=PrimaryFocus.choices),
+        default=list,
+        blank=True,
+        help_text="Primary business focus areas (multi-select)"
     )
 
-    business_model = models.CharField(max_length=255, null=True, blank=True)
+    business_model = ArrayField(
+        models.CharField(max_length=255, choices=BusinessModelChoices.choices),
+        default=list,
+        blank=True,
+        help_text="Business model types (multi-select)"
+    )
     multicurrency = models.BooleanField(default=False)
     
     # Money fields
@@ -116,7 +129,13 @@ class ProfileModel(models.Model):
         Check if the onboarding is complete based on required fields
         """
         for field in self.REQUIRED_ONBOARDING_FIELDS:
-            if not getattr(self, field):
+            value = getattr(self, field)
+            # For array fields, check if list is not empty
+            if field in ['primary_focus', 'business_model']:
+                if not value or len(value) == 0:
+                    return False
+            # For other fields, check if value exists
+            elif not value:
                 return False
         return True
 
