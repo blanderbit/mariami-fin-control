@@ -50,7 +50,7 @@ const Signup: React.FC = () => {
         // Если пользователь уже авторизован, редиректим
         if (user) {
             if (user.is_onboarded) {
-                navigate('/dashboard');
+                navigate('/overview');
             } else {
                 navigate('/onboarding');
             }
@@ -207,8 +207,8 @@ const Signup: React.FC = () => {
                                         value={formData.companyName}
                                         onChange={handleChange}
                                         className={`w-full pl-10 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-[#2561E5] focus:outline-none transition-all bg-white dark:bg-gray-800 border text-gray-900 dark:text-gray-100 ${
-                                            errors.companyName 
-                                                ? 'border-red-300 dark:border-red-500' 
+                                            errors.companyName
+                                                ? 'border-red-300 dark:border-red-500'
                                                 : 'border-gray-300 dark:border-gray-600'
                                         }`}
                                         placeholder="Enter your company name"
@@ -234,8 +234,8 @@ const Signup: React.FC = () => {
                                         value={formData.email}
                                         onChange={handleChange}
                                         className={`w-full pl-10 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-[#2561E5] focus:outline-none transition-all bg-white dark:bg-gray-800 border text-gray-900 dark:text-gray-100 ${
-                                            errors.email 
-                                                ? 'border-red-300 dark:border-red-500' 
+                                            errors.email
+                                                ? 'border-red-300 dark:border-red-500'
                                                 : 'border-gray-300 dark:border-gray-600'
                                         }`}
                                         placeholder="Enter your work email"
@@ -262,8 +262,8 @@ const Signup: React.FC = () => {
                                         value={formData.password}
                                         onChange={handleChange}
                                         className={`w-full pl-10 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-[#2561E5] focus:outline-none transition-all bg-white dark:bg-gray-800 border text-gray-900 dark:text-gray-100 ${
-                                            errors.password 
-                                                ? 'border-red-300 dark:border-red-500' 
+                                            errors.password
+                                                ? 'border-red-300 dark:border-red-500'
                                                 : 'border-gray-300 dark:border-gray-600'
                                         }`}
                                         placeholder="Create a password (min 8 characters)"
@@ -289,8 +289,8 @@ const Signup: React.FC = () => {
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
                                         className={`w-full pl-10 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-[#2561E5] focus:outline-none transition-all bg-white dark:bg-gray-800 border text-gray-900 dark:text-gray-100 ${
-                                            errors.confirmPassword 
-                                                ? 'border-red-300 dark:border-red-500' 
+                                            errors.confirmPassword
+                                                ? 'border-red-300 dark:border-red-500'
                                                 : 'border-gray-300 dark:border-gray-600'
                                         }`}
                                         placeholder="Confirm your password"
@@ -387,7 +387,7 @@ const Signup: React.FC = () => {
                 input::placeholder {
                     color: #9AA3B2;
                 }
-                
+
                 .dark input::placeholder {
                     color: #6B7280;
                 }

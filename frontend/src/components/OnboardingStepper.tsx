@@ -177,7 +177,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                     top: chatContainerRef.current.scrollHeight,
                     behavior: 'smooth'
                 });
-            }, 100);
+            }, 300);
 
             return () => clearTimeout(timer);
         }
@@ -432,11 +432,11 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
             // Обновляем профиль пользователя чтобы получить актуальный is_onboarded
             await refreshProfile();
             // Редирект на dashboard после завершения онбоардинга
-            navigate('/dashboard');
+            navigate('/overview');
         } catch (error) {
             console.error('Failed to finish onboarding:', error);
             // Все равно редиректим на dashboard даже если произошла ошибка
-            navigate('/dashboard');
+            navigate('/overview');
         } finally {
             setLoading(false);
         }

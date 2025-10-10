@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getCurrentOnboardingStep } from '../utils/onboardingUtils';
@@ -8,18 +8,26 @@ const Onboarding: React.FC = () => {
     const navigate = useNavigate();
     const { user, onboardingStatus, loading } = useAuth();
 
-    // Определяем начальный степ на основе заполненных полей
-    // useMemo должны быть ДО любых условных return!
-    const currentStep = useMemo(() => {
-        if (!onboardingStatus?.profile) return 1;
-        return getCurrentOnboardingStep(onboardingStatus.profile) || 1;
-    }, [onboardingStatus?.profile]);
+    // Используем ref для хранения начальных данных
+    // чтобы они не изменялись при обновлении onboardingStatus
+    const initialDataRef = useRef(onboardingStatus?.profile);
+    const initialStepRef = useRef(
+        onboardingStatus?.profile
+            ? getCurrentOnboardingStep(onboardingStatus.profile) || 1
+            : 1
+    );
 
-    // Мемоизируем пропсы для OnboardingStepper
+    // Обновляем ref только если данных еще не было
+    if (!initialDataRef.current && onboardingStatus?.profile) {
+        initialDataRef.current = onboardingStatus.profile;
+        initialStepRef.current = getCurrentOnboardingStep(onboardingStatus.profile) || 1;
+    }
+
+    // Мемоизируем пропсы для OnboardingStepper с использованием ref
     const stepperProps = useMemo(() => ({
-        initialStep: currentStep,
-        initialData: onboardingStatus?.profile
-    }), [currentStep, onboardingStatus?.profile]);
+        initialStep: initialStepRef.current,
+        initialData: initialDataRef.current
+    }), []); // Пустой массив зависимостей - создается один раз
 
     useEffect(() => {
         // Не редиректим пока данные загружаются
@@ -35,13 +43,7 @@ const Onboarding: React.FC = () => {
 
         // Если пользователь уже прошел онбординг, перенаправляем на дашборд
         if (user.is_onboarded) {
-            navigate('/dashboard');
-            return;
-        }
-
-        // Если онбординг завершен (все обязательные поля заполнены), перенаправляем на дашборд
-        if (onboardingStatus && onboardingStatus.is_onboarded) {
-            navigate('/dashboard');
+            navigate('/overview');
             return;
         }
 
@@ -50,7 +52,7 @@ const Onboarding: React.FC = () => {
             // Данные будут загружены через AuthContext
             return;
         }
-    }, [user, onboardingStatus, loading, navigate]);
+    }, [user, loading, navigate]);
 
     // Если данные еще загружаются, показываем загрузку
     if (loading || !user || !onboardingStatus) {

@@ -20,7 +20,7 @@ const Welcome: React.FC = () => {
         // Если пользователь уже авторизован, редиректим
         if (user) {
             if (user.is_onboarded) {
-                navigate('/dashboard');
+                navigate('/overview');
             } else {
                 navigate('/onboarding');
             }
