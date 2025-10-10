@@ -100,7 +100,13 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
     const chatQuestions = [
         {
             question: "How often do you update your financial/business data?",
-            options: ['Daily', 'Weekly', 'Monthly', 'Other'],
+            options: [
+                'Daily',
+                'Weekly',
+                'Monthly',
+                // TODO return to this
+                // 'Other'
+            ],
             field: 'update_frequency'
         },
         {
@@ -240,7 +246,8 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
         setShowOptions(false);
 
         // Save the answer as array of strings for both primary_focus and business_model
-        const value = multiSelectTemp.map(v => v.toLowerCase());
+        // Convert UI values to API format (e.g., "One-time" -> "one_time")
+        const value = multiSelectTemp.map(v => v.toLowerCase().replace('-', '_'));
 
         const updatedAnswers = { ...chatAnswers, [question.field]: value };
         console.log('[Chat] Multiselect answer saved:', { field: question.field, value, allAnswers: updatedAnswers });
@@ -283,6 +290,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                 setChatMessages(prev => [...prev, { type: 'bot', content: 'Analyzing your business...', isTyping: true }]);
 
                 // Send all chat answers to backend
+                console.log('[Chat] Sending onboarding data to backend:', updatedAnswers);
                 await updateOnboardingRequest(updatedAnswers);
 
                 // Get AI summary
@@ -616,22 +624,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
 
                         {chatQuestions[currentQuestion].multiSelect && multiSelectTemp.length > 0 && (
                             <button
-                                onClick={() => {
-                                    const selected = multiSelectTemp.join(', ');
-                                    setChatMessages(prev => [...prev, { type: 'user', content: selected }]);
-                                    setShowOptions(false);
-                                    setMultiSelectTemp([]);
-
-                                    if (currentQuestion < chatQuestions.length - 1) {
-                                        setTimeout(() => {
-                                            debugger
-                                            addBotMessage(chatQuestions[currentQuestion + 1].question);
-                                            setCurrentQuestion(prev => prev + 1);
-                                        }, 600);
-                                    } else {
-                                        showFinalSummary();
-                                    }
-                                }}
+                                onClick={handleMultiSelectContinue}
                                 className="w-full px-4 py-3 rounded-xl text-sm font-medium transition-all mt-4 bg-gradient-to-b from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 text-white hover:shadow-lg"
                             >
                                 Continue →

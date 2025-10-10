@@ -190,13 +190,16 @@ export interface Onboarding {
   fiscal_year_start?: string | null;
   /** Update frequency */
   update_frequency?: "daily" | "weekly" | "monthly" | null;
-  /** Primary focus */
-  primary_focus?: "cash" | "profit" | "growth" | null;
-  /**
-   * Business model
-   * @maxLength 255
-   */
-  business_model?: string | null;
+  /** Primary business focus areas (multi-select) */
+  primary_focus?: ("cash" | "profit" | "growth")[];
+  /** Business model types (multi-select) */
+  business_model?: (
+    | "subscription"
+    | "services"
+    | "hybrid"
+    | "one_time"
+    | "other"
+  )[];
   /** Multicurrency */
   multicurrency?: boolean;
   /**
