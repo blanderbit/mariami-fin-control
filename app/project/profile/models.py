@@ -18,6 +18,7 @@ class ProfileModel(models.Model):
         DAILY = "daily"
         WEEKLY = "weekly"
         MONTHLY = "monthly"
+        OTHER = "other"
 
     class PrimaryFocus(models.TextChoices):
         CASH = "cash"
