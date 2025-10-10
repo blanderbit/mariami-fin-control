@@ -270,6 +270,9 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
 
         setChatMessages(prev => [...prev, { type: 'user', content: textInputValue }]);
 
+        // Hide input field immediately after submission
+        setShowOptions(false);
+
         // Save the answer - convert to number if it's current_cash field
         const value = question.field === 'current_cash' ? parseFloat(textInputValue) : textInputValue;
         const updatedAnswers = { ...chatAnswers, [question.field]: value };

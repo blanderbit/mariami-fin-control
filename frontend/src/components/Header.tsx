@@ -3,20 +3,21 @@ import { Bell, User, Search, LogOut, Sun, Moon, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSidebar } from '../contexts/SidebarContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
     const { isCollapsed, toggleSidebar } = useSidebar();
-    const userEmail = localStorage.getItem('userEmail') || 'user@company.com';
-    const company = JSON.parse(localStorage.getItem('company') || '{}');
-    const userName = company.name || 'John Doe';
+    const { user, logout } = useAuth();
 
-    const handleLogout = () => {
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('company');
-        localStorage.removeItem('dashboardCards');
+    const profileName = user?.name;
+
+    const userName = profileName || 'User';
+    const userEmail = user?.email || 'user@company.com';
+
+    const handleLogout = async () => {
+        await logout();
         navigate('/login');
     };
 
@@ -32,7 +33,7 @@ const Header: React.FC = () => {
                     >
                         <Menu className="w-5 h-5" />
                     </button>
-                    
+
                     <div className="flex-1 max-w-lg">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5" />
@@ -66,11 +67,13 @@ const Header: React.FC = () => {
                         </div>
                         <div className="text-sm">
                             <p className="font-medium text-gray-900 dark:text-gray-100">{userName}</p>
-                            <p className="text-gray-500 dark:text-gray-400">{userEmail}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {userEmail}
+                            </p>
                         </div>
                         <button
                             onClick={handleLogout}
-                            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                            className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                             title="Logout"
                         >
                             <LogOut className="w-5 h-5" />

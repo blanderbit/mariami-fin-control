@@ -95,15 +95,24 @@ export async function registerRequest(data: { email: string; password: string; r
 export async function getProfileRequest(): Promise<AuthUser | null> {
     try {
         const res = await api.profile.profileProfileList() as any;
-        const profile = res.data?.results?.[0] || res.data;
+        const profileData = res.data?.results?.[0] || res.data?.data || res.data;
 
         // Получаем статус онбординга для получения is_onboarded
         const onboardingStatus = await getOnboardingStatusRequest();
-        if (onboardingStatus && profile) {
-            profile.is_onboarded = onboardingStatus.is_onboarded;
-        }
+        
+        // Map the response to AuthUser structure
+        // API returns: { id, email, profile: { name, last_name, ... }, ... }
+        // We need: { id, email, name, last_name, ... }
+        const user: AuthUser = {
+            id: profileData.id,
+            email: profileData.email,
+            name: profileData.profile?.name || profileData.name,
+            last_name: profileData.profile?.last_name || profileData.last_name,
+            is_admin: profileData.is_admin,
+            is_onboarded: onboardingStatus?.is_onboarded || profileData.is_onboarded
+        };
 
-        return profile as AuthUser | null;
+        return user;
     } catch (error) {
         console.error('Failed to fetch profile:', error);
         return null;
