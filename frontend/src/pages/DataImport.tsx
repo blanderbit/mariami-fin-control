@@ -13,7 +13,8 @@ import {
     Sparkles
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { uploadDataFilesRequest, UploadDataFilesResponse, updateOnboardingRequest, getOnboardingStatusRequest, getTemplatesRequest, TemplatesData } from '../api/auth';
+import { useAuth } from '../contexts/AuthContext';
+import { uploadDataFilesRequest, UploadDataFilesResponse, updateOnboardingRequest, getTemplatesRequest, TemplatesData } from '../api/auth';
 
 interface UploadedFile {
     name: string;
@@ -26,19 +27,18 @@ interface UploadErrors {
 }
 
 const DataImport: React.FC = () => {
+    const { onboardingStatus } = useAuth();
     const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: UploadedFile }>({});
     const [uploadErrors, setUploadErrors] = useState<UploadErrors>({});
     const [currentCashBalance, setCurrentCashBalance] = useState<number>(0);
     const [isUploading, setIsUploading] = useState<boolean>(false);
     const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
     const [isUpdatingCash, setIsUpdatingCash] = useState<boolean>(false);
-    const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(true);
     const [templates, setTemplates] = useState<TemplatesData | null>(null);
     const [templatesLoading, setTemplatesLoading] = useState<boolean>(true);
 
-    // Get company data
-    const company = JSON.parse(localStorage.getItem('company') || '{}');
-    const baseCurrency = company.profile?.baseCurrency || 'USD';
+    // Get base currency from onboarding status
+    const baseCurrency = onboardingStatus?.profile?.currency || 'USD';
 
     const downloadTemplate = async (templateType: string) => {
         if (!templates) {
@@ -81,19 +81,12 @@ const DataImport: React.FC = () => {
         }
     };
 
-    const loadProfileData = async () => {
-        try {
-            setIsLoadingProfile(true);
-            const onboardingStatus = await getOnboardingStatusRequest();
-            if (onboardingStatus && onboardingStatus.profile && onboardingStatus.profile.current_cash) {
-                setCurrentCashBalance(parseFloat(onboardingStatus.profile.current_cash));
-            }
-        } catch (error) {
-            console.error('Failed to load profile data:', error);
-        } finally {
-            setIsLoadingProfile(false);
+    // Load profile data from AuthContext instead of API
+    useEffect(() => {
+        if (onboardingStatus && onboardingStatus.profile && onboardingStatus.profile.current_cash) {
+            setCurrentCashBalance(parseFloat(onboardingStatus.profile.current_cash));
         }
-    };
+    }, [onboardingStatus]);
 
     const loadTemplates = async () => {
         try {
@@ -118,9 +111,8 @@ const DataImport: React.FC = () => {
         }
     };
 
-    // Загружаем данные профиля и шаблоны при монтировании компонента
+    // Загружаем шаблоны при монтировании компонента
     useEffect(() => {
-        loadProfileData();
         loadTemplates();
     }, []);
 
@@ -482,15 +474,13 @@ const DataImport: React.FC = () => {
                     <div className="flex-1">
                         <h4 className="text-lg font-semibold text-[#12141A] dark:text-gray-100 mb-2">Step 4 — Current Cash Balance</h4>
                         <p className="text-[#6F7D99] dark:text-gray-400 mb-2">Optional: enter your current bank balance</p>
-                        
+
                         {/* Отображение текущего значения */}
-                        {!isLoadingProfile && (
-                            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-                                <p className="text-sm text-blue-700 dark:text-blue-300">
-                                    <span className="font-medium">Current value:</span> {currentCashBalance ? `${currentCashBalance.toLocaleString()} ${baseCurrency}` : 'Not set'}
-                                </p>
-                            </div>
-                        )}
+                        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                                <span className="font-medium">Current value:</span> {currentCashBalance ? `${currentCashBalance.toLocaleString()} ${baseCurrency}` : 'Not set'}
+                            </p>
+                        </div>
 
                         <div className="max-w-xs">
                             <div className="relative">

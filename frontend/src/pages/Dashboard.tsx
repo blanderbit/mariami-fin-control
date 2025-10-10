@@ -46,7 +46,8 @@ import {
     endOfDay
 } from 'date-fns';
 import {useTheme} from '../contexts/ThemeContext';
-import {getPnLAnalysisRequest, PnLAnalysisResponse, PnLDataItem, getInvoicesAnalysisRequest, InvoicesAnalysisResponse, getCashAnalysisRequest, CashAnalysisResponse, getExpenseBreakdownRequest, ExpenseBreakdownResponse, getAIInsightsRequest, AIInsightsResponse, getOnboardingStatusRequest, OnboardingData} from '../api/auth';
+import {useAuth} from '../contexts/AuthContext';
+import {getPnLAnalysisRequest, PnLAnalysisResponse, PnLDataItem, getInvoicesAnalysisRequest, InvoicesAnalysisResponse, getCashAnalysisRequest, CashAnalysisResponse, getExpenseBreakdownRequest, ExpenseBreakdownResponse, getAIInsightsRequest, AIInsightsResponse, OnboardingData} from '../api/auth';
 
 interface PulseKPI {
     revenue: number;
@@ -95,6 +96,7 @@ interface ChartData {
 
 const Dashboard: React.FC = () => {
     const {theme} = useTheme();
+    const {onboardingStatus: authOnboardingStatus} = useAuth();
 
     // Refs for scroll targets
     const revenueExpensesRef = useRef<HTMLDivElement>(null);
@@ -139,7 +141,6 @@ const Dashboard: React.FC = () => {
 
     // Profile data state
     const [profileData, setProfileData] = useState<OnboardingData | null>(null);
-    const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
     // Calculated cash state
     const [calculatedEndingCash, setCalculatedEndingCash] = useState(0);
@@ -330,20 +331,12 @@ const Dashboard: React.FC = () => {
         }
     };
 
-    // Load profile data
-    const loadProfileData = async () => {
-        try {
-            setIsLoadingProfile(true);
-            const onboardingStatus = await getOnboardingStatusRequest();
-            if (onboardingStatus && onboardingStatus.profile) {
-                setProfileData(onboardingStatus.profile);
-            }
-        } catch (error) {
-            console.error('Failed to load profile data:', error);
-        } finally {
-            setIsLoadingProfile(false);
+    // Load profile data from AuthContext instead of API
+    useEffect(() => {
+        if (authOnboardingStatus && authOnboardingStatus.profile) {
+            setProfileData(authOnboardingStatus.profile);
         }
-    };
+    }, [authOnboardingStatus]);
 
     // Calculate ending cash when cash data and profile data are available
     const calculateEndingCash = useCallback(() => {
@@ -404,10 +397,6 @@ const Dashboard: React.FC = () => {
         }
     }, [pnlData, selectedPeriod, customStartDate, customEndDate]);
 
-    // Load profile data on component mount
-    useEffect(() => {
-        loadProfileData();
-    }, []);
 
     // Calculate ending cash when cash data or profile data changes
     useEffect(() => {

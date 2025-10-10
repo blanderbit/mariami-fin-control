@@ -43,17 +43,21 @@ export async function loginRequest(email: string, password: string, storage?: To
         setTokenStorage(storage);
     }
 
-    // fetch profile with onboarding status
+    // fetch profile (without onboarding status to avoid duplicate calls)
     const profileRes = await api.profile.profileProfileList() as any;
-    const user = profileRes.data?.results?.[0] || profileRes.data;
+    const profileData = profileRes.data?.results?.[0] || profileRes.data?.data || profileRes.data;
 
-    // Получаем статус онбординга для получения is_onboarded
-    const onboardingStatus = await getOnboardingStatusRequest();
-    if (onboardingStatus && user) {
-        user.is_onboarded = onboardingStatus.is_onboarded;
-    }
+    // Map to AuthUser structure
+    const user: AuthUser = {
+        id: profileData.id,
+        email: profileData.email,
+        name: profileData.profile?.name || profileData.name,
+        last_name: profileData.profile?.last_name || profileData.last_name,
+        is_admin: profileData.is_admin,
+        is_onboarded: profileData.is_onboarded // Will be updated in AuthContext
+    };
 
-    return user as AuthUser | null;
+    return user;
 }
 
 export async function logoutRequest() {
@@ -97,19 +101,17 @@ export async function getProfileRequest(): Promise<AuthUser | null> {
         const res = await api.profile.profileProfileList() as any;
         const profileData = res.data?.results?.[0] || res.data?.data || res.data;
 
-        // Получаем статус онбординга для получения is_onboarded
-        const onboardingStatus = await getOnboardingStatusRequest();
-        
         // Map the response to AuthUser structure
         // API returns: { id, email, profile: { name, last_name, ... }, ... }
         // We need: { id, email, name, last_name, ... }
+        // Note: is_onboarded will be updated in AuthContext by calling refreshOnboardingStatus
         const user: AuthUser = {
             id: profileData.id,
             email: profileData.email,
             name: profileData.profile?.name || profileData.name,
             last_name: profileData.profile?.last_name || profileData.last_name,
             is_admin: profileData.is_admin,
-            is_onboarded: onboardingStatus?.is_onboarded || profileData.is_onboarded
+            is_onboarded: profileData.is_onboarded
         };
 
         return user;

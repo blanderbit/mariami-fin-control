@@ -19,7 +19,8 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
-import { updateOnboardingRequest, getOnboardingStatusRequest, OnboardingData, getCurrenciesRequest, Currency, getIndustriesRequest } from '../api/auth';
+import { useAuth } from '../contexts/AuthContext';
+import { updateOnboardingRequest, OnboardingData, getCurrenciesRequest, Currency, getIndustriesRequest } from '../api/auth';
 
 const countries = [
     { code: 'US', name: 'United States' },
@@ -61,6 +62,7 @@ interface DataWarning {
 
 const Overview: React.FC = () => {
     const { theme } = useTheme();
+    const { onboardingStatus: authOnboardingStatus } = useAuth();
     const [company, setCompany] = useState<any>({});
     const [profileData, setProfileData] = useState<OnboardingData | null>(null);
     const [integrations, setIntegrations] = useState<Integration[]>([]);
@@ -69,7 +71,6 @@ const Overview: React.FC = () => {
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [editingProfile, setEditingProfile] = useState<any>({});
     const [isSaving, setIsSaving] = useState(false);
-    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
     const [currencies, setCurrencies] = useState<Currency[]>([]);
     const [currenciesLoading, setCurrenciesLoading] = useState(true);
     const [industries, setIndustries] = useState<string[]>([]);
@@ -80,39 +81,33 @@ const Overview: React.FC = () => {
         loadIntegrations();
         loadCurrencies();
         loadIndustries();
-    }, []);
+    }, [authOnboardingStatus]);
 
-    const loadProfileData = async () => {
-        try {
-            setIsLoadingProfile(true);
-            const onboardingStatus = await getOnboardingStatusRequest();
-            if (onboardingStatus && onboardingStatus.profile) {
-                setProfileData(onboardingStatus.profile);
+    const loadProfileData = () => {
+        // Use onboarding status from AuthContext instead of API call
+        if (authOnboardingStatus && authOnboardingStatus.profile) {
+            setProfileData(authOnboardingStatus.profile);
 
-                // Update company data with profile data
-                const companyData = JSON.parse(localStorage.getItem('company') || '{}');
-                const updatedCompany = {
-                    ...companyData,
-                    name: onboardingStatus.profile.company_name || companyData.name,
-                    profile: {
-                        ...companyData.profile,
-                        country: onboardingStatus.profile.country,
-                        baseCurrency: onboardingStatus.profile.currency,
-                        industry: onboardingStatus.profile.industry,
-                        companySize: onboardingStatus.profile.employees_count,
-                        fiscalYearStart: onboardingStatus.profile.fiscal_year_start,
-                    }
-                };
-                setCompany(updatedCompany);
-                localStorage.setItem('company', JSON.stringify(updatedCompany));
-            }
-        } catch (error) {
-            console.error('Failed to load profile data:', error);
+            // Update company data with profile data
+            const companyData = JSON.parse(localStorage.getItem('company') || '{}');
+            const updatedCompany = {
+                ...companyData,
+                name: authOnboardingStatus.profile.company_name || companyData.name,
+                profile: {
+                    ...companyData.profile,
+                    country: authOnboardingStatus.profile.country,
+                    baseCurrency: authOnboardingStatus.profile.currency,
+                    industry: authOnboardingStatus.profile.industry,
+                    companySize: authOnboardingStatus.profile.employees_count,
+                    fiscalYearStart: authOnboardingStatus.profile.fiscal_year_start,
+                }
+            };
+            setCompany(updatedCompany);
+            localStorage.setItem('company', JSON.stringify(updatedCompany));
+        } else {
             // Fallback to localStorage data
-        const companyData = JSON.parse(localStorage.getItem('company') || '{}');
-        setCompany(companyData);
-        } finally {
-            setIsLoadingProfile(false);
+            const companyData = JSON.parse(localStorage.getItem('company') || '{}');
+            setCompany(companyData);
         }
     };
 
@@ -470,7 +465,7 @@ const Overview: React.FC = () => {
                                     />
                                 ) : (
                                     <p className="font-medium text-gray-900 dark:text-gray-100">
-                                        {isLoadingProfile ? 'Loading...' : (company.name || profileData?.company_name || 'Not specified')}
+                                        {company.name || profileData?.company_name || 'Not specified'}
                                     </p>
                                 )}
                             </div>
@@ -493,7 +488,7 @@ const Overview: React.FC = () => {
                                     </select>
                                 ) : (
                                     <p className="font-medium text-gray-900 dark:text-gray-100">
-                                        {isLoadingProfile ? 'Loading...' : (company.profile?.country || profileData?.country || 'Not specified')}
+                                        {company.profile?.country || profileData?.country || 'Not specified'}
                                     </p>
                                 )}
                             </div>
@@ -523,7 +518,7 @@ const Overview: React.FC = () => {
                                     </select>
                                 ) : (
                                     <p className="font-medium text-gray-900 dark:text-gray-100">
-                                        {isLoadingProfile ? 'Loading...' : (company.profile?.baseCurrency || profileData?.currency || 'Not specified')}
+                                        {company.profile?.baseCurrency || profileData?.currency || 'Not specified'}
                                     </p>
                                 )}
                             </div>
@@ -551,7 +546,7 @@ const Overview: React.FC = () => {
                                     </select>
                                 ) : (
                                     <p className="font-medium text-gray-900 dark:text-gray-100">
-                                        {isLoadingProfile ? 'Loading...' : (company.profile?.industry || profileData?.industry || 'Not specified')}
+                                        {company.profile?.industry || profileData?.industry || 'Not specified'}
                                     </p>
                                 )}
                             </div>
@@ -572,7 +567,7 @@ const Overview: React.FC = () => {
                                     />
                                 ) : (
                                     <p className="font-medium text-gray-900 dark:text-gray-100">
-                                        {isLoadingProfile ? 'Loading...' : (company.profile?.companySize || profileData?.employees_count || 0)}
+                                        {company.profile?.companySize || profileData?.employees_count || 0}
                                     </p>
                                 )}
                             </div>
@@ -591,7 +586,7 @@ const Overview: React.FC = () => {
                                     />
                                 ) : (
                                     <p className="font-medium text-gray-900 dark:text-gray-100">
-                                        {isLoadingProfile ? 'Loading...' : (company.profile?.fiscalYearStart || profileData?.fiscal_year_start || 'Not specified')}
+                                        {company.profile?.fiscalYearStart || profileData?.fiscal_year_start || 'Not specified'}
                                     </p>
                                 )}
                             </div>

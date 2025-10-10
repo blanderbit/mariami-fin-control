@@ -9,7 +9,6 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
-import WelcomeVideoSettings from '../components/WelcomeVideoSettings';
 
 const Settings: React.FC = () => {
     const { theme } = useTheme();
@@ -21,10 +20,7 @@ const Settings: React.FC = () => {
         { id: 'company', name: 'Company', icon: Building },
         { id: 'notifications', name: 'Notifications', icon: Bell },
         { id: 'security', name: 'Security', icon: Shield },
-        { id: 'welcome', name: 'Welcome Video', icon: Play },
     ];
-
-    const hasSeenVideo = localStorage.getItem('welcome_video_seen') === 'true';
 
     const handleShowVideo = () => {
         setShowWelcomeVideo(true);
@@ -84,20 +80,6 @@ const Settings: React.FC = () => {
         </div>
     );
 
-    const renderWelcomeTab = () => (
-        <div className="space-y-6">
-            <div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Welcome Video</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Manage your welcome video experience</p>
-            </div>
-            <WelcomeVideoSettings
-                onShowVideo={handleShowVideo}
-                onResetVideoSeen={handleResetVideoSeen}
-                hasSeenVideo={hasSeenVideo}
-            />
-        </div>
-    );
-
     return (
         <motion.div
             initial={{y: 20, opacity: 0}}
@@ -134,7 +116,6 @@ const Settings: React.FC = () => {
                     {activeTab === 'company' && renderCompanyTab()}
                     {activeTab === 'notifications' && renderNotificationsTab()}
                     {activeTab === 'security' && renderSecurityTab()}
-                    {activeTab === 'welcome' && renderWelcomeTab()}
                 </div>
             </div>
         </motion.div>
