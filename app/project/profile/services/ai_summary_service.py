@@ -109,8 +109,8 @@ Generate the summary now based on the provided data."""
                 f"{profile.employees_count or 'team'} "
                 f"({company_size_category})"
             ),
-            "revenue_model": (
-                profile.business_model or "their business model"
+            "revenue_model": self._format_business_model(
+                profile.business_model
             ),
             "priority": self._format_priority(profile.primary_focus),
             "update_frequency": self._format_update_frequency(
@@ -145,13 +145,27 @@ Generate the summary now based on the provided data."""
             return f"{money_field.currency} {money_field.amount:,.0f}"
         return "not specified"
     
-    def _format_priority(self, priority: Optional[str]) -> str:
+    def _format_priority(self, priority) -> str:
         """Format financial priority for display"""
         priority_map = {
             "cash": "cash flow management",
             "profit": "profit optimization", 
             "growth": "growth acceleration"
         }
+        
+        # Handle list of priorities (multi-select)
+        if isinstance(priority, list):
+            if not priority:
+                return "balanced financial management"
+            formatted_priorities = [priority_map.get(p, p) for p in priority]
+            if len(formatted_priorities) == 1:
+                return formatted_priorities[0]
+            elif len(formatted_priorities) == 2:
+                return f"{formatted_priorities[0]} and {formatted_priorities[1]}"
+            else:
+                return f"{', '.join(formatted_priorities[:-1])}, and {formatted_priorities[-1]}"
+        
+        # Handle single priority (backward compatibility)
         return priority_map.get(priority, "balanced financial management")
     
     def _format_update_frequency(self, frequency: Optional[str]) -> str:
@@ -159,6 +173,38 @@ Generate the summary now based on the provided data."""
         if not frequency:
             return "regular"
         return frequency
+
+    def _format_business_model(self, business_model) -> str:
+        """Format business model for display"""
+        business_model_map = {
+            "subscription": "subscription-based",
+            "services": "service-oriented", 
+            "hybrid": "hybrid model",
+            "one_time": "one-time sales",
+            "other": "specialized model"
+        }
+        
+        # Handle list of business models (multi-select)
+        if isinstance(business_model, list):
+            if not business_model:
+                return "their business model"
+            formatted_models = [
+                business_model_map.get(m, m) for m in business_model
+            ]
+            if len(formatted_models) == 1:
+                return formatted_models[0]
+            elif len(formatted_models) == 2:
+                return f"{formatted_models[0]} and {formatted_models[1]}"
+            else:
+                return (
+                    f"{', '.join(formatted_models[:-1])}, "
+                    f"and {formatted_models[-1]}"
+                )
+        
+        # Handle single business model (backward compatibility)
+        return business_model_map.get(
+            business_model, business_model or "their business model"
+        )
 
     def _get_company_size_category(
         self, employees_count: Optional[int]
