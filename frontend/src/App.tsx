@@ -2,7 +2,6 @@ import React from 'react';
 import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
 import Layout from './components/Layout';
 import Login from './pages/Login';
-// import Login from '../new_version/Login.tsx';
 import Signup from './pages/Signup';
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
@@ -11,35 +10,29 @@ import Settings from "./pages/Settings.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
 import Overview from "./pages/Overview.tsx";
 import Benchmark from "./pages/Benchmark.tsx";
-import { useAuth } from './contexts/AuthContext';
 import Welcome from "./pages/Welcome.tsx";
 import WelcomeVideo from './pages/WelcomeVideo.tsx';
 import WelcomeUser from './pages/WelcomeUser.tsx';
 import Assistant from "./pages/Assistant.tsx";
+import Home from "./pages/Home.tsx";
 
 function AppContent() {
-    const { showWelcomeVideo, setShowWelcomeVideo, markWelcomeVideoAsSeen } = useAuth();
-
-    const handleVideoComplete = () => {
-        markWelcomeVideoAsSeen();
-    };
-
-    const handleVideoClose = () => {
-        setShowWelcomeVideo(false);
-    };
-
     return (
         <>
             <Routes>
+                {/* Главная страница с редиректом в зависимости от авторизации */}
+                <Route path="/" element={<Home />} />
+                
+                {/* Публичные страницы */}
                 <Route path="/welcome" element={<Welcome />} />
                 <Route path="/welcome-video" element={<WelcomeVideo />} />
                 <Route path="/login" element={<Login/>}/>
                 <Route path="/signup" element={<Signup/>}/>
                 <Route path="/onboarding" element={<Onboarding />} />
 
+                {/* Защищенные страницы */}
                 <Route element={<ProtectedRoute/>}>
-                    <Route path="/" element={<Layout/>}>
-                        <Route element={<Navigate to="/dashboard" replace />}/>
+                    <Route element={<Layout/>}>
                         <Route path="welcome-user" element={<WelcomeUser />} />
                         <Route path="overview" element={<Overview />} />
                         <Route path="dashboard" element={<Dashboard/>}/>
@@ -50,7 +43,8 @@ function AppContent() {
                     </Route>
                 </Route>
 
-                <Route path="*" element={<Navigate to="/welcome" replace/>}/>
+                {/* 404 - редирект на главную */}
+                <Route path="*" element={<Navigate to="/" replace/>}/>
             </Routes>
         </>
     );
