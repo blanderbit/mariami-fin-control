@@ -20,8 +20,4 @@ celery.conf.beat_schedule = {
         "task": "config.tasks.reset_outstanding_jwt_tokens.reset_outstanding_jwt_tokens",
         "schedule": crontab(minute=0, hour=0),
     },
-    "update_benchmark_data_daily": {
-        "task": "benchmark.tasks.benchmark_tasks.update_benchmark_data",
-        "schedule": crontab(hour=2, minute=0),  # Run daily at 2 AM
-    },
 }

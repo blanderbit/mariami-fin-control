@@ -26,19 +26,19 @@ SUPPORTED_COUNTRIES = [
     {'code': 'GB', 'name': 'United Kingdom', 'oecd_code': 'GBR'},
     {'code': 'CA', 'name': 'Canada', 'oecd_code': 'CAN'},
     {'code': 'AU', 'name': 'Australia', 'oecd_code': 'AUS'},
-    {'code': 'DE', 'name': 'Germany', 'oecd_code': 'DEU'},
-    {'code': 'FR', 'name': 'France', 'oecd_code': 'FRA'},
-    {'code': 'IT', 'name': 'Italy', 'oecd_code': 'ITA'},
-    {'code': 'ES', 'name': 'Spain', 'oecd_code': 'ESP'},
-    {'code': 'NL', 'name': 'Netherlands', 'oecd_code': 'NLD'},
-    {'code': 'SE', 'name': 'Sweden', 'oecd_code': 'SWE'},
-    {'code': 'NO', 'name': 'Norway', 'oecd_code': 'NOR'},
-    {'code': 'DK', 'name': 'Denmark', 'oecd_code': 'DNK'},
-    {'code': 'CH', 'name': 'Switzerland', 'oecd_code': 'CHE'},
-    {'code': 'JP', 'name': 'Japan', 'oecd_code': 'JPN'},
-    # Note: Singapore and Hong Kong may have limited OECD data availability
-    {'code': 'SG', 'name': 'Singapore', 'oecd_code': 'SGP'},
-    {'code': 'HK', 'name': 'Hong Kong', 'oecd_code': 'HKG'},
+    # {'code': 'DE', 'name': 'Germany', 'oecd_code': 'DEU'},
+    # {'code': 'FR', 'name': 'France', 'oecd_code': 'FRA'},
+    # {'code': 'IT', 'name': 'Italy', 'oecd_code': 'ITA'},
+    # {'code': 'ES', 'name': 'Spain', 'oecd_code': 'ESP'},
+    # {'code': 'NL', 'name': 'Netherlands', 'oecd_code': 'NLD'},
+    # {'code': 'SE', 'name': 'Sweden', 'oecd_code': 'SWE'},
+    # {'code': 'NO', 'name': 'Norway', 'oecd_code': 'NOR'},
+    # {'code': 'DK', 'name': 'Denmark', 'oecd_code': 'DNK'},
+    # {'code': 'CH', 'name': 'Switzerland', 'oecd_code': 'CHE'},
+    # {'code': 'JP', 'name': 'Japan', 'oecd_code': 'JPN'},
+    # # Note: Singapore and Hong Kong may have limited OECD data availability
+    # {'code': 'SG', 'name': 'Singapore', 'oecd_code': 'SGP'},
+    # {'code': 'HK', 'name': 'Hong Kong', 'oecd_code': 'HKG'},
 ]
 
 # Get OECD country codes for API queries
