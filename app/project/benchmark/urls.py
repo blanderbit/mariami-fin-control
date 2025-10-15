@@ -8,7 +8,8 @@ from .views.individual_views import (
     WageGrowthBenchmarkView,
     RentIndexBenchmarkView,
     EnergyUtilitiesBenchmarkView,
-    TaxBurdenBenchmarkView
+    TaxBurdenBenchmarkView,
+    SupportedCountriesView
 )
 
 app_name = 'benchmark'
@@ -54,5 +55,12 @@ urlpatterns = [
         'tax-burden/',
         TaxBurdenBenchmarkView.as_view(),
         name='tax_burden'
+    ),
+    
+    # Utility endpoints
+    path(
+        'countries/',
+        SupportedCountriesView.as_view(),
+        name='supported_countries'
     ),
 ]

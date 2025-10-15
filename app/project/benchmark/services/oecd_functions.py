@@ -17,6 +17,22 @@ BASE_URL = "https://sdmx.oecd.org/public/rest/data"
 CACHE_TIMEOUT = 86400  # 24 hours
 
 
+def _is_better_value(indicator_key: str, new_value: float, existing_value: float) -> bool:
+    """
+    Determine which value is better for a given indicator
+    
+    For inflation-type indicators, prefer values that look like growth rates
+    over values that look like indices
+    """
+    # For price-related indicators, prefer smaller absolute values
+    # (growth rates are typically smaller than price indices)
+    if indicator_key in ['inflation', 'rent_index', 'energy_utilities']:
+        return abs(new_value) < abs(existing_value)
+    
+    # For other indicators, keep existing value (first one wins)
+    return False
+
+
 def fetch_latest_oecd_data(
     endpoint: str, query: str, indicator_key: str, unit: str, category: str
 ) -> List[Dict[str, Any]]:
@@ -118,6 +134,9 @@ def fetch_latest_oecd_data(
         }
 
         # Process each country's data
+        # Use dictionary to store only the best record per country
+        country_records = {}
+        
         for series_key, series_val in datasets["series"].items():
             # Parse series key (format like "3:0:0")
             key_parts = series_key.split(":")
@@ -143,20 +162,58 @@ def fetch_latest_oecd_data(
                     and len(latest_obs_val) > 0
                     and latest_obs_val[0] is not None
                 ):
-                    records.append(
-                        {
-                            "country": country_code,
-                            "period": obs_time[int(latest_obs_key)],
-                            "value": float(latest_obs_val[0]),
-                            "indicator": indicator_key,
-                            "unit": unit,
-                            "category": category,
-                        }
-                    )
+                    value = float(latest_obs_val[0])
+                    
+                    record = {
+                        "country": country_code,
+                        "period": obs_time[int(latest_obs_key)],
+                        "value": value,
+                        "indicator": indicator_key,
+                        "unit": unit,
+                        "category": category,
+                        "series_key": series_key,  # Keep track of which series this is from
+                    }
+                    
+                    # Only keep one record per country
+                    if country_code not in country_records:
+                        country_records[country_code] = record
+                    else:
+                        existing_record = country_records[country_code]
+                        # Compare periods and keep the most recent one
+                        if record["period"] > existing_record["period"]:
+                            country_records[country_code] = record
+                        elif record["period"] == existing_record["period"]:
+                            # For same period, prefer the better value based on indicator type
+                            # For inflation-type indicators, prefer smaller absolute values
+                            if _is_better_value(indicator_key, record["value"], existing_record["value"]):
+                                country_records[country_code] = record
+
+        # Find the most recent period across all countries
+        if country_records:
+            most_recent_period = max(record["period"] for record in country_records.values())
+            
+            # Filter to only keep records from the most recent period
+            # If a country doesn't have data for the most recent period, we'll keep their latest available
+            final_country_records = {}
+            for country_code, record in country_records.items():
+                final_country_records[country_code] = record
+            
+            logger.info(f"Most recent period found: {most_recent_period}")
+            
+            # Convert to list and remove series_key from final records
+            records = []
+            for record in final_country_records.values():
+                final_record = record.copy()
+                final_record.pop("series_key", None)  # Remove helper field
+                records.append(final_record)
+        else:
+            records = []
 
         logger.info(f"Successfully fetched {len(records)} records for {indicator_key}")
         
         if records:
+            periods = [r["period"] for r in records]
+            logger.info(f"Periods in result: {sorted(set(periods))}")
             logger.info(f"Sample record: {records[0]}")
         else:
             logger.warning(f"No records found for {indicator_key}")
@@ -243,7 +300,7 @@ def fetch_oecd_inflation() -> List[Dict[str, Any]]:
         query="{countries}.M.N.CPI.._T..GY+_Z",
         indicator_key="inflation",
         unit="%",
-        category="macro_pulse",
+        category="macro_pulse"
     )
 
 
@@ -254,7 +311,7 @@ def fetch_oecd_short_term_rate() -> List[Dict[str, Any]]:
         query="{countries}.M.IR3TIB.PA._T._Z._Z",
         indicator_key="short_term_rate",
         unit="%",
-        category="macro_pulse",
+        category="macro_pulse"
     )
 
 
@@ -265,7 +322,7 @@ def fetch_oecd_long_term_rate() -> List[Dict[str, Any]]:
         query="{countries}.M.IRLT.PA._Z._Z._Z",
         indicator_key="long_term_rate",
         unit="%",
-        category="macro_pulse",
+        category="macro_pulse"
     )
 
 
@@ -276,7 +333,7 @@ def fetch_oecd_consumer_confidence() -> List[Dict[str, Any]]:
         query="{countries}.M.CCICP.IX._T.Y.",
         indicator_key="consumer_confidence",
         unit="index",
-        category="macro_pulse",
+        category="macro_pulse"
     )
 
 
@@ -284,10 +341,10 @@ def fetch_oecd_wage_growth() -> List[Dict[str, Any]]:
     """Fetch latest wage growth data"""
     return fetch_latest_oecd_data(
         endpoint="OECD.ECO.MAD,DSD_EO@DF_EO,1.3",
-        query="{countries}.WAGE.A",
+        query="{countries}.WAGE.A..GY+_Z",
         indicator_key="wage_growth",
         unit="%",
-        category="macro_pulse",
+        category="macro_pulse"
     )
 
 
@@ -298,7 +355,7 @@ def fetch_oecd_rent_index() -> List[Dict[str, Any]]:
         query="{countries}.M.N.CPI.PA.CP041..GY+_Z",
         indicator_key="rent_index",
         unit="%",
-        category="operating_pressure",
+        category="operating_pressure"
     )
 
 
@@ -309,7 +366,7 @@ def fetch_oecd_energy_utilities() -> List[Dict[str, Any]]:
         query="{countries}.M.N.CPI.PA.CP045..GY",
         indicator_key="energy_utilities",
         unit="%",
-        category="operating_pressure",
+        category="operating_pressure"
     )
 
 
@@ -320,5 +377,5 @@ def fetch_oecd_tax_burden() -> List[Dict[str, Any]]:
         query="A.{countries}.ODAS13_D2_D5_D91_D611_D613..PT_B1GQ.",
         indicator_key="tax_burden",
         unit="%",
-        category="operating_pressure",
+        category="operating_pressure"
     )

@@ -6,7 +6,8 @@ from .individual_views import (
     WageGrowthBenchmarkView,
     RentIndexBenchmarkView,
     EnergyUtilitiesBenchmarkView,
-    TaxBurdenBenchmarkView
+    TaxBurdenBenchmarkView,
+    SupportedCountriesView
 )
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     'WageGrowthBenchmarkView',
     'RentIndexBenchmarkView',
     'EnergyUtilitiesBenchmarkView',
-    'TaxBurdenBenchmarkView'
+    'TaxBurdenBenchmarkView',
+    'SupportedCountriesView'
 ]

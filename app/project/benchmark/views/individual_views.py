@@ -316,3 +316,36 @@ class TaxBurdenBenchmarkView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class SupportedCountriesView(APIView):
+    """API endpoint for supported countries list"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get list of supported countries"""
+        try:
+            from django.conf import settings
+            
+            # Get supported countries from settings
+            supported_countries = getattr(settings, 'SUPPORTED_COUNTRIES', [])
+            
+            return Response(
+                {
+                    'success': True,
+                    'data': supported_countries,
+                    'message': 'Supported countries retrieved successfully'
+                },
+                status=status.HTTP_200_OK
+            )
+            
+        except Exception as e:
+            logger.error(f"Error retrieving supported countries: {str(e)}")
+            return Response(
+                {
+                    'success': False,
+                    'error': 'Failed to retrieve supported countries',
+                    'message': str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

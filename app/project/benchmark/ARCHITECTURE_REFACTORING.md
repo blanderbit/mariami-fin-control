@@ -34,6 +34,7 @@ The benchmark system has been refactored from a class-based approach to a functi
   - `/benchmark/rent-index/`
   - `/benchmark/energy-utilities/`
   - `/benchmark/tax-burden/`
+  - `/benchmark/countries/` (utility endpoint)
 
 ## Caching Strategy
 
@@ -69,6 +70,28 @@ Each endpoint returns:
     "last_update": "2024-10-14T12:00:00",
     "indicator": "inflation",
     "message": "Inflation data retrieved successfully"
+}
+```
+
+### Countries Endpoint Response
+
+The `/benchmark/countries/` endpoint returns supported countries:
+```json
+{
+    "success": true,
+    "data": [
+        {
+            "code": "US",
+            "name": "United States",
+            "oecd_code": "USA"
+        },
+        {
+            "code": "GB", 
+            "name": "United Kingdom",
+            "oecd_code": "GBR"
+        }
+    ],
+    "message": "Supported countries retrieved successfully"
 }
 ```
 
