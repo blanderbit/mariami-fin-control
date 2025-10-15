@@ -665,4 +665,61 @@ export async function getAIInsightsRequest(data: AIInsightsRequest): Promise<AII
     }
 }
 
+export type Country = {
+    code: string;
+    name: string;
+    oecd_code: string;
+};
+
+export type CountriesResponse = {
+    status: string;
+    code: number;
+    data: {
+        success: boolean;
+        data: Country[];
+        message: string;
+    };
+    message: string | null;
+};
+
+// Кэш для стран
+let countriesCache: Country[] | null = null;
+let countriesPromise: Promise<Country[]> | null = null;
+
+export async function getCountriesRequest(): Promise<Country[]> {
+    // Если данные уже в кэше, возвращаем их
+    if (countriesCache) {
+        return countriesCache;
+    }
+
+    // Если запрос уже выполняется, ждем его результата
+    if (countriesPromise) {
+        return countriesPromise;
+    }
+
+    // Создаем новый запрос
+    countriesPromise = (async () => {
+        try {
+            const res = await api.benchmark.benchmarkCountriesList() as any;
+            const response = res.data || res;
+            // Парсим структуру: response.data.data (массив стран)
+            const countries = response.data?.data || [];
+            countriesCache = countries;
+            return countries;
+        } catch (error) {
+            console.error('Failed to get countries:', error);
+            countriesPromise = null; // Сбрасываем промис при ошибке
+            throw error;
+        }
+    })();
+
+    return countriesPromise;
+}
+
+// Функция для очистки кэша стран (если нужно обновить данные)
+export function clearCountriesCache(): void {
+    countriesCache = null;
+    countriesPromise = null;
+}
+
 

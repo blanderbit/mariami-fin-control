@@ -20,27 +20,8 @@ import {
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { updateOnboardingRequest, OnboardingData, getCurrenciesRequest, Currency, getIndustriesRequest } from '../api/auth';
+import { updateOnboardingRequest, OnboardingData, getCurrenciesRequest, Currency, getIndustriesRequest, getCountriesRequest, Country } from '../api/auth';
 
-const countries = [
-    { code: 'US', name: 'United States' },
-    { code: 'GB', name: 'United Kingdom' },
-    { code: 'CA', name: 'Canada' },
-    { code: 'AU', name: 'Australia' },
-    { code: 'DE', name: 'Germany' },
-    { code: 'FR', name: 'France' },
-    { code: 'IT', name: 'Italy' },
-    { code: 'ES', name: 'Spain' },
-    { code: 'NL', name: 'Netherlands' },
-    { code: 'SE', name: 'Sweden' },
-    { code: 'NO', name: 'Norway' },
-    { code: 'DK', name: 'Denmark' },
-    { code: 'CH', name: 'Switzerland' },
-    { code: 'JP', name: 'Japan' },
-    { code: 'SG', name: 'Singapore' },
-    { code: 'HK', name: 'Hong Kong' },
-    { code: 'IE', name: 'Ireland' },
-];
 
 
 
@@ -75,12 +56,15 @@ const Overview: React.FC = () => {
     const [currenciesLoading, setCurrenciesLoading] = useState(true);
     const [industries, setIndustries] = useState<string[]>([]);
     const [industriesLoading, setIndustriesLoading] = useState(true);
+    const [countries, setCountries] = useState<Country[]>([]);
+    const [countriesLoading, setCountriesLoading] = useState(true);
 
     useEffect(() => {
         loadProfileData();
         loadIntegrations();
         loadCurrencies();
         loadIndustries();
+        loadCountries();
     }, [authOnboardingStatus]);
 
     const loadProfileData = () => {
@@ -130,6 +114,17 @@ const Overview: React.FC = () => {
             console.error('Failed to load industries:', error);
         } finally {
             setIndustriesLoading(false);
+        }
+    };
+
+    const loadCountries = async () => {
+        try {
+            const countries = await getCountriesRequest();
+            setCountries(countries);
+        } catch (error) {
+            console.error('Failed to load countries:', error);
+        } finally {
+            setCountriesLoading(false);
         }
     };
 
@@ -479,9 +474,12 @@ const Overview: React.FC = () => {
                                     <select
                                         value={editingProfile.country || ''}
                                         onChange={(e) => handleProfileChange('country', e.target.value)}
-                                        className="w-full mt-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                                        disabled={countriesLoading}
+                                        className={`w-full mt-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${countriesLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
-                                        <option value="">Select country</option>
+                                        <option value="">
+                                            {countriesLoading ? 'Loading countries...' : 'Select country'}
+                                        </option>
                                         {countries.map(country => (
                                             <option key={country.code} value={country.code}>{country.name}</option>
                                         ))}

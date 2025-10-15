@@ -23,7 +23,7 @@ import {
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { updateOnboardingRequest, OnboardingData, getCurrenciesRequest, Currency, getIndustriesRequest, getAISummaryRequest } from '../api/auth';
+import { updateOnboardingRequest, OnboardingData, getCurrenciesRequest, Currency, getIndustriesRequest, getAISummaryRequest, getCountriesRequest, Country } from '../api/auth';
 import { getStepData } from '../utils/onboardingUtils';
 import Logo from "../assets/FinclAI Logo Blue.png";
 
@@ -33,25 +33,6 @@ interface ChatMessage {
     isTyping?: boolean;
 }
 
-const countries = [
-    { code: 'US', name: 'United States' },
-    { code: 'GB', name: 'United Kingdom' },
-    { code: 'CA', name: 'Canada' },
-    { code: 'AU', name: 'Australia' },
-    { code: 'DE', name: 'Germany' },
-    { code: 'FR', name: 'France' },
-    { code: 'IT', name: 'Italy' },
-    { code: 'ES', name: 'Spain' },
-    { code: 'NL', name: 'Netherlands' },
-    { code: 'SE', name: 'Sweden' },
-    { code: 'NO', name: 'Norway' },
-    { code: 'DK', name: 'Denmark' },
-    { code: 'CH', name: 'Switzerland' },
-    { code: 'JP', name: 'Japan' },
-    { code: 'SG', name: 'Singapore' },
-    { code: 'HK', name: 'Hong Kong' },
-    { code: 'IE', name: 'Ireland' },
-];
 
 interface OnboardingStepperProps {
     initialStep?: number;
@@ -85,6 +66,8 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
     const [currenciesLoading, setCurrenciesLoading] = useState(true);
     const [industries, setIndustries] = useState<string[]>([]);
     const [industriesLoading, setIndustriesLoading] = useState(true);
+    const [countries, setCountries] = useState<Country[]>([]);
+    const [countriesLoading, setCountriesLoading] = useState(true);
 
     // Chat state for Step 2
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -137,21 +120,24 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
         }
     ];
 
-    // Загружаем список валют и индустрий при монтировании компонента
+    // Загружаем список валют, индустрий и стран при монтировании компонента
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [currencies, industries] = await Promise.all([
+                const [currencies, industries, countries] = await Promise.all([
                     getCurrenciesRequest(),
-                    getIndustriesRequest()
+                    getIndustriesRequest(),
+                    getCountriesRequest()
                 ]);
                 setCurrencies(currencies);
                 setIndustries(industries);
+                setCountries(countries);
             } catch (error) {
                 console.error('Failed to load data:', error);
             } finally {
                 setCurrenciesLoading(false);
                 setIndustriesLoading(false);
+                setCountriesLoading(false);
             }
         };
 
@@ -456,11 +442,14 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                     <select
                         value={profile.country || ''}
                         onChange={(e) => handleInputChange('country', e.target.value)}
+                        disabled={countriesLoading}
                         className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
                             errors.country ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-                        }`}
+                        } ${countriesLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        <option value="">Select country</option>
+                        <option value="">
+                            {countriesLoading ? 'Loading countries...' : 'Select country'}
+                        </option>
                         {countries.map(country => (
                             <option key={country.code} value={country.code}>{country.name}</option>
                         ))}
