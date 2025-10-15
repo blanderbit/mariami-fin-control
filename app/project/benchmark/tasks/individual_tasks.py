@@ -29,10 +29,10 @@ def fetch_inflation_task(self) -> List[Dict[str, Any]]:
     """
     try:
         # Check cache first
-        # cached_data = get_cached_indicator_data('inflation')
-        # if cached_data:
-        #     logger.info("Returning cached inflation data")
-        #     return cached_data
+        cached_data = get_cached_indicator_data('inflation')
+        if cached_data:
+            logger.info("Returning cached inflation data")
+            return cached_data
         
         # Fetch fresh data
         logger.info("Fetching fresh inflation data from OECD")
@@ -141,10 +141,10 @@ def fetch_wage_growth_task(self) -> List[Dict[str, Any]]:
     """
     try:
         # Check cache first
-        # cached_data = get_cached_indicator_data('wage_growth')
-        # if cached_data:
-        #     logger.info("Returning cached wage growth data")
-        #     return cached_data
+        cached_data = get_cached_indicator_data('wage_growth')
+        if cached_data:
+            logger.info("Returning cached wage growth data")
+            return cached_data
         
         # Fetch fresh data
         logger.info("Fetching fresh wage growth data from OECD")
