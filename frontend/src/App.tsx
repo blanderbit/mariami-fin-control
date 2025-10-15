@@ -15,6 +15,7 @@ import WelcomeVideo from './pages/WelcomeVideo.tsx';
 import WelcomeUser from './pages/WelcomeUser.tsx';
 import Assistant from "./pages/Assistant.tsx";
 import Home from "./pages/Home.tsx";
+import DashboardNew from "./pages/DashboardNew.tsx";
 
 function AppContent() {
     return (
@@ -22,7 +23,7 @@ function AppContent() {
             <Routes>
                 {/* Главная страница с редиректом в зависимости от авторизации */}
                 <Route path="/" element={<Home />} />
-                
+
                 {/* Публичные страницы */}
                 <Route path="/welcome" element={<Welcome />} />
                 <Route path="/welcome-video" element={<WelcomeVideo />} />
@@ -36,6 +37,7 @@ function AppContent() {
                         <Route path="welcome-user" element={<WelcomeUser />} />
                         <Route path="overview" element={<Overview />} />
                         <Route path="dashboard" element={<Dashboard/>}/>
+                        <Route path="dashboard-new" element={<DashboardNew/>}/>
                         <Route path="data-import" element={<DataImport/>}/>
                         <Route path="benchmark" element={<Benchmark />} />
                         <Route path="assistant" element={<Assistant />} />
