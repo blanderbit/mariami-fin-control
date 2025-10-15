@@ -722,4 +722,85 @@ export function clearCountriesCache(): void {
     countriesPromise = null;
 }
 
+// Benchmark API Functions
+export async function getBenchmarkConsumerConfidenceRequest(): Promise<any> {
+    try {
+        const res = await api.benchmark.benchmarkConsumerConfidenceList() as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to get consumer confidence data:', error);
+        throw error;
+    }
+}
+
+export async function getBenchmarkEnergyUtilitiesRequest(): Promise<any> {
+    try {
+        const res = await api.benchmark.benchmarkEnergyUtilitiesList() as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to get energy utilities data:', error);
+        throw error;
+    }
+}
+
+export async function getBenchmarkInflationRequest(): Promise<any> {
+    try {
+        const res = await api.benchmark.benchmarkInflationList() as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to get inflation data:', error);
+        throw error;
+    }
+}
+
+export async function getBenchmarkLongTermRateRequest(): Promise<any> {
+    try {
+        const res = await api.benchmark.benchmarkLongTermRateList() as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to get long-term rate data:', error);
+        throw error;
+    }
+}
+
+export async function getBenchmarkRentIndexRequest(): Promise<any> {
+    try {
+        const res = await api.benchmark.benchmarkRentIndexList() as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to get rent index data:', error);
+        throw error;
+    }
+}
+
+export async function getBenchmarkShortTermRateRequest(): Promise<any> {
+    try {
+        const res = await api.benchmark.benchmarkShortTermRateList() as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to get short-term rate data:', error);
+        throw error;
+    }
+}
+
+export async function getBenchmarkTaxBurdenRequest(): Promise<any> {
+    try {
+        const res = await api.benchmark.benchmarkTaxBurdenList() as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to get tax burden data:', error);
+        throw error;
+    }
+}
+
+export async function getBenchmarkWageGrowthRequest(): Promise<any> {
+    try {
+        const res = await api.benchmark.benchmarkWageGrowthList() as any;
+        return res.data || res;
+    } catch (error) {
+        console.error('Failed to get wage growth data:', error);
+        throw error;
+    }
+}
+
 

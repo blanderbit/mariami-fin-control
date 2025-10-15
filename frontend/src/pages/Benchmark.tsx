@@ -1,19 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     TrendingUp,
-    TrendingDown,
     AlertTriangle,
     Info,
     CheckCircle,
     XCircle,
-    DollarSign,
-    Clock,
-    Shield,
-    Users,
     Zap,
     Target,
     Eye,
-    BarChart3,
     Activity,
     ArrowUpRight,
     ArrowDownRight,
@@ -26,12 +20,18 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    ResponsiveContainer,
-    Cell,
-    PieChart,
-    Pie
+    ResponsiveContainer
 } from 'recharts';
-import { useTheme } from '../contexts/ThemeContext';
+import {
+    getBenchmarkConsumerConfidenceRequest,
+    getBenchmarkEnergyUtilitiesRequest,
+    getBenchmarkInflationRequest,
+    getBenchmarkLongTermRateRequest,
+    getBenchmarkRentIndexRequest,
+    getBenchmarkShortTermRateRequest,
+    getBenchmarkTaxBurdenRequest,
+    getBenchmarkWageGrowthRequest
+} from '../api/auth';
 
 interface MarketData {
     inflation: {
@@ -119,13 +119,92 @@ interface PorterForce {
 }
 
 const Benchmark: React.FC = () => {
-    const { theme } = useTheme();
     const [activeTab, setActiveTab] = useState<'market' | 'strategic'>('market');
+    const [activeMarketTab, setActiveMarketTab] = useState<'macro' | 'operating'>('macro');
+
+    // Benchmark data states
+    const [benchmarkData, setBenchmarkData] = useState({
+        consumerConfidence: null,
+        energyUtilities: null,
+        inflation: null,
+        longTermRate: null,
+        rentIndex: null,
+        shortTermRate: null,
+        taxBurden: null,
+        wageGrowth: null
+    });
+    const [loading, setLoading] = useState(true);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const hasLoadedRef = useRef(false);
 
     // Get company data
     const company = JSON.parse(localStorage.getItem('company') || '{}');
     const baseCurrency = company.profile?.baseCurrency || 'USD';
     const industry = company.profile?.industry || 'Services';
+
+    // Load all benchmark data
+    useEffect(() => {
+        // Prevent duplicate calls in StrictMode
+        if (hasLoadedRef.current) return;
+        hasLoadedRef.current = true;
+
+        const loadBenchmarkData = async () => {
+            setLoading(true);
+            const newErrors: Record<string, string> = {};
+
+            try {
+                const [
+                    consumerConfidence,
+                    energyUtilities,
+                    inflation,
+                    longTermRate,
+                    rentIndex,
+                    shortTermRate,
+                    taxBurden,
+                    wageGrowth
+                ] = await Promise.allSettled([
+                    getBenchmarkConsumerConfidenceRequest(),
+                    getBenchmarkEnergyUtilitiesRequest(),
+                    getBenchmarkInflationRequest(),
+                    getBenchmarkLongTermRateRequest(),
+                    getBenchmarkRentIndexRequest(),
+                    getBenchmarkShortTermRateRequest(),
+                    getBenchmarkTaxBurdenRequest(),
+                    getBenchmarkWageGrowthRequest()
+                ]);
+
+                setBenchmarkData({
+                    consumerConfidence: consumerConfidence.status === 'fulfilled' ? consumerConfidence.value : null,
+                    energyUtilities: energyUtilities.status === 'fulfilled' ? energyUtilities.value : null,
+                    inflation: inflation.status === 'fulfilled' ? inflation.value : null,
+                    longTermRate: longTermRate.status === 'fulfilled' ? longTermRate.value : null,
+                    rentIndex: rentIndex.status === 'fulfilled' ? rentIndex.value : null,
+                    shortTermRate: shortTermRate.status === 'fulfilled' ? shortTermRate.value : null,
+                    taxBurden: taxBurden.status === 'fulfilled' ? taxBurden.value : null,
+                    wageGrowth: wageGrowth.status === 'fulfilled' ? wageGrowth.value : null
+                });
+
+                // Collect errors
+                if (consumerConfidence.status === 'rejected') newErrors.consumerConfidence = 'Failed to load consumer confidence data';
+                if (energyUtilities.status === 'rejected') newErrors.energyUtilities = 'Failed to load energy utilities data';
+                if (inflation.status === 'rejected') newErrors.inflation = 'Failed to load inflation data';
+                if (longTermRate.status === 'rejected') newErrors.longTermRate = 'Failed to load long-term rate data';
+                if (rentIndex.status === 'rejected') newErrors.rentIndex = 'Failed to load rent index data';
+                if (shortTermRate.status === 'rejected') newErrors.shortTermRate = 'Failed to load short-term rate data';
+                if (taxBurden.status === 'rejected') newErrors.taxBurden = 'Failed to load tax burden data';
+                if (wageGrowth.status === 'rejected') newErrors.wageGrowth = 'Failed to load wage growth data';
+
+                setErrors(newErrors);
+            } catch (error) {
+                console.error('Failed to load benchmark data:', error);
+                setErrors({ general: 'Failed to load benchmark data' });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadBenchmarkData();
+    }, []);
 
     // Mock market data
     const marketData: MarketData = {
@@ -383,170 +462,158 @@ const Benchmark: React.FC = () => {
 
     const renderMarketOverview = () => (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 border border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Market Overview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Inflation Card */}
-                <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Inflation</h3>
-                        <div className="relative group">
-                            <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
-                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                {marketData.inflation.tooltip}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 dark:text-red-400 mb-3">
-                        {marketData.inflation.value}% <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-400 font-normal">(Aug 2025)</span>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                        <p className="text-gray-700 dark:text-gray-300">{marketData.inflation.explanation}</p>
-                        <div className="flex items-start space-x-2">
-                            <XCircle className="w-4 h-4 text-red-500 dark:text-red-400 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-red-700 dark:text-red-300">{marketData.inflation.risk}</p>
-                        </div>
-                        <div className="flex items-start space-x-2">
-                            <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-green-700 dark:text-green-300">{marketData.inflation.opportunity}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Wage Growth Card */}
-                <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Wage Growth</h3>
-                        <div className="relative group">
-                            <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
-                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                {marketData.wageGrowth.tooltip}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-3">
-                        +{marketData.wageGrowth.value}% <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-400 font-normal">YoY (Jun 2025)</span>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                        <p className="text-gray-700 dark:text-gray-300">{marketData.wageGrowth.explanation}</p>
-                        <div className="flex items-start space-x-2">
-                            <XCircle className="w-4 h-4 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-red-700 dark:text-red-300">{marketData.wageGrowth.risk}</p>
-                        </div>
-                        <div className="flex items-start space-x-2">
-                            <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-green-700 dark:text-green-300">{marketData.wageGrowth.opportunity}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* E-commerce Penetration Card */}
-                <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">E-commerce Penetration</h3>
-                        <div className="relative group">
-                            <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
-                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                {marketData.ecommercePenetration.tooltip}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-3">
-                        {marketData.ecommercePenetration.value} <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-400 font-normal">of retail (2025)</span>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                        <p className="text-gray-700 dark:text-gray-300">{marketData.ecommercePenetration.explanation}</p>
-                        <div className="flex items-start space-x-2">
-                            <XCircle className="w-4 h-4 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-red-700 dark:text-red-300">{marketData.ecommercePenetration.risk}</p>
-                        </div>
-                        <div className="flex items-start space-x-2">
-                            <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-green-700 dark:text-green-300">{marketData.ecommercePenetration.opportunity}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Consumer Confidence Card */}
-                <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Consumer Confidence</h3>
-                        <div className="relative group">
-                            <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
-                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                {marketData.consumerConfidence.tooltip}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
-                        {marketData.consumerConfidence.value} <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-400 font-normal">(Sep 2025)</span>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                        <p className="text-gray-700 dark:text-gray-300">{marketData.consumerConfidence.explanation}</p>
-                        <div className="flex items-start space-x-2">
-                            <XCircle className="w-4 h-4 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-red-700 dark:text-red-300">{marketData.consumerConfidence.risk}</p>
-                        </div>
-                        <div className="flex items-start space-x-2">
-                            <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-green-700 dark:text-green-300">{marketData.consumerConfidence.opportunity}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Energy & Utilities Card */}
-                <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Energy & Utilities</h3>
-                        <div className="relative group">
-                            <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
-                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                {marketData.energyCosts.tooltip}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
-                        {marketData.energyCosts.value} <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-400 font-normal">vs pre-crisis</span>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                        <p className="text-gray-700 dark:text-gray-300">{marketData.energyCosts.explanation}</p>
-                        <div className="flex items-start space-x-2">
-                            <XCircle className="w-4 h-4 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-red-700 dark:text-red-300">{marketData.energyCosts.risk}</p>
-                        </div>
-                        <div className="flex items-start space-x-2">
-                            <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-green-700 dark:text-green-300">{marketData.energyCosts.opportunity}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Interest Rate Card */}
-                <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Interest Rate</h3>
-                        <div className="relative group">
-                            <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
-                            <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                {marketData.interestRate.tooltip}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
-                        {marketData.interestRate.value}% <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-400 font-normal">(Sep 2025)</span>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                        <p className="text-gray-700 dark:text-gray-300">{marketData.interestRate.explanation}</p>
-                        <div className="flex items-start space-x-2">
-                            <XCircle className="w-4 h-4 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-red-700 dark:text-red-300">{marketData.interestRate.risk}</p>
-                        </div>
-                        <div className="flex items-start space-x-2">
-                            <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-green-700 dark:text-green-300">{marketData.interestRate.opportunity}</p>
-                        </div>
-                    </div>
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Market Overview</h2>
+                
+                {/* Market Tab Selector */}
+                <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                    <button
+                        onClick={() => setActiveMarketTab('macro')}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            activeMarketTab === 'macro'
+                                ? 'bg-white dark:bg-gray-700 text-indigo-700 dark:text-indigo-400 shadow-sm'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                        }`}
+                    >
+                        Macro Pulse
+                    </button>
+                    <button
+                        onClick={() => setActiveMarketTab('operating')}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            activeMarketTab === 'operating'
+                                ? 'bg-white dark:bg-gray-700 text-indigo-700 dark:text-indigo-400 shadow-sm'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                        }`}
+                    >
+                        Operating Pressure
+                    </button>
                 </div>
             </div>
+            {/* Content based on active tab */}
+            {activeMarketTab === 'macro' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Macro Pulse Cards will go here */}
+                    <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Inflation (CPI)</h3>
+                            <div className="relative group">
+                                <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
+                            </div>
+                        </div>
+                        <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
+                            3.8% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Aug 2025)</span>
+                        </div>
+                    </div>
+
+                    {/* Interest rate short term */}
+                    <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Interest rate short term</h3>
+                            <div className="relative group">
+                                <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
+                            </div>
+                        </div>
+                        <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
+                            5.25% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Sep 2025)</span>
+                        </div>
+                    </div>
+
+                    {/* Interest rate long term */}
+                    <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Interest rate long term</h3>
+                            <div className="relative group">
+                                <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
+                            </div>
+                        </div>
+                        <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
+                            4.8% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Sep 2025)</span>
+                        </div>
+                    </div>
+
+                    {/* Unemployment rate */}
+                    <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Unemployment rate</h3>
+                            <div className="relative group">
+                                <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
+                            </div>
+                        </div>
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-3">
+                            4.2% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Sep 2025)</span>
+                        </div>
+                    </div>
+
+                    {/* Consumer confidence */}
+                    <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Consumer confidence</h3>
+                            <div className="relative group">
+                                <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
+                            </div>
+                        </div>
+                        <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
+                            -19 <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Sep 2025)</span>
+                        </div>
+                    </div>
+
+                    {/* Wage growth */}
+                    <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Wage growth</h3>
+                            <div className="relative group">
+                                <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
+                            </div>
+                        </div>
+                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-3">
+                            +5.0% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">YoY (Jun 2025)</span>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Operating Pressure Cards */}
+                    
+                    {/* Rent index */}
+                    <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Rent index</h3>
+                            <div className="relative group">
+                                <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
+                            </div>
+                        </div>
+                        <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
+                            +12% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">YoY (2025)</span>
+                        </div>
+                    </div>
+
+                    {/* Energy & Utilities */}
+                    <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Energy & Utilities</h3>
+                            <div className="relative group">
+                                <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
+                            </div>
+                        </div>
+                        <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
+                            +46% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">vs pre-crisis</span>
+                        </div>
+                    </div>
+
+                    {/* Tax burden index */}
+                    <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Tax burden index</h3>
+                            <div className="relative group">
+                                <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
+                            </div>
+                        </div>
+                        <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
+                            34.3% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">of GDP (2024)</span>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 
@@ -877,8 +944,15 @@ const Benchmark: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Benchmark</h1>
-                    <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400">Compare your performance against industry standards</p>
+                    <div className="flex items-center space-x-3">
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Benchmark</h1>
+                        {loading && (
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                        )}
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400">
+                        {loading ? 'Loading benchmark data...' : 'Compare your performance against industry standards'}
+                    </p>
                 </div>
 
                 <div className="flex items-center space-x-4">
@@ -909,6 +983,48 @@ const Benchmark: React.FC = () => {
                 </div>
             </div>
 
+            {/* Error Messages */}
+            {Object.keys(errors).length > 0 && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                    <div className="flex items-center space-x-2">
+                        <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+                            Some benchmark data failed to load
+                        </h3>
+                    </div>
+                    <div className="mt-2 space-y-1">
+                        {Object.entries(errors).map(([key, error]) => (
+                            <p key={key} className="text-sm text-red-700 dark:text-red-300">
+                                • {error}
+                            </p>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Debug: Benchmark Data */}
+            {!loading && (
+                <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
+                        Benchmark Data Status
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {Object.entries(benchmarkData).map(([key, data]) => (
+                            <div key={key} className="flex items-center space-x-2">
+                                {data ? (
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                ) : (
+                                    <XCircle className="w-4 h-4 text-red-500" />
+                                )}
+                                <span className="text-xs text-gray-600 dark:text-gray-400 capitalize">
+                                    {key.replace(/([A-Z])/g, ' $1').trim()}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Content */}
             {activeTab === 'market' ? (
                 <>
@@ -931,3 +1047,4 @@ const Benchmark: React.FC = () => {
 };
 
 export default Benchmark;
+
