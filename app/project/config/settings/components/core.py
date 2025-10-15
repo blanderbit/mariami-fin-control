@@ -28,6 +28,7 @@ INSTALLED_APPS: list[str] = [
     "users.apps.UsersConfig",
     "authentication.apps.AuthenticationConfig",
     "profile.apps.ProfileConfig",
+    "benchmark.apps.BenchmarkConfig",
 ]
 
 MIDDLEWARE: list[str] = [
