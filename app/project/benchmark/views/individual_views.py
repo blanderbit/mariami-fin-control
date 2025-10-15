@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from authentication.permissions import AllowAnyPermission
 
 from ..tasks.individual_tasks import (
     fetch_inflation_task,
@@ -320,7 +321,7 @@ class TaxBurdenBenchmarkView(APIView):
 
 class SupportedCountriesView(APIView):
     """API endpoint for supported countries list"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAnyPermission]
     
     def get(self, request):
         """Get list of supported countries"""
