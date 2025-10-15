@@ -27,6 +27,12 @@ class GetMyProfileSerializer(ModelSerializer):
 
 
 class ProfileSerializer(ModelSerializer):
+    oecd_country = SerializerMethodField()
+    
+    def get_oecd_country(self, obj):
+        """Get OECD country code for the profile's country"""
+        return obj.oecd_country
+    
     class Meta:
         model: ProfileModel = ProfileModel
         fields = '__all__'

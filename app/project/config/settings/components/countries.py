@@ -22,3 +22,8 @@ OECD_COUNTRY_CODES = [country['oecd_code'] for country in SUPPORTED_COUNTRIES]
 
 # Create a string of main countries for OECD API queries
 OECD_COUNTRIES_STRING = '+'.join(OECD_COUNTRY_CODES)
+
+# Create a dictionary for quick country lookups
+SUPPORTED_COUNTRIES_DICT = {
+    country['code']: country for country in SUPPORTED_COUNTRIES
+}
