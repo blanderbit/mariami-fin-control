@@ -989,6 +989,151 @@ export class Api<
         ...params,
       }),
   };
+  benchmark = {
+    /**
+     * @description Get consumer confidence data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkConsumerConfidenceList
+     * @request GET:/benchmark/consumer-confidence/
+     * @secure
+     */
+    benchmarkConsumerConfidenceList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/consumer-confidence/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get list of supported countries
+     *
+     * @tags benchmark
+     * @name BenchmarkCountriesList
+     * @request GET:/benchmark/countries/
+     * @secure
+     */
+    benchmarkCountriesList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/countries/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get energy utilities data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkEnergyUtilitiesList
+     * @request GET:/benchmark/energy-utilities/
+     * @secure
+     */
+    benchmarkEnergyUtilitiesList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/energy-utilities/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get inflation data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkInflationList
+     * @request GET:/benchmark/inflation/
+     * @secure
+     */
+    benchmarkInflationList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/inflation/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get long-term rate data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkLongTermRateList
+     * @request GET:/benchmark/long-term-rate/
+     * @secure
+     */
+    benchmarkLongTermRateList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/long-term-rate/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get rent index data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkRentIndexList
+     * @request GET:/benchmark/rent-index/
+     * @secure
+     */
+    benchmarkRentIndexList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/rent-index/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get short-term rate data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkShortTermRateList
+     * @request GET:/benchmark/short-term-rate/
+     * @secure
+     */
+    benchmarkShortTermRateList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/short-term-rate/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get tax burden data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkTaxBurdenList
+     * @request GET:/benchmark/tax-burden/
+     * @secure
+     */
+    benchmarkTaxBurdenList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/tax-burden/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get wage growth data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkWageGrowthList
+     * @request GET:/benchmark/wage-growth/
+     * @secure
+     */
+    benchmarkWageGrowthList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/wage-growth/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+  };
   profile = {
     /**
      * @description Get list of all supported currencies
@@ -1334,6 +1479,7 @@ export class Api<
      * @secure
      */
     usersIndustriesRead: (
+      industryName: string,
       industryName: string,
       params: RequestParams = {},
     ) =>
