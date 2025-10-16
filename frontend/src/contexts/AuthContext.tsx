@@ -1,5 +1,12 @@
 import React, {createContext, useContext, useState, useEffect, useCallback} from 'react';
-import {loginRequest, logoutRequest, registerRequest, getProfileRequest, getOnboardingStatusRequest, OnboardingStatus} from '../api/auth';
+import {
+    loginRequest,
+    logoutRequest,
+    registerRequest,
+    getProfileRequest,
+    getOnboardingStatusRequest,
+    OnboardingStatus
+} from '../api/auth';
 import {setTokenStorage, TokenStorage, clearTokens, getTokens, setTokens} from '../api/http';
 
 interface User {
@@ -10,6 +17,8 @@ interface User {
     is_admin?: boolean;
     is_onboarded?: boolean;
     avatar?: string;
+    country?: string;
+    oecd_country?: string;
 }
 
 interface AuthContextType {
@@ -58,13 +67,13 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
                 const profile = await getProfileRequest();
                 if (profile) {
                     setUser(profile);
-                    
+
                     // Получаем статус онбординга
                     const onboardingStatus = await getOnboardingStatusRequest();
                     if (onboardingStatus) {
                         setOnboardingStatus(onboardingStatus);
                     }
-                    
+
                     // Обновляем сохраненный профиль
                     const storage = localStorage.getItem('user') ? 'local' : 'session';
                     if (storage === 'local') {
@@ -107,7 +116,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
 
         // Слушаем события неудачного обновления токенов
         window.addEventListener('tokenRefreshFailed', handleTokenRefreshFailure);
-        
+
         return () => {
             window.removeEventListener('tokenRefreshFailed', handleTokenRefreshFailure);
         };
@@ -121,7 +130,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
         try {
             const storage: TokenStorage = remember ? 'local' : 'session';
             setTokenStorage(storage);
-            
+
             // Выполняем логин и получаем профиль
             const profile = await loginRequest(email, password, storage);
             if (!profile) throw new Error('Failed to fetch profile');
@@ -231,7 +240,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
             const profile = await getProfileRequest();
             if (profile) {
                 setUser(profile);
-                
+
                 // Обновляем сохраненный профиль
                 const storage = localStorage.getItem('user') ? 'local' : 'session';
                 if (storage === 'local') {
@@ -276,15 +285,15 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
 
     return (
         <AuthContext.Provider value={{
-            user, 
-            onboardingStatus, 
-            login, 
-            register, 
-            logout, 
-            clearAuthState, 
-            refreshProfile, 
-            refreshOnboardingStatus, 
-            loading, 
+            user,
+            onboardingStatus,
+            login,
+            register,
+            logout,
+            clearAuthState,
+            refreshProfile,
+            refreshOnboardingStatus,
+            loading,
             error,
             showWelcomeVideo,
             setShowWelcomeVideo,
