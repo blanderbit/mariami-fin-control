@@ -99,6 +99,15 @@ interface ChartData {
     story: string;
 }
 
+interface ExpenseChip {
+    category: string;
+    amount: number;
+    pct: number;
+    icon: string;
+    spike?: boolean;
+    isNew?: boolean;
+}
+
 const DashboardNew: React.FC = () => {
     const { theme } = useTheme();
     const { onboardingStatus: authOnboardingStatus } = useAuth();
@@ -661,6 +670,125 @@ const DashboardNew: React.FC = () => {
 
     const expenseColors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'];
 
+    // Expense chips functionality from Dashboard
+    const getChipColor = (pct: number, spike?: boolean, isNew?: boolean) => {
+        // Base color #2762ea with different opacity based on percentage
+        const baseColor = '#2762ea';
+
+        // Calculate opacity based on percentage (higher % = more saturated)
+        let opacity = 0.1;
+        if (pct >= 30) {
+            opacity = 0.8;
+        } else if (pct >= 20) {
+            opacity = 0.6;
+        } else if (pct >= 15) {
+            opacity = 0.5;
+        } else if (pct >= 10) {
+            opacity = 0.4;
+        } else if (pct >= 5) {
+            opacity = 0.3;
+        } else {
+            opacity = 0.2;
+        }
+
+        // If spike, increase opacity for more saturation
+        if (spike) {
+            opacity = Math.min(opacity + 0.3, 1);
+        }
+
+        // If new, add green tint
+        if (isNew) {
+            return {
+                backgroundColor: `rgba(34, 197, 94, ${opacity})`,
+                borderColor: `rgba(34, 197, 94, ${opacity + 0.2})`,
+                color: '#ffffff'
+            };
+        }
+
+        return {
+            backgroundColor: `rgba(39, 98, 234, ${opacity})`,
+            borderColor: `rgba(39, 98, 234, ${opacity + 0.2})`,
+            color: '#ffffff'
+        };
+    };
+
+    const expenseChips = useMemo((): ExpenseChip[] => {
+        // Use expense breakdown data if available, otherwise fallback to P&L data
+        if (expenseBreakdownData) {
+            const getIcon = (category: string) => {
+                switch (category) {
+                    case 'Payroll':
+                        return '💼';
+                    case 'Rent':
+                        return '🏢';
+                    case 'Marketing':
+                        return '📣';
+                    case 'COGS':
+                        return '📦';
+                    case 'Software':
+                        return '💻';
+                    case 'Utilities':
+                        return '🔌';
+                    default:
+                        return '⋯';
+                }
+            };
+
+            // Calculate total expenses for percentage calculation
+            const totalExpenses = Object.values(expenseBreakdownData).reduce((sum, category) => {
+                return sum + (category ? parseFloat(category.total_amount) : 0);
+            }, 0);
+
+            // Helper function to round percentage to 1 decimal place
+            const roundPercentage = (value: number) => Math.round(value * 10) / 10;
+
+            const chips: ExpenseChip[] = [];
+
+            Object.entries(expenseBreakdownData).forEach(([category, data]) => {
+                const amount = data ? parseFloat(data.total_amount) : 0;
+                if (data && amount > 0) {
+                    chips.push({
+                        category,
+                        amount: amount,
+                        pct: totalExpenses > 0 ? roundPercentage((amount / totalExpenses) * 100) : 0,
+                        icon: getIcon(category),
+                        spike: data.spike,
+                        isNew: data.new
+                    });
+                }
+            });
+
+            return chips.sort((a, b) => b.amount - a.amount); // Sort by amount descending
+        }
+
+        // Fallback to P&L data if expense breakdown is not available
+        if (!pnlData?.data?.pnl_data || pnlData.data.pnl_data.length === 0) {
+            return [];
+        }
+
+        const latestMonth = pnlData.data.pnl_data[pnlData.data.pnl_data.length - 1];
+        const expenses = [
+            {name: 'Payroll', amount: latestMonth?.Payroll || 0},
+            {name: 'COGS', amount: latestMonth?.COGS || 0},
+            {name: 'Marketing', amount: latestMonth?.Marketing || 0},
+            {name: 'Rent', amount: latestMonth?.Rent || 0},
+            {name: 'Other_Expenses', amount: latestMonth?.Other_Expenses || 0}
+        ];
+
+        const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+        const roundPercentage = (value: number) => Math.round(value * 10) / 10;
+
+        return expenses
+            .filter(exp => exp.amount > 0)
+            .map(exp => ({
+                category: exp.name,
+                amount: exp.amount,
+                pct: totalExpenses > 0 ? roundPercentage((exp.amount / totalExpenses) * 100) : 0,
+                icon: exp.name === 'Payroll' ? '💼' : exp.name === 'Rent' ? '🏢' : exp.name === 'Marketing' ? '📣' : exp.name === 'COGS' ? '📦' : '⋯'
+            }))
+            .sort((a, b) => b.amount - a.amount);
+    }, [expenseBreakdownData, pnlData]);
+
     // Business Pulse Metrics from real API data
     const businessPulseMetrics = useMemo(() => {
         if (!pnlData?.data) {
@@ -1220,14 +1348,14 @@ const DashboardNew: React.FC = () => {
                     {/* Revenue Card */}
                     <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group">
                         <div className="flex items-center justify-between mb-2">
-                            <div className="flex-1">
+                                <div className="flex-1">
                                 <p className="text-xs text-[#64748B] dark:text-gray-400 font-medium uppercase tracking-wide">Revenue</p>
                             </div>
                             <div className={getStatusColor('trend', pulseKPIs.revenue, pulseKPIs.revenue_mom)}>
                                 {getStatusIcon('trend', pulseKPIs.revenue, pulseKPIs.revenue_mom)}
                             </div>
                         </div>
-                        <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100 mb-1">
+                                    <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100 mb-1">
                             {formatCurrency(pulseKPIs.revenue)}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -1345,8 +1473,8 @@ const DashboardNew: React.FC = () => {
                                         </button>
                                 </div>
                                 </div>
-                            </div>
-                        )}
+                                        </div>
+                                    )}
 
                         <div className="flex items-center justify-between mb-2">
                             <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100">
@@ -1363,7 +1491,7 @@ const DashboardNew: React.FC = () => {
                                 title="Select overdue date range">
                                 <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400"/>
                             </button>
-                        </div>
+                                </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                             Due: {pulseKPIs.overdue_count} invoices
                         </p>
@@ -1537,7 +1665,7 @@ const DashboardNew: React.FC = () => {
                 </div>
 
                 {/* Expense Breakdown Donut */}
-                {/* <div className="col-span-12 lg:col-span-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="col-span-12 lg:col-span-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                     <h3 className="text-lg font-semibold text-[#0F1A2B] dark:text-gray-100 mb-4">Expense Breakdown</h3>
                     <div className="h-64">
                         {isLoadingExpenseBreakdown ? (
@@ -1580,6 +1708,12 @@ const DashboardNew: React.FC = () => {
                                         borderRadius: '12px',
                                         color: theme === 'dark' ? '#F3F4F6' : '#0F1A2B'
                                     }}
+                                    labelStyle={{ 
+                                        color: theme === 'dark' ? '#F3F4F6' : '#0F1A2B'
+                                    }}
+                                    itemStyle={{
+                                        color: theme === 'dark' ? '#F3F4F6' : '#0F1A2B'
+                                    }}
                                 />
                             </PieChart>
                         </ResponsiveContainer>
@@ -1600,7 +1734,8 @@ const DashboardNew: React.FC = () => {
                         ))}
                     </div>
                     )}
-                </div> */}
+                </div>
+
 
                 {/* Conversational AI Insights */}
                 {/* <ConversationalAI
