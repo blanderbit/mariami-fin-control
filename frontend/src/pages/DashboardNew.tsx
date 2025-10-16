@@ -50,6 +50,7 @@ import {
 import {
     getPnLAnalysisRequest,
     PnLAnalysisResponse,
+    PnLDataItem,
     getInvoicesAnalysisRequest,
     InvoicesAnalysisResponse,
     getCashAnalysisRequest,
@@ -60,6 +61,31 @@ import {
     AIInsightsResponse,
     OnboardingData
 } from '../api/auth';
+
+interface PulseKPI {
+    revenue: number;
+    revenue_mom: number;
+    revenue_yoy: number;
+    expenses_total: number;
+    top_expense_category: string;
+    net_profit: number;
+    profit_margin: number;
+    gross_margin: number;
+    operating_margin: number;
+    overdue_invoices: number;
+    overdue_count: number;
+    ending_cash: number;
+    cash_buffer_months: number;
+    currency: string;
+    cash_card_title: string;
+}
+
+interface Alert {
+    id: string;
+    severity: 'info' | 'warning' | 'error';
+    message: string;
+    link: string;
+}
 
 const DashboardNew: React.FC = () => {
     const { theme } = useTheme();
@@ -101,6 +127,14 @@ const DashboardNew: React.FC = () => {
     const [calculatedEndingCash, setCalculatedEndingCash] = useState(0);
     const [cashCardTitle, setCashCardTitle] = useState('Net Cash');
     const [cashBufferMonths, setCashBufferMonths] = useState(0);
+
+    // Date range picker states
+    const [showOverdueDatePicker, setShowOverdueDatePicker] = useState(false);
+    const [showCashDatePicker, setShowCashDatePicker] = useState(false);
+    const [overdueStartDate, setOverdueStartDate] = useState('');
+    const [overdueEndDate, setOverdueEndDate] = useState('');
+    const [cashStartDate, setCashStartDate] = useState('');
+    const [cashEndDate, setCashEndDate] = useState('');
 
     // Ref to track loading state
     const isLoadingRef = useRef(false);
@@ -449,7 +483,7 @@ const DashboardNew: React.FC = () => {
     const revenueExpenseData = useMemo(() => {
         if (pnlData?.data?.pnl_data && pnlData.data.pnl_data.length > 0) {
             return pnlData.data.pnl_data.map(item => {
-                const expenses = (item.COGS || 0) + (item.Payroll || 0) + (item.Rent || 0) + 
+                const expenses = (item.COGS || 0) + (item.Payroll || 0) + (item.Rent || 0) +
                                 (item.Marketing || 0) + (item.Other_Expenses || 0);
                 return {
                     month: format(parseISO(item.Month), 'MMM'),
@@ -488,6 +522,73 @@ const DashboardNew: React.FC = () => {
     };
 
     const scenarioData = useMemo(() => getScenarioData(scenarioMonths), [scenarioMonths]);
+
+    // Generate KPI data from P&L analysis (from Dashboard)
+    const pulseKPIs = useMemo((): PulseKPI => {
+        if (!pnlData?.data) {
+            // Return empty data if no backend data
+            return {
+                revenue: 0,
+                revenue_mom: 0,
+                revenue_yoy: 0,
+                expenses_total: 0,
+                top_expense_category: '',
+                net_profit: 0,
+                profit_margin: 0,
+                gross_margin: 0,
+                operating_margin: 0,
+                overdue_invoices: 0,
+                overdue_count: 0,
+                ending_cash: 0,
+                cash_buffer_months: 0,
+                currency: baseCurrency,
+                cash_card_title: 'Net Cash'
+            };
+        }
+
+        const data = pnlData.data;
+        const profitMargin = data.total_revenue > 0 ? Math.round(((data.net_profit / data.total_revenue) * 100) * 100) / 100 : 0;
+
+        // Use gross margin from API
+        const grossMargin = data.gross_margin || 0;
+
+        // Parse operating margin from API (it comes as string like "10-15%")
+        // Extract the first number as the sector operating margin
+        const operatingMarginStr = data.operating_margin || "0%";
+        const operatingMarginMatch = operatingMarginStr.match(/(\d+(?:\.\d+)?)/);
+        const operatingMargin = operatingMarginMatch ? parseFloat(operatingMarginMatch[1]) : 0;
+
+        // Find top expense category
+        const latestMonth = data.pnl_data && data.pnl_data.length > 0 ? data.pnl_data[data.pnl_data.length - 1] : null;
+        const expenses = [
+            {name: 'Payroll', amount: latestMonth?.Payroll || 0},
+            {name: 'COGS', amount: latestMonth?.COGS || 0},
+            {name: 'Marketing', amount: latestMonth?.Marketing || 0},
+            {name: 'Rent', amount: latestMonth?.Rent || 0},
+            {name: 'Other_Expenses', amount: latestMonth?.Other_Expenses || 0}
+        ];
+        const topExpense = expenses.reduce((max, current) =>
+            current.amount > max.amount ? current : max
+        );
+
+        return {
+            revenue: data.total_revenue || 0,
+            revenue_mom: data.month_change?.revenue?.percentage_change || 0,
+            revenue_yoy: data.year_change?.revenue?.percentage_change || 0,
+            expenses_total: data.total_expenses || 0,
+            top_expense_category: topExpense.name || '',
+            net_profit: data.net_profit || 0,
+            profit_margin: profitMargin || 0,
+            gross_margin: grossMargin || 0,
+            operating_margin: operatingMargin || 0,
+            overdue_invoices: invoicesData?.data?.overdue_invoices?.total_amount || 0,
+            overdue_count: invoicesData?.data?.overdue_invoices?.total_count || 0,
+            ending_cash: calculatedEndingCash,
+            cash_buffer_months: cashBufferMonths,
+            currency: baseCurrency,
+            cash_card_title: cashCardTitle
+        };
+    }, [pnlData, invoicesData, cashData, baseCurrency, calculatedEndingCash, cashCardTitle, cashBufferMonths]);
 
     // Business Pulse Metrics from real API data
     const businessPulseMetrics = useMemo(() => {
@@ -549,7 +650,7 @@ const DashboardNew: React.FC = () => {
         const revenueMoM = data.month_change?.revenue?.percentage_change || 0;
         const expensesMoM = data.month_change?.expenses?.percentage_change || 0;
         const profitMoM = data.month_change?.net_profit?.percentage_change || 0;
-        
+
         const overdueAmount = invoicesData?.data?.overdue_invoices?.total_amount || 0;
         const overdueCount = invoicesData?.data?.overdue_invoices?.total_count || 0;
 
@@ -605,12 +706,12 @@ const DashboardNew: React.FC = () => {
     // Signals from real data or fallback
     const signals = useMemo(() => {
         const alertsList = [];
-        
+
         // Cash gap signal
         if (cashData?.data) {
             const totalIncome = parseFloat(cashData.data.total_income) || 0;
             const totalExpense = parseFloat(cashData.data.total_expense) || 0;
-            
+
             if (totalExpense > totalIncome || calculatedEndingCash < 0) {
                 const topExpense = expenseData.length > 0 ? expenseData[0].name : 'expenses';
                 alertsList.push({
@@ -715,14 +816,14 @@ const DashboardNew: React.FC = () => {
             // Return most recent 3 months if available
             const totalIncome = parseFloat(cashData.data.total_income) || 0;
             const totalExpense = parseFloat(cashData.data.total_expense) || 0;
-            
+
             // For now, show aggregate for the period
             // In future, could break down by month if API provides monthly data
             return [
-                { 
-                    month: 'Period Total', 
-                    inflow: totalIncome, 
-                    outflow: totalExpense 
+                {
+                    month: 'Period Total',
+                    inflow: totalIncome,
+                    outflow: totalExpense
                 }
             ];
         }
@@ -740,33 +841,33 @@ const DashboardNew: React.FC = () => {
         if (invoicesData?.data?.aging_buckets) {
             const buckets = invoicesData.data.aging_buckets;
             return [
-                { 
-                    range: '0-30 days', 
-                    invoices: buckets['0-30']?.count || 0, 
-                    amount: buckets['0-30']?.amount || 0, 
-                    color: '#10B981', 
-                    icon: Clock 
+                {
+                    range: '0-30 days',
+                    invoices: buckets['0-30']?.count || 0,
+                    amount: buckets['0-30']?.amount || 0,
+                    color: '#10B981',
+                    icon: Clock
                 },
-                { 
-                    range: '31-60 days', 
-                    invoices: buckets['31-60']?.count || 0, 
-                    amount: buckets['31-60']?.amount || 0, 
-                    color: '#F59E0B', 
-                    icon: Clock 
+                {
+                    range: '31-60 days',
+                    invoices: buckets['31-60']?.count || 0,
+                    amount: buckets['31-60']?.amount || 0,
+                    color: '#F59E0B',
+                    icon: Clock
                 },
-                { 
-                    range: '61-90 days', 
-                    invoices: buckets['61-90']?.count || 0, 
-                    amount: buckets['61-90']?.amount || 0, 
-                    color: '#EF4444', 
-                    icon: Clock 
+                {
+                    range: '61-90 days',
+                    invoices: buckets['61-90']?.count || 0,
+                    amount: buckets['61-90']?.amount || 0,
+                    color: '#EF4444',
+                    icon: Clock
                 },
-                { 
-                    range: '90+ days', 
-                    invoices: buckets['90+']?.count || 0, 
-                    amount: buckets['90+']?.amount || 0, 
-                    color: '#DC2626', 
-                    icon: AlertTriangle 
+                {
+                    range: '90+ days',
+                    invoices: buckets['90+']?.count || 0,
+                    amount: buckets['90+']?.amount || 0,
+                    color: '#DC2626',
+                    icon: AlertTriangle
                 }
             ].filter(item => item.amount > 0 || item.invoices > 0);
         }
@@ -800,6 +901,53 @@ const DashboardNew: React.FC = () => {
             return "3-month projection: If growth continues, profitability expected. Consider expanding.";
         }
         return "6-month projection: At current trajectory, cash position should strengthen.";
+    };
+
+    const getStatusColor = (statusBy: string, value: number, trend?: number) => {
+        switch (statusBy) {
+            case 'trend':
+                return trend && trend > 0 ? 'text-green-600' : 'text-red-600';
+            case 'criticalIf>0':
+                return value > 0 ? 'text-red-600' : 'text-green-600';
+            case 'balance':
+                return value > 100000 ? 'text-green-600' : value > 50000 ? 'text-yellow-600' : 'text-red-600';
+            case 'buffer':
+                if (value >= 2) return 'text-green-600';
+                if (value >= 1) return 'text-yellow-600';
+                return 'text-red-600';
+            default:
+                return 'text-gray-600';
+        }
+    };
+
+    const getStatusIcon = (statusBy: string, value: number, trend?: number) => {
+        switch (statusBy) {
+            case 'trend':
+                return trend && trend > 0 ? <TrendingUp className="w-6 h-6"/> : <TrendingDown className="w-6 h-6"/>;
+            case 'criticalIf>0':
+                return value > 0 ? <AlertTriangle className="w-6 h-6"/> : <CheckCircle className="w-6 h-6"/>;
+            case 'balance':
+                return <DollarSign className="w-6 h-6"/>;
+            case 'buffer':
+                if (value >= 2) return <CheckCircle className="w-6 h-6"/>;
+                if (value >= 1) return <AlertTriangle className="w-6 h-6"/>;
+                return <XCircle className="w-6 h-6"/>;
+            default:
+                return <Activity className="w-6 h-6"/>;
+        }
+    };
+
+    const getAlertIcon = (severity: string) => {
+        switch (severity) {
+            case 'error':
+                return <XCircle className="w-5 h-5 text-red-500"/>;
+            case 'warning':
+                return <AlertTriangle className="w-5 h-5 text-yellow-500"/>;
+            case 'info':
+                return <Info className="w-5 h-5 text-blue-500"/>;
+            default:
+                return <CheckCircle className="w-5 h-5 text-green-500"/>;
+        }
     };
 
     const getSignalStyles = (severity: string) => {
@@ -998,67 +1146,262 @@ const DashboardNew: React.FC = () => {
                     Business Pulse
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    {businessPulseMetrics.map((metric, idx) => (
-                        <div
-                            key={idx}
-                            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group"
-                            style={{
-                                boxShadow: hoveredMetric === metric.label ? '0 8px 24px rgba(58,117,242,0.15)' : '0 2px 8px rgba(15,26,43,0.06)',
-                                animationDelay: `${idx * 100}ms`
-                            }}
-                            onMouseEnter={() => setHoveredMetric(metric.label)}
-                            onMouseLeave={() => setHoveredMetric(null)}
-                        >
-                            <div className="flex items-start justify-between mb-3">
-                                <div className="flex-1">
-                                    <p className="text-xs text-[#64748B] dark:text-gray-400 mb-1 font-medium uppercase tracking-wide">{metric.label}</p>
-                                    <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100 mb-1">
-                                        {formatCurrency(
-                                            animatedValues[metric.label.toLowerCase().replace(' ', '')] || metric.value
-                                        )}
-                                    </p>
-                                    {metric.change !== 0 && (
-                                        <div className="flex items-center space-x-1">
-                                            {metric.trend === 'up' ? (
-                                                <TrendingUp className="w-3 h-3" style={{ color: metric.label === 'Expenses' ? '#F59E0B' : '#10B981' }} />
-                                            ) : metric.trend === 'down' ? (
-                                                <TrendingDown className="w-3 h-3 text-red-500" />
-                                            ) : null}
-                                            <span
-                                                className="text-xs font-semibold"
-                                                style={{
-                                                    color: metric.trend === 'up' && metric.label !== 'Expenses' ? '#10B981' :
-                                                        metric.trend === 'down' || (metric.trend === 'up' && metric.label === 'Expenses') ? '#F59E0B' :
-                                                            '#64748B'
-                                                }}
-                                            >
-                                                {metric.change > 0 ? '↑' : metric.change < 0 ? '↓' : '→'} {Math.abs(metric.change).toFixed(1)}% MoM
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                                <div
-                                    className="p-2 rounded-xl transition-all"
-                                    style={{ backgroundColor: `${metric.color}15` }}
-                                >
-                                    <metric.icon className="w-5 h-5" style={{ color: metric.color }} />
-                                </div>
+                    {/* Revenue Card */}
+                    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1">
+                                <p className="text-xs text-[#64748B] dark:text-gray-400 font-medium uppercase tracking-wide">Revenue</p>
                             </div>
-                            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                                <div className="flex items-start space-x-2">
-                                    <Brain className="w-3.5 h-3.5 text-[#3A75F2] mt-0.5 flex-shrink-0" />
-                                    <p className="text-xs text-[#64748B] dark:text-gray-400 leading-relaxed italic">{metric.aiNote}</p>
-                                </div>
+                            <div className={getStatusColor('trend', pulseKPIs.revenue, pulseKPIs.revenue_mom)}>
+                                {getStatusIcon('trend', pulseKPIs.revenue, pulseKPIs.revenue_mom)}
                             </div>
                         </div>
-                    ))}
+                        <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100 mb-1">
+                            {formatCurrency(pulseKPIs.revenue)}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                            MoM: {pulseKPIs.revenue_mom > 0 ? '+' : ''}{pulseKPIs.revenue_mom}%,
+                            YoY: {pulseKPIs.revenue_yoy > 0 ? '+' : ''}{pulseKPIs.revenue_yoy}%
+                        </p>
+                    </div>
+
+                    {/* Expenses Card */}
+                    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1">
+                                <p className="text-xs text-[#64748B] dark:text-gray-400 font-medium uppercase tracking-wide">Expenses</p>
+                            </div>
+                            <div className={getStatusColor('trend', pulseKPIs.expenses_total, -5)}>
+                                {getStatusIcon('trend', pulseKPIs.expenses_total, -5)}
+                            </div>
+                        </div>
+                        <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100 mb-1">
+                            {formatCurrency(pulseKPIs.expenses_total)}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Top category: {pulseKPIs.top_expense_category || 'No data'}
+                        </p>
+                    </div>
+
+                    {/* Operating Profit Card */}
+                    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1">
+                                <p className="text-xs text-[#64748B] dark:text-gray-400 font-medium uppercase tracking-wide">Operating Profit</p>
+                            </div>
+                            <div className={getStatusColor('trend', pulseKPIs.net_profit, 12)}>
+                                {getStatusIcon('trend', pulseKPIs.net_profit, 12)}
+                            </div>
+                        </div>
+                        <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100 mb-1">
+                            {formatCurrency(pulseKPIs.net_profit)}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Margin: {pulseKPIs.profit_margin}%
+                        </p>
+                    </div>
+
+                    {/* Overdue Invoices Card */}
+                    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1">
+                                <p className="text-xs text-[#64748B] dark:text-gray-400 font-medium uppercase tracking-wide">Overdue Invoices</p>
+                            </div>
+                            <div className={getStatusColor('criticalIf>0', pulseKPIs.overdue_invoices)}>
+                                {getStatusIcon('criticalIf>0', pulseKPIs.overdue_invoices)}
+                            </div>
+                        </div>
+
+                        {/* Date Range Picker */}
+                        {showOverdueDatePicker && (
+                            <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                                <div className="space-y-3">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Overdue date range:
+                                    </label>
+                                    <div className="space-y-2">
+                                        <input
+                                            type="date"
+                                            value={overdueStartDate}
+                                            onChange={(e) => setOverdueStartDate(e.target.value)}
+                                            max={overdueEndDate || undefined}
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Start date"
+                                        />
+                                        <input
+                                            type="date"
+                                            value={overdueEndDate}
+                                            onChange={(e) => setOverdueEndDate(e.target.value)}
+                                            min={overdueStartDate || undefined}
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="End date"
+                                        />
+                                    </div>
+                                    {overdueStartDate && overdueEndDate && overdueStartDate > overdueEndDate && (
+                                        <p className="text-xs text-red-600 dark:text-red-400">
+                                            End date must be on or after start date
+                                        </p>
+                                    )}
+                                    <div className="space-y-2">
+                                        <button
+                                            onClick={() => {
+                                                setShowOverdueDatePicker(false);
+                                                setOverdueStartDate('');
+                                                setOverdueEndDate('');
+                                            }}
+                                            className="w-full px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setShowOverdueDatePicker(false);
+                                                // Apply the date range filter for invoices analysis
+                                                if (overdueStartDate && overdueEndDate) {
+                                                    loadInvoicesData({
+                                                        start_date: overdueStartDate,
+                                                        end_date: overdueEndDate
+                                                    });
+                                                }
+                                            }}
+                                            disabled={!overdueStartDate || !overdueEndDate || overdueStartDate > overdueEndDate || isLoadingInvoices}
+                                            className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors flex items-center justify-center space-x-2"
+                                        >
+                                            {isLoadingInvoices && (
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                            )}
+                                            <span>{isLoadingInvoices ? 'Loading...' : 'Apply'}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100">
+                                {formatCurrency(pulseKPIs.overdue_invoices)}
+                            </p>
+                            <button
+                                onClick={() => {
+                                    setShowOverdueDatePicker(!showOverdueDatePicker);
+                                    if (!showOverdueDatePicker) {
+                                        setShowCashDatePicker(false);
+                                    }
+                                }}
+                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                                title="Select overdue date range">
+                                <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400"/>
+                            </button>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Due: {pulseKPIs.overdue_count} invoices
+                        </p>
+                    </div>
+
+                    {/* Cash Card */}
+                    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1">
+                                <p className="text-xs text-[#64748B] dark:text-gray-400 font-medium uppercase tracking-wide">{pulseKPIs.cash_card_title}</p>
+                            </div>
+                            <div className={getStatusColor('buffer', pulseKPIs.cash_buffer_months)}>
+                                {getStatusIcon('balance', pulseKPIs.ending_cash)}
+                            </div>
+                        </div>
+
+                        {/* Date Range Picker */}
+                        {showCashDatePicker && (
+                            <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                                <div className="space-y-3">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Cash date range:
+                                    </label>
+                                    <div className="space-y-2">
+                                        <input
+                                            type="date"
+                                            value={cashStartDate}
+                                            onChange={(e) => setCashStartDate(e.target.value)}
+                                            max={cashEndDate || undefined}
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Start date"
+                                        />
+                                        <input
+                                            type="date"
+                                            value={cashEndDate}
+                                            onChange={(e) => setCashEndDate(e.target.value)}
+                                            min={cashStartDate || undefined}
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="End date"
+                                        />
+                                    </div>
+                                    {cashStartDate && cashEndDate && cashStartDate > cashEndDate && (
+                                        <p className="text-xs text-red-600 dark:text-red-400">
+                                            End date must be on or after start date
+                                        </p>
+                                    )}
+                                    <div className="space-y-2">
+                                        <button
+                                            onClick={() => {
+                                                setShowCashDatePicker(false);
+                                                setCashStartDate('');
+                                                setCashEndDate('');
+                                            }}
+                                            className="w-full px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setShowCashDatePicker(false);
+                                                // Apply the date range filter for cash analysis
+                                                if (cashStartDate && cashEndDate) {
+                                                    loadCashData({
+                                                        start_date: cashStartDate,
+                                                        end_date: cashEndDate
+                                                    });
+                                                }
+                                            }}
+                                            disabled={!cashStartDate || !cashEndDate || cashStartDate > cashEndDate || isLoadingCash}
+                                            className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors flex items-center justify-center space-x-2"
+                                        >
+                                            {isLoadingCash && (
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                            )}
+                                            <span>{isLoadingCash ? 'Loading...' : 'Apply'}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100">
+                                {formatCurrency(pulseKPIs.ending_cash)}
+                            </p>
+                            <button
+                                onClick={() => {
+                                    setShowCashDatePicker(!showCashDatePicker);
+                                    if (!showCashDatePicker) {
+                                        setShowOverdueDatePicker(false);
+                                    }
+                                }}
+                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                                title="Select cash date range"
+                            >
+                                <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400"/>
+                            </button>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Buffer: {profileData?.current_cash ? `${pulseKPIs.cash_buffer_months} months` : 'N/A'}
+                        </p>
+                    </div>
                 </div>
             </div>
 
             {/* Mid Section - Insights & Visualization */}
-            <div className="grid grid-cols-12 gap-6">
+            {/* <div className="grid grid-cols-12 gap-6">
                 {/* Revenue vs Expenses Chart */}
-                <div className="col-span-12 lg:col-span-5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                {/* <div className="col-span-12 lg:col-span-5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                     <h3 className="text-lg font-semibold text-[#0F1A2B] dark:text-gray-100 mb-4">Revenue vs Expenses</h3>
                     <div className="h-72">
                         {isLoadingPnl ? (
@@ -1120,10 +1463,10 @@ const DashboardNew: React.FC = () => {
                             </div>
                         </div>
                     )}
-                </div>
+                </div> */}
 
                 {/* Expense Breakdown Donut */}
-                <div className="col-span-12 lg:col-span-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                {/* <div className="col-span-12 lg:col-span-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                     <h3 className="text-lg font-semibold text-[#0F1A2B] dark:text-gray-100 mb-4">Expense Breakdown</h3>
                     <div className="h-64">
                         {isLoadingExpenseBreakdown ? (
@@ -1186,10 +1529,10 @@ const DashboardNew: React.FC = () => {
                         ))}
                     </div>
                     )}
-                </div>
+                </div> */}
 
                 {/* Conversational AI Insights */}
-                <ConversationalAI
+                {/* <ConversationalAI
                     companyProfile={{
                         industry: company.profile?.industry || 'business',
                         country: company.profile?.country,
@@ -1203,10 +1546,10 @@ const DashboardNew: React.FC = () => {
                     }}
                     baseCurrency={baseCurrency}
                 />
-            </div>
+            </div> */}
 
             {/* Signals Panel */}
-            <div>
+            {/* <div>
                 <h2 className="text-lg font-semibold text-[#0F1A2B] dark:text-gray-100 mb-4">Signals</h2>
                 {isLoadingPnl || isLoadingCash || isLoadingInvoices ? (
                     <div className="flex items-center justify-center py-12">
@@ -1240,12 +1583,12 @@ const DashboardNew: React.FC = () => {
                     })}
                 </div>
                 )}
-            </div>
+            </div> */}
 
             {/* Cash Calendar and AR Health */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Cash Calendar */}
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                {/* <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                     <div className="flex items-center space-x-2 mb-6">
                         <Calendar className="w-5 h-5 text-[#3A75F2]" />
                         <h3 className="text-lg font-semibold text-[#0F1A2B] dark:text-gray-100">Cash Calendar</h3>
@@ -1285,10 +1628,10 @@ const DashboardNew: React.FC = () => {
                         ))}
                     </div>
                     )}
-                </div>
+                </div> */}
 
                 {/* AR Health */}
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                {/* <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                     <div className="flex items-center space-x-2 mb-6">
                         <FileText className="w-5 h-5 text-[#3A75F2]" />
                         <h3 className="text-lg font-semibold text-[#0F1A2B] dark:text-gray-100">AR Health</h3>
@@ -1324,7 +1667,7 @@ const DashboardNew: React.FC = () => {
                             <div className="flex items-start space-x-2">
                                 <Brain className="w-4 h-4 text-[#3A75F2] mt-0.5 flex-shrink-0" />
                                 <p className="text-xs text-[#64748B] dark:text-gray-400 italic">
-                                    {invoicesData?.data?.average_days_outstanding 
+                                    {invoicesData?.data?.average_days_outstanding
                                         ? `Avg collection: ${Math.round(invoicesData.data.average_days_outstanding)} days`
                                         : 'Monitor aging buckets for collection efficiency'
                                     }
@@ -1335,10 +1678,10 @@ const DashboardNew: React.FC = () => {
                     </>
                     )}
                 </div>
-            </div>
+            </div> */}
 
             {/* Scenario Explorer */}
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+            {/* <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h2 className="text-lg font-semibold text-[#0F1A2B] dark:text-gray-100 mb-1">Scenario Explorer</h2>
@@ -1377,7 +1720,7 @@ const DashboardNew: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> */}
         </motion.div>
     );
 };
