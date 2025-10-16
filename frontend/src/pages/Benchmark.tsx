@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import {
     TrendingUp,
     AlertTriangle,
@@ -119,6 +120,7 @@ interface PorterForce {
 }
 
 const Benchmark: React.FC = () => {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<'market' | 'strategic'>('market');
     const [activeMarketTab, setActiveMarketTab] = useState<'macro' | 'operating'>('macro');
 
@@ -141,6 +143,7 @@ const Benchmark: React.FC = () => {
     const company = JSON.parse(localStorage.getItem('company') || '{}');
     const baseCurrency = company.profile?.baseCurrency || 'USD';
     const industry = company.profile?.industry || 'Services';
+
 
     // Load all benchmark data
     useEffect(() => {
@@ -205,6 +208,37 @@ const Benchmark: React.FC = () => {
 
         loadBenchmarkData();
     }, []);
+
+    const getUserCountryData = (apiData: any, indicator: string) => {
+        if (!apiData?.data?.data || !user?.oecd_country) {
+            return null;
+        }
+
+        const countryData = apiData.data.data.find(
+            (item: any) => item.country === user.oecd_country && item.indicator === indicator
+        );
+
+        return countryData || null;
+    };
+
+    const formatValue = (value: number, unit: string) => {
+        if (unit === '%') {
+            return value > 0 ? `+${value.toFixed(1)}%` : `${value.toFixed(1)}%`;
+        }
+        return value.toString();
+    };
+
+    const getLatestPeriod = (apiData: any) => {
+        if (!apiData?.data?.data) return null;
+
+        const periods = apiData.data.data
+            .map((item: any) => item.period)
+            .filter((period: string, index: number, arr: string[]) => arr.indexOf(period) === index)
+            .sort()
+            .reverse();
+
+        return periods[0] || null;
+    };
 
     // Mock market data
     const marketData: MarketData = {
@@ -464,7 +498,7 @@ const Benchmark: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Market Overview</h2>
-                
+
                 {/* Market Tab Selector */}
                 <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
                     <button
@@ -501,7 +535,28 @@ const Benchmark: React.FC = () => {
                             </div>
                         </div>
                         <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
-                            3.8% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Aug 2025)</span>
+                            {(() => {
+                                const data = getUserCountryData(benchmarkData.inflation, 'inflation');
+                                if (data) {
+                                    const latestPeriod = getLatestPeriod(benchmarkData.inflation);
+                                    return (
+                                        <>
+                                            {formatValue(data.value, data.unit)}{' '}
+                                            <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                ({latestPeriod || 'N/A'})
+                                            </span>
+                                        </>
+                                    );
+                                }
+                                return (
+                                    <>
+                                        3.8%{' '}
+                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                            (Demo)
+                                        </span>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
 
@@ -514,7 +569,28 @@ const Benchmark: React.FC = () => {
                             </div>
                         </div>
                         <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
-                            5.25% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Sep 2025)</span>
+                            {(() => {
+                                const data = getUserCountryData(benchmarkData.shortTermRate, 'short_term_rate');
+                                if (data) {
+                                    const latestPeriod = getLatestPeriod(benchmarkData.shortTermRate);
+                                    return (
+                                        <>
+                                            {formatValue(data.value, data.unit)}{' '}
+                                            <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                ({latestPeriod || 'N/A'})
+                                            </span>
+                                        </>
+                                    );
+                                }
+                                return (
+                                    <>
+                                        5.25%{' '}
+                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                            (Demo)
+                                        </span>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
 
@@ -527,7 +603,28 @@ const Benchmark: React.FC = () => {
                             </div>
                         </div>
                         <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
-                            4.8% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Sep 2025)</span>
+                            {(() => {
+                                const data = getUserCountryData(benchmarkData.longTermRate, 'long_term_rate');
+                                if (data) {
+                                    const latestPeriod = getLatestPeriod(benchmarkData.longTermRate);
+                                    return (
+                                        <>
+                                            {formatValue(data.value, data.unit)}{' '}
+                                            <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                ({latestPeriod || 'N/A'})
+                                            </span>
+                                        </>
+                                    );
+                                }
+                                return (
+                                    <>
+                                        4.8%{' '}
+                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                            (Demo)
+                                        </span>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
 
@@ -540,7 +637,17 @@ const Benchmark: React.FC = () => {
                             </div>
                         </div>
                         <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-3">
-                            4.2% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Sep 2025)</span>
+                            {(() => {
+                                // Note: unemployment data not available in current API, using demo data
+                                return (
+                                    <>
+                                        4.2%{' '}
+                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                            (Demo)
+                                        </span>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
 
@@ -553,7 +660,28 @@ const Benchmark: React.FC = () => {
                             </div>
                         </div>
                         <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
-                            -19 <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Sep 2025)</span>
+                            {(() => {
+                                const data = getUserCountryData(benchmarkData.consumerConfidence, 'consumer_confidence');
+                                if (data) {
+                                    const latestPeriod = getLatestPeriod(benchmarkData.consumerConfidence);
+                                    return (
+                                        <>
+                                            {formatValue(data.value, data.unit)}{' '}
+                                            <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                ({latestPeriod || 'N/A'})
+                                            </span>
+                                        </>
+                                    );
+                                }
+                                return (
+                                    <>
+                                        -19{' '}
+                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                            (Demo)
+                                        </span>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
 
@@ -566,14 +694,35 @@ const Benchmark: React.FC = () => {
                             </div>
                         </div>
                         <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-3">
-                            +5.0% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">YoY (Jun 2025)</span>
+                            {(() => {
+                                const data = getUserCountryData(benchmarkData.wageGrowth, 'wage_growth');
+                                if (data) {
+                                    const latestPeriod = getLatestPeriod(benchmarkData.wageGrowth);
+                                    return (
+                                        <>
+                                            {formatValue(data.value, data.unit)}{' '}
+                                            <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                ({latestPeriod || 'N/A'})
+                                            </span>
+                                        </>
+                                    );
+                                }
+                                return (
+                                    <>
+                                        +5.0%{' '}
+                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                            (Demo)
+                                        </span>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {/* Operating Pressure Cards */}
-                    
+
                     {/* Rent index */}
                     <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
                         <div className="flex items-center justify-between mb-3">
@@ -583,7 +732,28 @@ const Benchmark: React.FC = () => {
                             </div>
                         </div>
                         <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
-                            +12% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">YoY (2025)</span>
+                            {(() => {
+                                const data = getUserCountryData(benchmarkData.rentIndex, 'rent_index');
+                                if (data) {
+                                    const latestPeriod = getLatestPeriod(benchmarkData.rentIndex);
+                                    return (
+                                        <>
+                                            {formatValue(data.value, data.unit)}{' '}
+                                            <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                ({latestPeriod || 'N/A'})
+                                            </span>
+                                        </>
+                                    );
+                                }
+                                return (
+                                    <>
+                                        +12%{' '}
+                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                            (Demo)
+                                        </span>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
 
@@ -596,7 +766,28 @@ const Benchmark: React.FC = () => {
                             </div>
                         </div>
                         <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
-                            +46% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">vs pre-crisis</span>
+                            {(() => {
+                                const data = getUserCountryData(benchmarkData.energyUtilities, 'energy_utilities');
+                                if (data) {
+                                    const latestPeriod = getLatestPeriod(benchmarkData.energyUtilities);
+                                    return (
+                                        <>
+                                            {formatValue(data.value, data.unit)}{' '}
+                                            <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                ({latestPeriod || 'N/A'})
+                                            </span>
+                                        </>
+                                    );
+                                }
+                                return (
+                                    <>
+                                        +46%{' '}
+                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                            (Demo)
+                                        </span>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
 
@@ -609,7 +800,28 @@ const Benchmark: React.FC = () => {
                             </div>
                         </div>
                         <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
-                            34.3% <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">of GDP (2024)</span>
+                            {(() => {
+                                const data = getUserCountryData(benchmarkData.taxBurden, 'tax_burden');
+                                if (data) {
+                                    const latestPeriod = getLatestPeriod(benchmarkData.taxBurden);
+                                    return (
+                                        <>
+                                            {formatValue(data.value, data.unit)}{' '}
+                                            <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                ({latestPeriod || 'N/A'})
+                                            </span>
+                                        </>
+                                    );
+                                }
+                                return (
+                                    <>
+                                        34.3%{' '}
+                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                            (Demo)
+                                        </span>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>
@@ -952,6 +1164,11 @@ const Benchmark: React.FC = () => {
                     </div>
                     <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400">
                         {loading ? 'Loading benchmark data...' : 'Compare your performance against industry standards'}
+                        {user.oecd_country && (
+                            <span className="ml-2 text-sm bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 px-2 py-1 rounded">
+                                {user.oecd_country}
+                            </span>
+                        )}
                     </p>
                 </div>
 

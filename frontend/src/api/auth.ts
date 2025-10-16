@@ -14,6 +14,8 @@ export type AuthUser = {
     last_name?: string | null;
     is_admin?: boolean;
     is_onboarded?: boolean;
+    country?: string;
+    oecd_country?: string;
 };
 
 export async function loginRequest(email: string, password: string, storage?: TokenStorage) {
@@ -84,15 +86,15 @@ export async function refreshTokens() {
 
 export async function registerRequest(data: { email: string; password: string; re_password: string; country?: string; name?: string; last_name?: string; }) {
     const res = await api.auth.authRegistrationCreate(data) as any;
-    
+
     // Extract tokens from response
     const access = res.data?.data?.access || '';
     const refresh = res.data?.data?.refresh || '';
-    
+
     if (!access || !refresh) {
         throw new Error('Invalid registration response: tokens missing');
     }
-    
+
     return { access, refresh };
 }
 
@@ -111,7 +113,9 @@ export async function getProfileRequest(): Promise<AuthUser | null> {
             name: profileData.profile?.name || profileData.name,
             last_name: profileData.profile?.last_name || profileData.last_name,
             is_admin: profileData.is_admin,
-            is_onboarded: profileData.is_onboarded
+            is_onboarded: profileData.is_onboarded,
+            country: profileData.profile.country,
+            oecd_country: profileData.profile.oecd_country,
         };
 
         return user;
@@ -147,6 +151,7 @@ export type OnboardingData = {
     name?: string;
     last_name?: string;
     country?: string;
+    oecd_country?: string;
     company_name?: string;
     employees_count?: number | null;
     industry?: string;
