@@ -6,6 +6,7 @@ from config.settings.components.currencies import (
     SUPPORTED_CURRENCIES, 
     DEFAULT_CURRENCY
 )
+from django.conf import settings
 
 
 @final
@@ -124,6 +125,10 @@ class ProfileModel(models.Model):
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def oecd_country(self) -> str:
+        return settings.SUPPORTED_COUNTRIES_DICT.get(self.country, {}).get('oecd_code', '')
 
     def is_onboarding_complete(self) -> bool:
         """
