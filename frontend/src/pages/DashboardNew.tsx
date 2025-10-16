@@ -32,6 +32,7 @@ import {
     Cell,
     BarChart,
     Bar,
+    ComposedChart,
     XAxis,
     YAxis,
     CartesianGrid,
@@ -85,6 +86,17 @@ interface Alert {
     severity: 'info' | 'warning' | 'error';
     message: string;
     link: string;
+}
+
+interface ChartData {
+    months: string[];
+    revenue: number[];
+    expenses_total: number[];
+    expenses_by_category: {
+        category: string;
+        series: number[];
+    }[];
+    story: string;
 }
 
 const DashboardNew: React.FC = () => {
@@ -483,7 +495,7 @@ const DashboardNew: React.FC = () => {
     const revenueExpenseData = useMemo(() => {
         if (pnlData?.data?.pnl_data && pnlData.data.pnl_data.length > 0) {
             return pnlData.data.pnl_data.map(item => {
-                const expenses = (item.COGS || 0) + (item.Payroll || 0) + (item.Rent || 0) +
+                const expenses = (item.COGS || 0) + (item.Payroll || 0) + (item.Rent || 0) + 
                                 (item.Marketing || 0) + (item.Other_Expenses || 0);
                 return {
                     month: format(parseISO(item.Month), 'MMM'),
@@ -590,6 +602,65 @@ const DashboardNew: React.FC = () => {
         };
     }, [pnlData, invoicesData, cashData, baseCurrency, calculatedEndingCash, cashCardTitle, cashBufferMonths]);
 
+    // Chart data from Dashboard
+    const chartData = useMemo((): ChartData => {
+        if (!pnlData?.data?.pnl_data || pnlData.data.pnl_data.length === 0) {
+            // Return empty data if no backend data
+            return {
+                months: [],
+                revenue: [],
+                expenses_total: [],
+                expenses_by_category: [],
+                story: ""
+            };
+        }
+
+        // Use real P&L data
+        const pnlDataItems = pnlData.data.pnl_data;
+
+        const months = pnlDataItems.map(item => format(parseISO(item.Month), 'yyyy-MM'));
+        const revenue = pnlDataItems.map(item => item.Revenue || 0);
+        const expenses_total = pnlDataItems.map(item =>
+            (item.COGS || 0) + (item.Payroll || 0) + (item.Rent || 0) + (item.Marketing || 0) + (item.Other_Expenses || 0)
+        );
+
+        const expenses_by_category = [
+            {category: 'COGS', series: pnlDataItems.map(item => item.COGS || 0)},
+            {category: 'Payroll', series: pnlDataItems.map(item => item.Payroll || 0)},
+            {category: 'Rent', series: pnlDataItems.map(item => item.Rent || 0)},
+            {category: 'Marketing', series: pnlDataItems.map(item => item.Marketing || 0)},
+            {category: 'Other_Expenses', series: pnlDataItems.map(item => item.Other_Expenses || 0)}
+        ];
+
+        return {
+            months,
+            revenue,
+            expenses_total,
+            expenses_by_category,
+            story: pnlData.data.ai_insights || ""
+        };
+    }, [pnlData]);
+
+    // Prepare stacked chart data
+    const stackedChartData = useMemo(() => {
+        return chartData.months.map((month, index) => {
+            const dataPoint: any = {
+                month: format(parseISO(month + '-01'), 'MMM yyyy'),
+                revenue: chartData.revenue[index],
+                expenses_total: chartData.expenses_total[index]
+            };
+
+            // Add each expense category
+            chartData.expenses_by_category.forEach(category => {
+                dataPoint[category.category] = category.series[index];
+            });
+
+            return dataPoint;
+        });
+    }, [chartData]);
+
+    const expenseColors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'];
+
     // Business Pulse Metrics from real API data
     const businessPulseMetrics = useMemo(() => {
         if (!pnlData?.data) {
@@ -650,7 +721,7 @@ const DashboardNew: React.FC = () => {
         const revenueMoM = data.month_change?.revenue?.percentage_change || 0;
         const expensesMoM = data.month_change?.expenses?.percentage_change || 0;
         const profitMoM = data.month_change?.net_profit?.percentage_change || 0;
-
+        
         const overdueAmount = invoicesData?.data?.overdue_invoices?.total_amount || 0;
         const overdueCount = invoicesData?.data?.overdue_invoices?.total_count || 0;
 
@@ -706,12 +777,12 @@ const DashboardNew: React.FC = () => {
     // Signals from real data or fallback
     const signals = useMemo(() => {
         const alertsList = [];
-
+        
         // Cash gap signal
         if (cashData?.data) {
             const totalIncome = parseFloat(cashData.data.total_income) || 0;
             const totalExpense = parseFloat(cashData.data.total_expense) || 0;
-
+            
             if (totalExpense > totalIncome || calculatedEndingCash < 0) {
                 const topExpense = expenseData.length > 0 ? expenseData[0].name : 'expenses';
                 alertsList.push({
@@ -816,14 +887,14 @@ const DashboardNew: React.FC = () => {
             // Return most recent 3 months if available
             const totalIncome = parseFloat(cashData.data.total_income) || 0;
             const totalExpense = parseFloat(cashData.data.total_expense) || 0;
-
+            
             // For now, show aggregate for the period
             // In future, could break down by month if API provides monthly data
             return [
-                {
-                    month: 'Period Total',
-                    inflow: totalIncome,
-                    outflow: totalExpense
+                { 
+                    month: 'Period Total', 
+                    inflow: totalIncome, 
+                    outflow: totalExpense 
                 }
             ];
         }
@@ -841,33 +912,33 @@ const DashboardNew: React.FC = () => {
         if (invoicesData?.data?.aging_buckets) {
             const buckets = invoicesData.data.aging_buckets;
             return [
-                {
-                    range: '0-30 days',
-                    invoices: buckets['0-30']?.count || 0,
-                    amount: buckets['0-30']?.amount || 0,
-                    color: '#10B981',
-                    icon: Clock
+                { 
+                    range: '0-30 days', 
+                    invoices: buckets['0-30']?.count || 0, 
+                    amount: buckets['0-30']?.amount || 0, 
+                    color: '#10B981', 
+                    icon: Clock 
                 },
-                {
-                    range: '31-60 days',
-                    invoices: buckets['31-60']?.count || 0,
-                    amount: buckets['31-60']?.amount || 0,
-                    color: '#F59E0B',
-                    icon: Clock
+                { 
+                    range: '31-60 days', 
+                    invoices: buckets['31-60']?.count || 0, 
+                    amount: buckets['31-60']?.amount || 0, 
+                    color: '#F59E0B', 
+                    icon: Clock 
                 },
-                {
-                    range: '61-90 days',
-                    invoices: buckets['61-90']?.count || 0,
-                    amount: buckets['61-90']?.amount || 0,
-                    color: '#EF4444',
-                    icon: Clock
+                { 
+                    range: '61-90 days', 
+                    invoices: buckets['61-90']?.count || 0, 
+                    amount: buckets['61-90']?.amount || 0, 
+                    color: '#EF4444', 
+                    icon: Clock 
                 },
-                {
-                    range: '90+ days',
-                    invoices: buckets['90+']?.count || 0,
-                    amount: buckets['90+']?.amount || 0,
-                    color: '#DC2626',
-                    icon: AlertTriangle
+                { 
+                    range: '90+ days', 
+                    invoices: buckets['90+']?.count || 0, 
+                    amount: buckets['90+']?.amount || 0, 
+                    color: '#DC2626', 
+                    icon: AlertTriangle 
                 }
             ].filter(item => item.amount > 0 || item.invoices > 0);
         }
@@ -1272,7 +1343,7 @@ const DashboardNew: React.FC = () => {
                                             )}
                                             <span>{isLoadingInvoices ? 'Loading...' : 'Apply'}</span>
                                         </button>
-                                    </div>
+                                </div>
                                 </div>
                             </div>
                         )}
@@ -1369,9 +1440,9 @@ const DashboardNew: React.FC = () => {
                                             )}
                                             <span>{isLoadingCash ? 'Loading...' : 'Apply'}</span>
                                         </button>
-                                    </div>
                                 </div>
                             </div>
+                                </div>
                         )}
 
                         <div className="flex items-center justify-between mb-2">
@@ -1390,31 +1461,31 @@ const DashboardNew: React.FC = () => {
                             >
                                 <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400"/>
                             </button>
-                        </div>
+                            </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                             Buffer: {profileData?.current_cash ? `${pulseKPIs.cash_buffer_months} months` : 'N/A'}
                         </p>
-                    </div>
+                        </div>
                 </div>
             </div>
 
             {/* Mid Section - Insights & Visualization */}
-            {/* <div className="grid grid-cols-12 gap-6">
+            <div className="grid grid-cols-12 gap-6">
                 {/* Revenue vs Expenses Chart */}
-                {/* <div className="col-span-12 lg:col-span-5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="col-span-12 lg:col-span-5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                     <h3 className="text-lg font-semibold text-[#0F1A2B] dark:text-gray-100 mb-4">Revenue vs Expenses</h3>
                     <div className="h-72">
                         {isLoadingPnl ? (
                             <div className="flex items-center justify-center h-full">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3A75F2]"></div>
                             </div>
-                        ) : revenueExpenseData.length === 0 ? (
+                        ) : stackedChartData.length === 0 ? (
                             <div className="flex items-center justify-center h-full">
                                 <p className="text-sm text-[#64748B] dark:text-gray-400">No data available</p>
                             </div>
                         ) : (
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={revenueExpenseData}>
+                            <BarChart data={stackedChartData}>
                                 <defs>
                                     <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="0%" stopColor="#3A75F2" stopOpacity={0.9} />
@@ -1448,22 +1519,22 @@ const DashboardNew: React.FC = () => {
                                     labelStyle={{ color: theme === 'dark' ? '#F3F4F6' : '#0F1A2B', fontWeight: 600 }}
                                 />
                                 <Bar dataKey="revenue" fill="url(#revenueGrad)" name="Revenue" radius={[8, 8, 0, 0]} />
-                                <Bar dataKey="expenses" fill="url(#expensesGrad)" name="Expenses" radius={[8, 8, 0, 0]} />
+                                <Bar dataKey="expenses_total" fill="url(#expensesGrad)" name="Expenses" radius={[8, 8, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                         )}
                     </div>
-                    {pnlData?.data?.ai_insights && (
+                    {chartData.story && (
                         <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                             <div className="flex items-start space-x-2">
                                 <Brain className="w-4 h-4 text-[#3A75F2] mt-0.5 flex-shrink-0" />
                                 <p className="text-xs text-[#64748B] dark:text-gray-400 italic">
-                                    {pnlData.data.ai_insights}
+                                    {chartData.story}
                                 </p>
                             </div>
                         </div>
                     )}
-                </div> */}
+                </div>
 
                 {/* Expense Breakdown Donut */}
                 {/* <div className="col-span-12 lg:col-span-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -1545,8 +1616,8 @@ const DashboardNew: React.FC = () => {
                         cashBuffer: cashBufferMonths
                     }}
                     baseCurrency={baseCurrency}
-                />
-            </div> */}
+                /> */}
+            </div>
 
             {/* Signals Panel */}
             {/* <div>
@@ -1667,7 +1738,7 @@ const DashboardNew: React.FC = () => {
                             <div className="flex items-start space-x-2">
                                 <Brain className="w-4 h-4 text-[#3A75F2] mt-0.5 flex-shrink-0" />
                                 <p className="text-xs text-[#64748B] dark:text-gray-400 italic">
-                                    {invoicesData?.data?.average_days_outstanding
+                                    {invoicesData?.data?.average_days_outstanding 
                                         ? `Avg collection: ${Math.round(invoicesData.data.average_days_outstanding)} days`
                                         : 'Monitor aging buckets for collection efficiency'
                                     }
