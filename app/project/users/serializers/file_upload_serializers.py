@@ -42,15 +42,13 @@ class UploadUserDataSerializer(serializers.Serializer):
         help_text="Column name for dates in PnL file",
         max_length=100
     )
-    pnl_expense_columns = serializers.ListField(
-        child=serializers.CharField(max_length=100),
+    pnl_expense_columns = serializers.CharField(
         required=False,
-        help_text="List of expense column names"
+        help_text="Comma-separated expense columns (e.g., 'COGS,Payroll')"
     )
-    pnl_revenue_columns = serializers.ListField(
-        child=serializers.CharField(max_length=100),
+    pnl_revenue_columns = serializers.CharField(
         required=False,
-        help_text="List of revenue column names"
+        help_text="Comma-separated revenue columns (e.g., 'Revenue,Sales')"
     )
 
     def validate(self, attrs):
@@ -58,13 +56,19 @@ class UploadUserDataSerializer(serializers.Serializer):
         uploaded_files = []
         max_file_size = 20 * 1024 * 1024  # 20 MB in bytes
 
+        # Define file fields to check (exclude metadata fields)
+        file_fields = ['pnl_file', 'transactions_file', 'invoices_file']
+        
         # Collect uploaded files and validate size
-        for field_name, file in attrs.items():
+        for field_name in file_fields:
+            file = attrs.get(field_name)
             if file:
-                # Check file size
-                if file.size > max_file_size:
-                    raise serializers.ValidationError(FILE_SIZE_EXCEEDED)
-                uploaded_files.append(file)
+                # Check if it's actually a file object
+                if hasattr(file, 'size'):
+                    # Check file size
+                    if file.size > max_file_size:
+                        raise serializers.ValidationError(FILE_SIZE_EXCEEDED)
+                    uploaded_files.append(file)
 
         if not uploaded_files:
             raise serializers.ValidationError(NO_FILES_PROVIDED, HTTP_400_BAD_REQUEST)
@@ -84,6 +88,19 @@ class UploadUserDataSerializer(serializers.Serializer):
         # Store validation results for use in view
         attrs["_uploaded_files"] = uploaded_files
         attrs["_file_template_mapping"] = file_template_mapping
+
+        # Convert comma-separated strings to lists for metadata fields
+        if "pnl_expense_columns" in attrs and attrs["pnl_expense_columns"]:
+            attrs["pnl_expense_columns"] = [
+                col.strip() for col in attrs["pnl_expense_columns"].split(",")
+                if col.strip()
+            ]
+
+        if "pnl_revenue_columns" in attrs and attrs["pnl_revenue_columns"]:
+            attrs["pnl_revenue_columns"] = [
+                col.strip() for col in attrs["pnl_revenue_columns"].split(",")
+                if col.strip()
+            ]
 
         return attrs
 

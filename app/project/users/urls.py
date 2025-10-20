@@ -67,11 +67,11 @@ urlpatterns = [
         IndustriesListView.as_view(),
         name="industries-list"
     ),
-    path(
-        "industries/<str:industry_name>",
-        IndustryDetailsView.as_view(),
-        name="industry-details"
-    ),
+    # path(
+    #     "industries/<str:industry_name>",
+    #     IndustryDetailsView.as_view(),
+    #     name="industry-details"
+    # ),
     path(
         "documents",
         DocumentsView.as_view(),
