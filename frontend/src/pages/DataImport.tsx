@@ -170,7 +170,7 @@ const DataImport: React.FC = () => {
                 additionalParams.pnl_date_column = config.pnl_date_column;
                 additionalParams.pnl_expense_columns = config.pnl_expense_columns;
                 additionalParams.pnl_revenue_columns = config.pnl_revenue_columns;
-                
+
                 // Debug logging
                 console.log('P&L Configuration being sent:', {
                     pnl_date_column: config.pnl_date_column,
@@ -227,7 +227,7 @@ const DataImport: React.FC = () => {
     const handlePnLConfigConfirm = async (config: PnLConfig) => {
         setPnlConfig(config);
         setShowPnLConfigModal(false);
-        
+
         if (pendingPnLFile) {
             await performFileUpload(pendingPnLFile, 'pnl', config);
             setPendingPnLFile(null);

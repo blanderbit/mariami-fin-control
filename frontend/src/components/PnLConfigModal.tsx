@@ -28,7 +28,7 @@ const PnLConfigModal: React.FC<PnLConfigModalProps> = ({
 }) => {
     const [currentStep, setCurrentStep] = useState(1);
     const [columns, setColumns] = useState<ColumnData[]>([]);
-    const [selectedDateValue, setSelectedDateValue] = useState<string>('');
+    const [dateColumn, setDateColumn] = useState<string>('');
     const [expenseColumns, setExpenseColumns] = useState<string[]>([]);
     const [revenueColumns, setRevenueColumns] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +38,7 @@ const PnLConfigModal: React.FC<PnLConfigModalProps> = ({
     useEffect(() => {
         if (isOpen && file) {
             setCurrentStep(1);
-            setSelectedDateValue('');
+            setDateColumn('');
             setExpenseColumns([]);
             setRevenueColumns([]);
             setError('');
@@ -47,7 +47,7 @@ const PnLConfigModal: React.FC<PnLConfigModalProps> = ({
         } else if (!isOpen) {
             // Reset all state when modal closes
             setCurrentStep(1);
-            setSelectedDateValue('');
+            setDateColumn('');
             setExpenseColumns([]);
             setRevenueColumns([]);
             setError('');
@@ -108,25 +108,14 @@ const PnLConfigModal: React.FC<PnLConfigModalProps> = ({
     };
 
     const getDateValues = () => {
-        // Find the date column automatically
-        const dateCol = columns.find(col =>
-            col.name.toLowerCase().includes('date') ||
-            col.name.toLowerCase().includes('period') ||
-            col.name.toLowerCase().includes('month') ||
-            col.name.toLowerCase().includes('year')
-        );
-        return dateCol ? [...new Set(dateCol.values)] : []; // Remove duplicates
+        if (!dateColumn) return [];
+        const dateCol = columns.find(col => col.name === dateColumn);
+        return dateCol ? [...new Set(dateCol.values)] : [];
     };
 
     const getNonDateColumns = () => {
-        // Find the date column automatically and exclude it
-        const dateColName = columns.find(col =>
-            col.name.toLowerCase().includes('date') ||
-            col.name.toLowerCase().includes('period') ||
-            col.name.toLowerCase().includes('month') ||
-            col.name.toLowerCase().includes('year')
-        )?.name;
-        return columns.filter(col => col.name !== dateColName);
+        // Exclude selected date column
+        return columns.filter(col => col.name !== dateColumn);
     };
 
     const getAvailableRevenueColumns = () => {
@@ -138,7 +127,7 @@ const PnLConfigModal: React.FC<PnLConfigModalProps> = ({
     const canProceedToNext = () => {
         switch (currentStep) {
             case 1:
-                return selectedDateValue !== '';
+                return dateColumn !== '';
             case 2:
                 return expenseColumns.length > 0;
             case 3:
@@ -163,7 +152,7 @@ const PnLConfigModal: React.FC<PnLConfigModalProps> = ({
     const handleConfirm = () => {
         if (canProceedToNext()) {
             const config: PnLConfig = {
-                pnl_date_column: selectedDateValue,
+                pnl_date_column: dateColumn,
                 pnl_expense_columns: expenseColumns,
                 pnl_revenue_columns: revenueColumns
             };
@@ -296,37 +285,40 @@ const PnLConfigModal: React.FC<PnLConfigModalProps> = ({
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                {/* Step 1: Date Selection */}
+                                {/* Step 1: Date Column Selection */}
                                 {currentStep === 1 && (
                                     <div>
                                         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                                            Select Date
+                                            Select Date Column
                                         </h3>
                                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                            Choose a specific date value from your P&L data.
+                                            Choose the column that contains date information for your P&L data.
                                         </p>
-                                        
                                         <div className="space-y-2">
-                                            {getDateValues().map((value) => (
+                                            {getDateColumnOptions().map((column) => (
                                                 <label
-                                                    key={value}
+                                                    key={column.name}
                                                     className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
-                                                        selectedDateValue === value
+                                                        dateColumn === column.name
                                                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
                                                             : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
                                                     }`}
                                                 >
                                                     <input
                                                         type="radio"
-                                                        name="dateValue"
-                                                        value={value}
-                                                        checked={selectedDateValue === value}
-                                                        onChange={(e) => setSelectedDateValue(e.target.value)}
+                                                        name="dateColumn"
+                                                        value={column.name}
+                                                        checked={dateColumn === column.name}
+                                                        onChange={(e) => setDateColumn(e.target.value)}
                                                         className="sr-only"
                                                     />
                                                     <div className="flex-1">
                                                         <div className="font-medium text-gray-900 dark:text-white">
-                                                            {value}
+                                                            {column.name}
+                                                        </div>
+                                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                            Sample values: {column.values.slice(0, 3).join(', ')}
+                                                            {column.values.length > 3 && '...'}
                                                         </div>
                                                     </div>
                                                 </label>
@@ -420,7 +412,7 @@ const PnLConfigModal: React.FC<PnLConfigModalProps> = ({
                                     <div className="flex items-center space-x-2 text-amber-600 bg-amber-50 dark:bg-amber-900/30 p-3 rounded-lg">
                                         <AlertCircle className="w-4 h-4" />
                                         <span className="text-sm">
-                                            {currentStep === 1 && 'Please select a date value'}
+                                            {currentStep === 1 && 'Please select a date column'}
                                             {currentStep === 2 && 'Please select at least one expense column'}
                                             {currentStep === 3 && 'Please select at least one revenue column'}
                                         </span>
