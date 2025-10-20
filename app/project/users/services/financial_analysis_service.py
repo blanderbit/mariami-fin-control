@@ -3,7 +3,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 import pandas as pd
 import io
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 import logging
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -23,6 +23,78 @@ class UserPNLAnalysisService:
         self.minio_client = MINIO_CLIENT
         # Use Claude client instance
         self.claude_client = CLAUDE_CLIENT
+        # Cache for file metadata to avoid repeated database queries
+        self._pnl_file_metadata = None
+
+    def _get_pnl_file_metadata(self) -> Optional[Dict]:
+        """Get PnL file metadata, cached for the service instance"""
+        if self._pnl_file_metadata is not None:
+            return self._pnl_file_metadata
+
+        try:
+            user_file = (
+                UserDataFile.objects.filter(
+                    user=self.user, template_type="pnl_template", is_active=True
+                )
+                .order_by("-upload_time")
+                .first()
+            )
+
+            if not user_file or not user_file.meta_data:
+                logger.warning(f"No PnL file metadata found for user {self.user.id}")
+                return None
+
+            self._pnl_file_metadata = user_file.meta_data
+            return self._pnl_file_metadata
+
+        except Exception as e:
+            logger.error(f"Error getting PnL file metadata: {str(e)}")
+            return None
+
+    def _get_expense_columns(self) -> List[str]:
+        """Get expense column names from file metadata or fallback to defaults"""
+        metadata = self._get_pnl_file_metadata()
+        
+        if metadata and 'expense_columns' in metadata:
+            expense_columns = metadata['expense_columns']
+            if expense_columns:
+                logger.info(f"Using expense columns from metadata: {expense_columns}")
+                return expense_columns
+        
+        # Fallback to default columns
+        default_columns = ["COGS", "Payroll", "Rent", "Marketing", "Other_Expenses"]
+        logger.info(f"Using default expense columns: {default_columns}")
+        return default_columns
+
+    def _get_revenue_columns(self) -> List[str]:
+        """Get revenue column names from file metadata or fallback to defaults"""
+        metadata = self._get_pnl_file_metadata()
+        
+        if metadata and 'revenue_columns' in metadata:
+            revenue_columns = metadata['revenue_columns']
+            if revenue_columns:
+                logger.info(f"Using revenue columns from metadata: {revenue_columns}")
+                return revenue_columns
+        
+        # Fallback to default column
+        default_columns = ["Revenue"]
+        logger.info(f"Using default revenue columns: {default_columns}")
+        return default_columns
+
+    def _get_date_column(self) -> str:
+        """Get date column name from file metadata or fallback to default"""
+        metadata = self._get_pnl_file_metadata()
+        
+        if metadata and 'date_column' in metadata:
+            date_column = metadata['date_column']
+            if date_column:
+                logger.info(f"Using date column from metadata: {date_column}")
+                return date_column
+        
+        # Fallback to default column
+        default_column = "Month"
+        logger.info(f"Using default date column: {default_column}")
+        return default_column
 
     def get_pnl_analysis(self, start_date: date, end_date: date) -> Dict:
         """
@@ -227,9 +299,9 @@ Respond with format: "[Main trend] - [specific action]"
     def _calculate_expenses_by_categories(
         self, pnl_data: pd.DataFrame
     ) -> Dict[str, float]:
-        """Calculate total expenses for each category"""
+        """Calculate total expenses for each category using metadata columns"""
         try:
-            expense_columns = ["COGS", "Payroll", "Rent", "Marketing", "Other_Expenses"]
+            expense_columns = self._get_expense_columns()
 
             if pnl_data.empty:
                 return {}
@@ -275,17 +347,19 @@ Respond with format: "[Main trend] - [specific action]"
     ) -> pd.DataFrame:
         """Filter P&L data for the specified date range"""
         try:
-            if "Month" not in pnl_df.columns:
-                raise ValueError("Month column not found in P&L data")
+            date_column = self._get_date_column()
+            
+            if date_column not in pnl_df.columns:
+                raise ValueError(f"Date column '{date_column}' not found in P&L data")
 
-            # Convert Month column to datetime
+            # Convert date column to datetime
             pnl_df = pnl_df.copy()
-            pnl_df["Month"] = pd.to_datetime(pnl_df["Month"])
+            pnl_df[date_column] = pd.to_datetime(pnl_df[date_column])
 
             # Filter for the period
             filtered_data = pnl_df[
-                (pnl_df["Month"] >= pd.Timestamp(start_date))
-                & (pnl_df["Month"] <= pd.Timestamp(end_date))
+                (pnl_df[date_column] >= pd.Timestamp(start_date))
+                & (pnl_df[date_column] <= pd.Timestamp(end_date))
             ]
 
             return filtered_data
@@ -295,22 +369,30 @@ Respond with format: "[Main trend] - [specific action]"
             return pd.DataFrame()
 
     def _calculate_total_revenue(self, pnl_data: pd.DataFrame) -> Decimal:
-        """Calculate total revenue from P&L data"""
+        """Calculate total revenue from P&L data using metadata columns"""
         try:
-            if "Revenue" not in pnl_data.columns or pnl_data.empty:
+            revenue_columns = self._get_revenue_columns()
+            
+            if pnl_data.empty:
                 return Decimal("0")
 
-            total = pnl_data["Revenue"].sum()
-            return Decimal(str(total)) if not pd.isna(total) else Decimal("0")
+            total_revenue = Decimal("0")
+            for col in revenue_columns:
+                if col in pnl_data.columns:
+                    col_sum = pnl_data[col].sum()
+                    if not pd.isna(col_sum):
+                        total_revenue += Decimal(str(col_sum))
+
+            return total_revenue
 
         except Exception as e:
             logger.error(f"Error calculating total revenue: {str(e)}")
             return Decimal("0")
 
     def _calculate_total_expenses(self, pnl_data: pd.DataFrame) -> Decimal:
-        """Calculate total expenses from P&L data"""
+        """Calculate total expenses from P&L data using metadata columns"""
         try:
-            expense_columns = ["COGS", "Payroll", "Rent", "Marketing", "Other_Expenses"]
+            expense_columns = self._get_expense_columns()
 
             if pnl_data.empty:
                 return Decimal("0")
@@ -491,9 +573,7 @@ Respond with format: "[Main trend] - [specific action]"
         """
         Analyze each expense category for total amount, spike, and new status
         """
-        expense_columns = [
-            "COGS", "Payroll", "Rent", "Marketing", "Other_Expenses"
-        ]
+        expense_columns = self._get_expense_columns()
 
         result = {}
 
@@ -564,18 +644,33 @@ Respond with format: "[Main trend] - [specific action]"
 
         return False
 
-    def _calculate_gross_margin(self, pnl_data: pd.DataFrame, total_revenue: Decimal) -> Decimal:
-        """Calculate gross margin percentage from PnL data"""
+    def _calculate_gross_margin(
+        self, pnl_data: pd.DataFrame, total_revenue: Decimal
+    ) -> Decimal:
+        """Calculate gross margin percentage from PnL data using metadata columns"""
         try:
             if total_revenue <= 0:
                 return Decimal("0")
             
+            # Get expense columns to find COGS-related columns
+            expense_columns = self._get_expense_columns()
+            
             # Calculate total COGS for the period
+            # Look for columns that might represent COGS
             total_cogs = Decimal("0")
-            if "COGS" in pnl_data.columns:
-                cogs_sum = pnl_data["COGS"].sum()
-                if not pd.isna(cogs_sum):
-                    total_cogs = Decimal(str(cogs_sum))
+            cogs_candidates = [col for col in expense_columns 
+                             if any(keyword in col.upper() 
+                                   for keyword in ['COGS', 'COST', 'GOODS'])]
+            
+            if not cogs_candidates and 'COGS' in pnl_data.columns:
+                # Fallback to standard COGS column if no COGS found in metadata
+                cogs_candidates = ['COGS']
+            
+            for col in cogs_candidates:
+                if col in pnl_data.columns:
+                    cogs_sum = pnl_data[col].sum()
+                    if not pd.isna(cogs_sum):
+                        total_cogs += Decimal(str(cogs_sum))
             
             # Gross Margin = (Revenue - COGS) / Revenue * 100
             gross_margin_percentage = ((total_revenue - total_cogs) / total_revenue) * 100

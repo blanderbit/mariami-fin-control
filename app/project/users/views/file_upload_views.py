@@ -192,6 +192,7 @@ class UploadUserDataAPIView(APIView):
                         "upload_time": datetime.datetime.now().isoformat(),
                         "created_new": created,
                         "replaced_existing": deleted,
+                        "meta_data": meta_data,
                     }
                 )
 
