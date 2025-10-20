@@ -190,15 +190,44 @@ export type UploadDataFilesRequest = {
 };
 
 export type UploadDataFilesResponse = {
-    success: boolean;
+    status: string;
     message: string;
     uploaded_files?: Record<string, string | null>[];
     errors?: string[];
 };
 
-export async function uploadDataFilesRequest(data: UploadDataFilesRequest): Promise<UploadDataFilesResponse> {
+export async function uploadDataFilesRequest(
+    data: UploadDataFilesRequest, 
+    additionalParams?: { [key: string]: any }
+): Promise<UploadDataFilesResponse> {
     try {
-        const res = await api.users.usersUploadDataFilesCreate(data) as any;
+        // Create FormData for file upload
+        const formData = new FormData();
+        
+        // Add files
+        if (data.pnl_file) formData.append('pnl_file', data.pnl_file);
+        if (data.transactions_file) formData.append('transactions_file', data.transactions_file);
+        if (data.invoices_file) formData.append('invoices_file', data.invoices_file);
+        
+        // Add additional parameters
+        if (additionalParams) {
+            Object.entries(additionalParams).forEach(([key, value]) => {
+                if (Array.isArray(value)) {
+                    // For arrays, append each item with the same key
+                    value.forEach(item => formData.append(key, item));
+                } else {
+                    formData.append(key, value);
+                }
+            });
+        }
+        
+        // Debug logging
+        console.log('FormData contents:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}:`, value);
+        }
+        
+        const res = await api.users.usersUploadDataFilesCreate(formData) as any;
         return res.data || res;
     } catch (error) {
         console.error('Failed to upload data files:', error);

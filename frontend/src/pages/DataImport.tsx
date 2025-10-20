@@ -15,6 +15,7 @@ import {
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { uploadDataFilesRequest, UploadDataFilesResponse, updateOnboardingRequest, getTemplatesRequest, TemplatesData } from '../api/auth';
+import PnLConfigModal, { PnLConfig } from '../components/PnLConfigModal';
 
 interface UploadedFile {
     name: string;
@@ -36,6 +37,9 @@ const DataImport: React.FC = () => {
     const [isUpdatingCash, setIsUpdatingCash] = useState<boolean>(false);
     const [templates, setTemplates] = useState<TemplatesData | null>(null);
     const [templatesLoading, setTemplatesLoading] = useState<boolean>(true);
+    const [showPnLConfigModal, setShowPnLConfigModal] = useState<boolean>(false);
+    const [pendingPnLFile, setPendingPnLFile] = useState<File | null>(null);
+    const [pnlConfig, setPnlConfig] = useState<PnLConfig | null>(null);
 
     // Get base currency from onboarding status
     const baseCurrency = onboardingStatus?.profile?.currency || 'USD';
@@ -140,6 +144,18 @@ const DataImport: React.FC = () => {
         });
         setUploadSuccess(false);
 
+        // For P&L files, show configuration modal first
+        if (fileType === 'pnl') {
+            setPendingPnLFile(file);
+            setShowPnLConfigModal(true);
+            return;
+        }
+
+        // For other file types, proceed with direct upload
+        await performFileUpload(file, fileType);
+    };
+
+    const performFileUpload = async (file: File, fileType: string, config?: PnLConfig) => {
         // Set uploading state
         setIsUploading(true);
 
@@ -148,10 +164,25 @@ const DataImport: React.FC = () => {
             const uploadData: { [key: string]: File } = {};
             uploadData[`${fileType}_file`] = file;
 
-            // Call API
-            const response: UploadDataFilesResponse = await uploadDataFilesRequest(uploadData);
+            // Add P&L configuration parameters if provided
+            const additionalParams: { [key: string]: any } = {};
+            if (config && fileType === 'pnl') {
+                additionalParams.pnl_date_column = config.pnl_date_column;
+                additionalParams.pnl_expense_columns = config.pnl_expense_columns;
+                additionalParams.pnl_revenue_columns = config.pnl_revenue_columns;
+                
+                // Debug logging
+                console.log('P&L Configuration being sent:', {
+                    pnl_date_column: config.pnl_date_column,
+                    pnl_expense_columns: config.pnl_expense_columns,
+                    pnl_revenue_columns: config.pnl_revenue_columns
+                });
+            }
 
-            if (response.status === 'success') {
+            // Call API
+            const response: UploadDataFilesResponse = await uploadDataFilesRequest(uploadData, additionalParams);
+
+            if (response.status === 'success' || response.status === 'Success') {
                 // Update uploaded files state
                 setUploadedFiles(prev => ({
                     ...prev,
@@ -168,7 +199,8 @@ const DataImport: React.FC = () => {
                 company.dataImport[fileType] = {
                     filename: file.name,
                     uploadedAt: new Date().toISOString(),
-                    size: file.size
+                    size: file.size,
+                    config: config
                 };
                 localStorage.setItem('company', JSON.stringify(company));
 
@@ -189,6 +221,28 @@ const DataImport: React.FC = () => {
             }));
         } finally {
             setIsUploading(false);
+        }
+    };
+
+    const handlePnLConfigConfirm = async (config: PnLConfig) => {
+        setPnlConfig(config);
+        setShowPnLConfigModal(false);
+        
+        if (pendingPnLFile) {
+            await performFileUpload(pendingPnLFile, 'pnl', config);
+            setPendingPnLFile(null);
+            setPnlConfig(null);
+        }
+    };
+
+    const handlePnLConfigCancel = () => {
+        setShowPnLConfigModal(false);
+        setPendingPnLFile(null);
+        setPnlConfig(null);
+        // Reset file input
+        const fileInput = document.querySelector('input[type="file"][accept=".csv,.xls,.xlsx"]') as HTMLInputElement;
+        if (fileInput) {
+            fileInput.value = '';
         }
     };
 
@@ -536,6 +590,14 @@ const DataImport: React.FC = () => {
                     </li>
                 </ul>
             </div>
+
+            {/* P&L Configuration Modal */}
+            <PnLConfigModal
+                isOpen={showPnLConfigModal}
+                onClose={handlePnLConfigCancel}
+                onConfirm={handlePnLConfigConfirm}
+                file={pendingPnLFile}
+            />
         </motion.div>
     );
 };
