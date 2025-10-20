@@ -80,13 +80,99 @@ class FileFormatValidator:
         return True, "Все файлы валидны", file_template_mapping
     
     @classmethod
+    def validate_pnl_with_metadata(
+        cls, file: UploadedFile, metadata: dict
+    ) -> Tuple[bool, str]:
+        """
+        Validate PnL file with custom metadata columns
+        Returns: (is_valid, error_message)
+        """
+        try:
+            # Check file extension
+            if not cls._is_valid_extension(file.name):
+                return (
+                    False,
+                    "Неподдерживаемый формат файла. "
+                    "Разрешены только CSV и Excel файлы."
+                )
+            
+            # Read file content
+            df = cls._read_file_content(file)
+            if df is None:
+                return (
+                    False,
+                    "Не удалось прочитать файл. Проверьте формат файла."
+                )
+            
+            # Get actual columns from file
+            actual_columns = set(df.columns.str.strip())  # Remove whitespace
+            
+            # Extract required columns from metadata
+            required_columns = set()
+            missing_columns = []
+            
+            # Check date column
+            date_column = metadata.get('date_column')
+            if date_column:
+                required_columns.add(date_column.strip())
+                if date_column.strip() not in actual_columns:
+                    missing_columns.append(f"Колонка даты: '{date_column}'")
+            
+            # Check expense columns
+            expense_columns = metadata.get('expense_columns', [])
+            if expense_columns:
+                for col in expense_columns:
+                    col_stripped = col.strip()
+                    required_columns.add(col_stripped)
+                    if col_stripped not in actual_columns:
+                        missing_columns.append(f"Колонка расходов: '{col}'")
+            
+            # Check revenue columns
+            revenue_columns = metadata.get('revenue_columns', [])
+            if revenue_columns:
+                for col in revenue_columns:
+                    col_stripped = col.strip()
+                    required_columns.add(col_stripped)
+                    if col_stripped not in actual_columns:
+                        missing_columns.append(f"Колонка доходов: '{col}'")
+            
+            # Check if any required columns are missing
+            if missing_columns:
+                error_msg = (
+                    f"Отсутствуют указанные колонки в файле: "
+                    f"{', '.join(missing_columns)}"
+                )
+                return False, error_msg
+            
+            # Check if file has at least some data
+            if df.empty:
+                return False, "Файл не содержит данных"
+            
+            # Validate date column contains valid dates (if specified)
+            if date_column and date_column.strip() in actual_columns:
+                try:
+                    pd.to_datetime(df[date_column.strip()], errors='coerce')
+                except Exception:
+                    return (
+                        False,
+                        f"Колонка '{date_column}' содержит недопустимые даты"
+                    )
+            
+            return True, "PnL файл с метаданными валиден"
+            
+        except Exception as e:
+            return False, f"Ошибка при валидации PnL файла: {str(e)}"
+    
+    @classmethod
     def _is_valid_extension(cls, filename: str) -> bool:
         """Check if file has valid extension"""
         valid_extensions = ['.csv', '.xlsx', '.xls']
         return any(filename.lower().endswith(ext) for ext in valid_extensions)
     
     @classmethod
-    def _read_file_content(cls, file: UploadedFile) -> Union[pd.DataFrame, None]:
+    def _read_file_content(
+        cls, file: UploadedFile
+    ) -> Union[pd.DataFrame, None]:
         """Read file content into DataFrame"""
         try:
             file.seek(0)  # Reset file pointer
@@ -110,7 +196,9 @@ class FileFormatValidator:
         return None
     
     @classmethod
-    def _validate_columns(cls, columns: List[str], template_type: str) -> Tuple[bool, str]:
+    def _validate_columns(
+        cls, columns: List[str], template_type: str
+    ) -> Tuple[bool, str]:
         """Validate that file has all required columns"""
         expected_columns = set(cls.TEMPLATE_SCHEMAS[template_type])
         actual_columns = set(columns)
