@@ -71,23 +71,9 @@ class UploadUserDataSerializer(serializers.Serializer):
                     uploaded_files.append(file)
 
         if not uploaded_files:
-            raise serializers.ValidationError(NO_FILES_PROVIDED, HTTP_400_BAD_REQUEST)
-
-        # Validate file formats
-        is_valid, error_message, file_template_mapping = (
-            FileFormatValidator.validate_multiple_files(uploaded_files)
-        )
-
-        if not is_valid:
-            # Check if error_message is our custom format
-            if isinstance(error_message, dict) and "message" in error_message:
-                raise serializers.ValidationError(error_message)
-            else:
-                raise serializers.ValidationError(error_message)
-
-        # Store validation results for use in view
-        attrs["_uploaded_files"] = uploaded_files
-        attrs["_file_template_mapping"] = file_template_mapping
+            raise serializers.ValidationError(
+                NO_FILES_PROVIDED, HTTP_400_BAD_REQUEST
+            )
 
         # Convert comma-separated strings to lists for metadata fields
         if "pnl_expense_columns" in attrs and attrs["pnl_expense_columns"]:
@@ -102,6 +88,63 @@ class UploadUserDataSerializer(serializers.Serializer):
                 if col.strip()
             ]
 
+        # Check if PnL file has metadata - use custom validation
+        pnl_file = attrs.get('pnl_file')
+        has_pnl_metadata = any([
+            attrs.get('pnl_date_column'),
+            attrs.get('pnl_expense_columns'),
+            attrs.get('pnl_revenue_columns')
+        ])
+
+        if pnl_file and has_pnl_metadata:
+            # Use custom PnL validation with metadata
+            metadata = {
+                'date_column': attrs.get('pnl_date_column'),
+                'expense_columns': attrs.get('pnl_expense_columns', []),
+                'revenue_columns': attrs.get('pnl_revenue_columns', [])
+            }
+            
+            is_valid, error_message = (
+                FileFormatValidator.validate_pnl_with_metadata(
+                    pnl_file, metadata
+                )
+            )
+            
+            if not is_valid:
+                raise serializers.ValidationError(
+                    f"PnL файл: {error_message}"
+                )
+            
+            # For PnL with metadata, set custom template mapping
+            file_template_mapping = {pnl_file.name: 'pnl_template'}
+            
+            # Validate other files normally
+            other_files = [f for f in uploaded_files if f != pnl_file]
+            if other_files:
+                is_valid, error_message, other_mapping = (
+                    FileFormatValidator.validate_multiple_files(other_files)
+                )
+                if not is_valid:
+                    raise serializers.ValidationError(error_message)
+                file_template_mapping.update(other_mapping)
+        else:
+            # Use standard validation for all files
+            is_valid, error_message, file_template_mapping = (
+                FileFormatValidator.validate_multiple_files(uploaded_files)
+            )
+
+            if not is_valid:
+                # Check if error_message is our custom format
+                if (isinstance(error_message, dict) and
+                        "message" in error_message):
+                    raise serializers.ValidationError(error_message)
+                else:
+                    raise serializers.ValidationError(error_message)
+
+        # Store validation results for use in view
+        attrs["_uploaded_files"] = uploaded_files
+        attrs["_file_template_mapping"] = file_template_mapping
+
         return attrs
 
 
@@ -113,4 +156,6 @@ class UploadUserDataResponseSerializer(serializers.Serializer):
     uploaded_files = serializers.ListField(
         child=serializers.DictField(), required=False
     )
-    errors = serializers.ListField(child=serializers.CharField(), required=False)
+    errors = serializers.ListField(
+        child=serializers.CharField(), required=False
+    )
