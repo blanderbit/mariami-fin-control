@@ -661,13 +661,17 @@ const Benchmark: React.FC = () => {
                             <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
                                 {(() => {
                                     const data = getUserCountryData(benchmarkData.inflation, 'inflation');
-                                    if (data) {
-                                        const latestPeriod = getLatestPeriod(benchmarkData.inflation);
+                                    if (data && data.previous_value && data.previous_period) {
                                         return (
                                             <>
-                                                {formatValue(data.value, data.unit)}{' '}
+                                                {data.previous_value.toFixed(1)}{' '}
                                                 <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                    ({latestPeriod || 'N/A'})
+                                                    ({data.previous_period})
+                                                </span>
+                                                {' - '}
+                                                {data.value.toFixed(1)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({data.period})
                                                 </span>
                                             </>
                                         );
@@ -701,13 +705,17 @@ const Benchmark: React.FC = () => {
                             <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
                                 {(() => {
                                     const data = getUserCountryData(benchmarkData.shortTermRate, 'short_term_rate');
-                                    if (data) {
-                                        const latestPeriod = getLatestPeriod(benchmarkData.shortTermRate);
+                                    if (data && data.previous_value && data.previous_period) {
                                         return (
                                             <>
-                                                {formatValue(data.value, data.unit)}{' '}
+                                                {data.previous_value.toFixed(1)}{' '}
                                                 <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                    ({latestPeriod || 'N/A'})
+                                                    ({data.previous_period})
+                                                </span>
+                                                {' - '}
+                                                {data.value.toFixed(1)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({data.period})
                                                 </span>
                                             </>
                                         );
@@ -741,13 +749,17 @@ const Benchmark: React.FC = () => {
                             <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
                                 {(() => {
                                     const data = getUserCountryData(benchmarkData.longTermRate, 'long_term_rate');
-                                    if (data) {
-                                        const latestPeriod = getLatestPeriod(benchmarkData.longTermRate);
+                                    if (data && data.previous_value && data.previous_period) {
                                         return (
                                             <>
-                                                {formatValue(data.value, data.unit)}{' '}
+                                                {data.previous_value.toFixed(1)}{' '}
                                                 <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                    ({latestPeriod || 'N/A'})
+                                                    ({data.previous_period})
+                                                </span>
+                                                {' - '}
+                                                {data.value.toFixed(1)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({data.period})
                                                 </span>
                                             </>
                                         );
@@ -810,13 +822,17 @@ const Benchmark: React.FC = () => {
                             <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
                                 {(() => {
                                     const data = getUserCountryData(benchmarkData.consumerConfidence, 'consumer_confidence');
-                                    if (data) {
-                                        const latestPeriod = getLatestPeriod(benchmarkData.consumerConfidence);
+                                    if (data && data.previous_value && data.previous_period) {
                                         return (
                                             <>
-                                                {formatValue(data.value, data.unit)}{' '}
+                                                {data.previous_value.toFixed(1)}{' '}
                                                 <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                    ({latestPeriod || 'N/A'})
+                                                    ({data.previous_period})
+                                                </span>
+                                                {' - '}
+                                                {data.value.toFixed(1)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({data.period})
                                                 </span>
                                             </>
                                         );
@@ -850,13 +866,17 @@ const Benchmark: React.FC = () => {
                             <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-3">
                                 {(() => {
                                     const data = getUserCountryData(benchmarkData.wageGrowth, 'wage_growth');
-                                    if (data) {
-                                        const latestPeriod = getLatestPeriod(benchmarkData.wageGrowth);
+                                    if (data && data.previous_value && data.previous_period) {
                                         return (
                                             <>
-                                                {formatValue(data.value, data.unit)}{' '}
+                                                {data.previous_value.toFixed(1)}{' '}
                                                 <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                    ({latestPeriod || 'N/A'})
+                                                    ({data.previous_period})
+                                                </span>
+                                                {' - '}
+                                                {data.value.toFixed(1)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({data.period})
                                                 </span>
                                             </>
                                         );
@@ -894,13 +914,17 @@ const Benchmark: React.FC = () => {
                             <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
                                 {(() => {
                                     const data = getUserCountryData(benchmarkData.rentIndex, 'rent_index');
-                                    if (data) {
-                                        const latestPeriod = getLatestPeriod(benchmarkData.rentIndex);
+                                    if (data && data.previous_value && data.previous_period) {
                                         return (
                                             <>
-                                                {formatValue(data.value, data.unit)}{' '}
+                                                {data.previous_value.toFixed(1)}{' '}
                                                 <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                    ({latestPeriod || 'N/A'})
+                                                    ({data.previous_period})
+                                                </span>
+                                                {' - '}
+                                                {data.value.toFixed(1)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({data.period})
                                                 </span>
                                             </>
                                         );
@@ -934,13 +958,17 @@ const Benchmark: React.FC = () => {
                             <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
                                 {(() => {
                                     const data = getUserCountryData(benchmarkData.energyUtilities, 'energy_utilities');
-                                    if (data) {
-                                        const latestPeriod = getLatestPeriod(benchmarkData.energyUtilities);
+                                    if (data && data.previous_value && data.previous_period) {
                                         return (
                                             <>
-                                                {formatValue(data.value, data.unit)}{' '}
+                                                {data.previous_value.toFixed(1)}{' '}
                                                 <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                    ({latestPeriod || 'N/A'})
+                                                    ({data.previous_period})
+                                                </span>
+                                                {' - '}
+                                                {data.value.toFixed(1)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({data.period})
                                                 </span>
                                             </>
                                         );
@@ -974,13 +1002,17 @@ const Benchmark: React.FC = () => {
                             <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
                                 {(() => {
                                     const data = getUserCountryData(benchmarkData.taxBurden, 'tax_burden');
-                                    if (data) {
-                                        const latestPeriod = getLatestPeriod(benchmarkData.taxBurden);
+                                    if (data && data.previous_value && data.previous_period) {
                                         return (
                                             <>
-                                                {formatValue(data.value, data.unit)}{' '}
+                                                {data.previous_value.toFixed(1)}{' '}
                                                 <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                    ({latestPeriod || 'N/A'})
+                                                    ({data.previous_period})
+                                                </span>
+                                                {' - '}
+                                                {data.value.toFixed(1)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({data.period})
                                                 </span>
                                             </>
                                         );
