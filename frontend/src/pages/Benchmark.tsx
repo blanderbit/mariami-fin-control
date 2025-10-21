@@ -34,6 +34,41 @@ import {
     getBenchmarkWageGrowthRequest
 } from '../api/auth';
 
+// Loading component
+const LoadingSpinner: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 'md' }) => {
+    const sizeClasses = {
+        sm: 'h-4 w-4',
+        md: 'h-6 w-6',
+        lg: 'h-8 w-8'
+    };
+
+    return (
+        <div className="flex items-center justify-center">
+            <div className={`animate-spin rounded-full border-b-2 border-indigo-600 ${sizeClasses[size]}`}></div>
+        </div>
+    );
+};
+
+// Loading overlay component for sections
+const LoadingOverlay: React.FC<{ isLoading: boolean; children: React.ReactNode }> = ({ isLoading, children }) => {
+    if (isLoading) {
+        return (
+            <div className="relative">
+                <div className="opacity-50 pointer-events-none">
+                    {children}
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
+                    <div className="flex flex-col items-center space-y-2">
+                        <LoadingSpinner size="lg" />
+                        <span className="text-sm text-gray-600">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    return <>{children}</>;
+};
+
 interface MarketData {
     inflation: {
         value: number;
@@ -139,11 +174,134 @@ const Benchmark: React.FC = () => {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const hasLoadedRef = useRef(false);
 
+    // Individual loading states for Market Overview cards
+    const [isLoadingInflation, setIsLoadingInflation] = useState(false);
+    const [isLoadingShortTermRate, setIsLoadingShortTermRate] = useState(false);
+    const [isLoadingLongTermRate, setIsLoadingLongTermRate] = useState(false);
+    const [isLoadingUnemployment, setIsLoadingUnemployment] = useState(false);
+    const [isLoadingConsumerConfidence, setIsLoadingConsumerConfidence] = useState(false);
+    const [isLoadingWageGrowth, setIsLoadingWageGrowth] = useState(false);
+    const [isLoadingRentIndex, setIsLoadingRentIndex] = useState(false);
+    const [isLoadingEnergyUtilities, setIsLoadingEnergyUtilities] = useState(false);
+    const [isLoadingTaxBurden, setIsLoadingTaxBurden] = useState(false);
+
     // Get company data
     const company = JSON.parse(localStorage.getItem('company') || '{}');
     const baseCurrency = company.profile?.baseCurrency || 'USD';
     const industry = company.profile?.industry || 'Services';
 
+
+    // Individual loading functions for Market Overview cards
+    const loadInflationData = async () => {
+        setIsLoadingInflation(true);
+        try {
+            const data = await getBenchmarkInflationRequest();
+            setBenchmarkData(prev => ({ ...prev, inflation: data }));
+        } catch (error) {
+            console.error('Failed to load inflation data:', error);
+            setErrors(prev => ({ ...prev, inflation: 'Failed to load inflation data' }));
+        } finally {
+            setIsLoadingInflation(false);
+        }
+    };
+
+    const loadShortTermRateData = async () => {
+        setIsLoadingShortTermRate(true);
+        try {
+            const data = await getBenchmarkShortTermRateRequest();
+            setBenchmarkData(prev => ({ ...prev, shortTermRate: data }));
+        } catch (error) {
+            console.error('Failed to load short-term rate data:', error);
+            setErrors(prev => ({ ...prev, shortTermRate: 'Failed to load short-term rate data' }));
+        } finally {
+            setIsLoadingShortTermRate(false);
+        }
+    };
+
+    const loadLongTermRateData = async () => {
+        setIsLoadingLongTermRate(true);
+        try {
+            const data = await getBenchmarkLongTermRateRequest();
+            setBenchmarkData(prev => ({ ...prev, longTermRate: data }));
+        } catch (error) {
+            console.error('Failed to load long-term rate data:', error);
+            setErrors(prev => ({ ...prev, longTermRate: 'Failed to load long-term rate data' }));
+        } finally {
+            setIsLoadingLongTermRate(false);
+        }
+    };
+
+    const loadUnemploymentData = async () => {
+        setIsLoadingUnemployment(true);
+        // Simulate loading since unemployment data is not available in API
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setIsLoadingUnemployment(false);
+    };
+
+    const loadConsumerConfidenceData = async () => {
+        setIsLoadingConsumerConfidence(true);
+        try {
+            const data = await getBenchmarkConsumerConfidenceRequest();
+            setBenchmarkData(prev => ({ ...prev, consumerConfidence: data }));
+        } catch (error) {
+            console.error('Failed to load consumer confidence data:', error);
+            setErrors(prev => ({ ...prev, consumerConfidence: 'Failed to load consumer confidence data' }));
+        } finally {
+            setIsLoadingConsumerConfidence(false);
+        }
+    };
+
+    const loadWageGrowthData = async () => {
+        setIsLoadingWageGrowth(true);
+        try {
+            const data = await getBenchmarkWageGrowthRequest();
+            setBenchmarkData(prev => ({ ...prev, wageGrowth: data }));
+        } catch (error) {
+            console.error('Failed to load wage growth data:', error);
+            setErrors(prev => ({ ...prev, wageGrowth: 'Failed to load wage growth data' }));
+        } finally {
+            setIsLoadingWageGrowth(false);
+        }
+    };
+
+    const loadRentIndexData = async () => {
+        setIsLoadingRentIndex(true);
+        try {
+            const data = await getBenchmarkRentIndexRequest();
+            setBenchmarkData(prev => ({ ...prev, rentIndex: data }));
+        } catch (error) {
+            console.error('Failed to load rent index data:', error);
+            setErrors(prev => ({ ...prev, rentIndex: 'Failed to load rent index data' }));
+        } finally {
+            setIsLoadingRentIndex(false);
+        }
+    };
+
+    const loadEnergyUtilitiesData = async () => {
+        setIsLoadingEnergyUtilities(true);
+        try {
+            const data = await getBenchmarkEnergyUtilitiesRequest();
+            setBenchmarkData(prev => ({ ...prev, energyUtilities: data }));
+        } catch (error) {
+            console.error('Failed to load energy utilities data:', error);
+            setErrors(prev => ({ ...prev, energyUtilities: 'Failed to load energy utilities data' }));
+        } finally {
+            setIsLoadingEnergyUtilities(false);
+        }
+    };
+
+    const loadTaxBurdenData = async () => {
+        setIsLoadingTaxBurden(true);
+        try {
+            const data = await getBenchmarkTaxBurdenRequest();
+            setBenchmarkData(prev => ({ ...prev, taxBurden: data }));
+        } catch (error) {
+            console.error('Failed to load tax burden data:', error);
+            setErrors(prev => ({ ...prev, taxBurden: 'Failed to load tax burden data' }));
+        } finally {
+            setIsLoadingTaxBurden(false);
+        }
+    };
 
     // Load all benchmark data
     useEffect(() => {
@@ -151,62 +309,23 @@ const Benchmark: React.FC = () => {
         if (hasLoadedRef.current) return;
         hasLoadedRef.current = true;
 
-        const loadBenchmarkData = async () => {
+        const loadAllData = async () => {
             setLoading(true);
-            const newErrors: Record<string, string> = {};
-
-            try {
-                const [
-                    consumerConfidence,
-                    energyUtilities,
-                    inflation,
-                    longTermRate,
-                    rentIndex,
-                    shortTermRate,
-                    taxBurden,
-                    wageGrowth
-                ] = await Promise.allSettled([
-                    getBenchmarkConsumerConfidenceRequest(),
-                    getBenchmarkEnergyUtilitiesRequest(),
-                    getBenchmarkInflationRequest(),
-                    getBenchmarkLongTermRateRequest(),
-                    getBenchmarkRentIndexRequest(),
-                    getBenchmarkShortTermRateRequest(),
-                    getBenchmarkTaxBurdenRequest(),
-                    getBenchmarkWageGrowthRequest()
-                ]);
-
-                setBenchmarkData({
-                    consumerConfidence: consumerConfidence.status === 'fulfilled' ? consumerConfidence.value : null,
-                    energyUtilities: energyUtilities.status === 'fulfilled' ? energyUtilities.value : null,
-                    inflation: inflation.status === 'fulfilled' ? inflation.value : null,
-                    longTermRate: longTermRate.status === 'fulfilled' ? longTermRate.value : null,
-                    rentIndex: rentIndex.status === 'fulfilled' ? rentIndex.value : null,
-                    shortTermRate: shortTermRate.status === 'fulfilled' ? shortTermRate.value : null,
-                    taxBurden: taxBurden.status === 'fulfilled' ? taxBurden.value : null,
-                    wageGrowth: wageGrowth.status === 'fulfilled' ? wageGrowth.value : null
-                });
-
-                // Collect errors
-                if (consumerConfidence.status === 'rejected') newErrors.consumerConfidence = 'Failed to load consumer confidence data';
-                if (energyUtilities.status === 'rejected') newErrors.energyUtilities = 'Failed to load energy utilities data';
-                if (inflation.status === 'rejected') newErrors.inflation = 'Failed to load inflation data';
-                if (longTermRate.status === 'rejected') newErrors.longTermRate = 'Failed to load long-term rate data';
-                if (rentIndex.status === 'rejected') newErrors.rentIndex = 'Failed to load rent index data';
-                if (shortTermRate.status === 'rejected') newErrors.shortTermRate = 'Failed to load short-term rate data';
-                if (taxBurden.status === 'rejected') newErrors.taxBurden = 'Failed to load tax burden data';
-                if (wageGrowth.status === 'rejected') newErrors.wageGrowth = 'Failed to load wage growth data';
-
-                setErrors(newErrors);
-            } catch (error) {
-                console.error('Failed to load benchmark data:', error);
-                setErrors({ general: 'Failed to load benchmark data' });
-            } finally {
-                setLoading(false);
-            }
+            await Promise.all([
+                loadInflationData(),
+                loadShortTermRateData(),
+                loadLongTermRateData(),
+                loadUnemploymentData(),
+                loadConsumerConfidenceData(),
+                loadWageGrowthData(),
+                loadRentIndexData(),
+                loadEnergyUtilitiesData(),
+                loadTaxBurdenData()
+            ]);
+            setLoading(false);
         };
 
-        loadBenchmarkData();
+        loadAllData();
     }, []);
 
     const getUserCountryData = (apiData: any, indicator: string) => {
@@ -526,7 +645,7 @@ const Benchmark: React.FC = () => {
             {/* Content based on active tab */}
             {activeMarketTab === 'macro' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Macro Pulse Cards will go here */}
+                    {/* Inflation Card */}
                     <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="font-semibold text-gray-900 dark:text-gray-100">Inflation (CPI)</h3>
@@ -534,30 +653,36 @@ const Benchmark: React.FC = () => {
                                 <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
-                            {(() => {
-                                const data = getUserCountryData(benchmarkData.inflation, 'inflation');
-                                if (data) {
-                                    const latestPeriod = getLatestPeriod(benchmarkData.inflation);
+                        {isLoadingInflation ? (
+                            <div className="flex items-center justify-center py-8">
+                                <LoadingSpinner size="md" />
+                            </div>
+                        ) : (
+                            <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
+                                {(() => {
+                                    const data = getUserCountryData(benchmarkData.inflation, 'inflation');
+                                    if (data) {
+                                        const latestPeriod = getLatestPeriod(benchmarkData.inflation);
+                                        return (
+                                            <>
+                                                {formatValue(data.value, data.unit)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({latestPeriod || 'N/A'})
+                                                </span>
+                                            </>
+                                        );
+                                    }
                                     return (
                                         <>
-                                            {formatValue(data.value, data.unit)}{' '}
+                                            3.8%{' '}
                                             <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                ({latestPeriod || 'N/A'})
+                                                (Demo)
                                             </span>
                                         </>
                                     );
-                                }
-                                return (
-                                    <>
-                                        3.8%{' '}
-                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                            (Demo)
-                                        </span>
-                                    </>
-                                );
-                            })()}
-                        </div>
+                                })()}
+                            </div>
+                        )}
                     </div>
 
                     {/* Interest rate short term */}
@@ -568,30 +693,36 @@ const Benchmark: React.FC = () => {
                                 <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
-                            {(() => {
-                                const data = getUserCountryData(benchmarkData.shortTermRate, 'short_term_rate');
-                                if (data) {
-                                    const latestPeriod = getLatestPeriod(benchmarkData.shortTermRate);
+                        {isLoadingShortTermRate ? (
+                            <div className="flex items-center justify-center py-8">
+                                <LoadingSpinner size="md" />
+                            </div>
+                        ) : (
+                            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
+                                {(() => {
+                                    const data = getUserCountryData(benchmarkData.shortTermRate, 'short_term_rate');
+                                    if (data) {
+                                        const latestPeriod = getLatestPeriod(benchmarkData.shortTermRate);
+                                        return (
+                                            <>
+                                                {formatValue(data.value, data.unit)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({latestPeriod || 'N/A'})
+                                                </span>
+                                            </>
+                                        );
+                                    }
                                     return (
                                         <>
-                                            {formatValue(data.value, data.unit)}{' '}
+                                            5.25%{' '}
                                             <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                ({latestPeriod || 'N/A'})
+                                                (Demo)
                                             </span>
                                         </>
                                     );
-                                }
-                                return (
-                                    <>
-                                        5.25%{' '}
-                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                            (Demo)
-                                        </span>
-                                    </>
-                                );
-                            })()}
-                        </div>
+                                })()}
+                            </div>
+                        )}
                     </div>
 
                     {/* Interest rate long term */}
@@ -602,30 +733,36 @@ const Benchmark: React.FC = () => {
                                 <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
-                            {(() => {
-                                const data = getUserCountryData(benchmarkData.longTermRate, 'long_term_rate');
-                                if (data) {
-                                    const latestPeriod = getLatestPeriod(benchmarkData.longTermRate);
+                        {isLoadingLongTermRate ? (
+                            <div className="flex items-center justify-center py-8">
+                                <LoadingSpinner size="md" />
+                            </div>
+                        ) : (
+                            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
+                                {(() => {
+                                    const data = getUserCountryData(benchmarkData.longTermRate, 'long_term_rate');
+                                    if (data) {
+                                        const latestPeriod = getLatestPeriod(benchmarkData.longTermRate);
+                                        return (
+                                            <>
+                                                {formatValue(data.value, data.unit)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({latestPeriod || 'N/A'})
+                                                </span>
+                                            </>
+                                        );
+                                    }
                                     return (
                                         <>
-                                            {formatValue(data.value, data.unit)}{' '}
+                                            4.8%{' '}
                                             <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                ({latestPeriod || 'N/A'})
+                                                (Demo)
                                             </span>
                                         </>
                                     );
-                                }
-                                return (
-                                    <>
-                                        4.8%{' '}
-                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                            (Demo)
-                                        </span>
-                                    </>
-                                );
-                            })()}
-                        </div>
+                                })()}
+                            </div>
+                        )}
                     </div>
 
                     {/* Unemployment rate */}
@@ -636,19 +773,25 @@ const Benchmark: React.FC = () => {
                                 <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-3">
-                            {(() => {
-                                // Note: unemployment data not available in current API, using demo data
-                                return (
-                                    <>
-                                        4.2%{' '}
-                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                            (Demo)
-                                        </span>
-                                    </>
-                                );
-                            })()}
-                        </div>
+                        {isLoadingUnemployment ? (
+                            <div className="flex items-center justify-center py-8">
+                                <LoadingSpinner size="md" />
+                            </div>
+                        ) : (
+                            <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-3">
+                                {(() => {
+                                    // Note: unemployment data not available in current API, using demo data
+                                    return (
+                                        <>
+                                            4.2%{' '}
+                                            <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                (Demo)
+                                            </span>
+                                        </>
+                                    );
+                                })()}
+                            </div>
+                        )}
                     </div>
 
                     {/* Consumer confidence */}
@@ -659,30 +802,36 @@ const Benchmark: React.FC = () => {
                                 <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
-                            {(() => {
-                                const data = getUserCountryData(benchmarkData.consumerConfidence, 'consumer_confidence');
-                                if (data) {
-                                    const latestPeriod = getLatestPeriod(benchmarkData.consumerConfidence);
+                        {isLoadingConsumerConfidence ? (
+                            <div className="flex items-center justify-center py-8">
+                                <LoadingSpinner size="md" />
+                            </div>
+                        ) : (
+                            <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
+                                {(() => {
+                                    const data = getUserCountryData(benchmarkData.consumerConfidence, 'consumer_confidence');
+                                    if (data) {
+                                        const latestPeriod = getLatestPeriod(benchmarkData.consumerConfidence);
+                                        return (
+                                            <>
+                                                {formatValue(data.value, data.unit)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({latestPeriod || 'N/A'})
+                                                </span>
+                                            </>
+                                        );
+                                    }
                                     return (
                                         <>
-                                            {formatValue(data.value, data.unit)}{' '}
+                                            -19{' '}
                                             <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                ({latestPeriod || 'N/A'})
+                                                (Demo)
                                             </span>
                                         </>
                                     );
-                                }
-                                return (
-                                    <>
-                                        -19{' '}
-                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                            (Demo)
-                                        </span>
-                                    </>
-                                );
-                            })()}
-                        </div>
+                                })()}
+                            </div>
+                        )}
                     </div>
 
                     {/* Wage growth */}
@@ -693,30 +842,36 @@ const Benchmark: React.FC = () => {
                                 <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-3">
-                            {(() => {
-                                const data = getUserCountryData(benchmarkData.wageGrowth, 'wage_growth');
-                                if (data) {
-                                    const latestPeriod = getLatestPeriod(benchmarkData.wageGrowth);
+                        {isLoadingWageGrowth ? (
+                            <div className="flex items-center justify-center py-8">
+                                <LoadingSpinner size="md" />
+                            </div>
+                        ) : (
+                            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-3">
+                                {(() => {
+                                    const data = getUserCountryData(benchmarkData.wageGrowth, 'wage_growth');
+                                    if (data) {
+                                        const latestPeriod = getLatestPeriod(benchmarkData.wageGrowth);
+                                        return (
+                                            <>
+                                                {formatValue(data.value, data.unit)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({latestPeriod || 'N/A'})
+                                                </span>
+                                            </>
+                                        );
+                                    }
                                     return (
                                         <>
-                                            {formatValue(data.value, data.unit)}{' '}
+                                            +5.0%{' '}
                                             <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                ({latestPeriod || 'N/A'})
+                                                (Demo)
                                             </span>
                                         </>
                                     );
-                                }
-                                return (
-                                    <>
-                                        +5.0%{' '}
-                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                            (Demo)
-                                        </span>
-                                    </>
-                                );
-                            })()}
-                        </div>
+                                })()}
+                            </div>
+                        )}
                     </div>
                 </div>
             ) : (
@@ -731,30 +886,36 @@ const Benchmark: React.FC = () => {
                                 <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
-                            {(() => {
-                                const data = getUserCountryData(benchmarkData.rentIndex, 'rent_index');
-                                if (data) {
-                                    const latestPeriod = getLatestPeriod(benchmarkData.rentIndex);
+                        {isLoadingRentIndex ? (
+                            <div className="flex items-center justify-center py-8">
+                                <LoadingSpinner size="md" />
+                            </div>
+                        ) : (
+                            <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
+                                {(() => {
+                                    const data = getUserCountryData(benchmarkData.rentIndex, 'rent_index');
+                                    if (data) {
+                                        const latestPeriod = getLatestPeriod(benchmarkData.rentIndex);
+                                        return (
+                                            <>
+                                                {formatValue(data.value, data.unit)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({latestPeriod || 'N/A'})
+                                                </span>
+                                            </>
+                                        );
+                                    }
                                     return (
                                         <>
-                                            {formatValue(data.value, data.unit)}{' '}
+                                            +12%{' '}
                                             <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                ({latestPeriod || 'N/A'})
+                                                (Demo)
                                             </span>
                                         </>
                                     );
-                                }
-                                return (
-                                    <>
-                                        +12%{' '}
-                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                            (Demo)
-                                        </span>
-                                    </>
-                                );
-                            })()}
-                        </div>
+                                })()}
+                            </div>
+                        )}
                     </div>
 
                     {/* Energy & Utilities */}
@@ -765,30 +926,36 @@ const Benchmark: React.FC = () => {
                                 <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
-                            {(() => {
-                                const data = getUserCountryData(benchmarkData.energyUtilities, 'energy_utilities');
-                                if (data) {
-                                    const latestPeriod = getLatestPeriod(benchmarkData.energyUtilities);
+                        {isLoadingEnergyUtilities ? (
+                            <div className="flex items-center justify-center py-8">
+                                <LoadingSpinner size="md" />
+                            </div>
+                        ) : (
+                            <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">
+                                {(() => {
+                                    const data = getUserCountryData(benchmarkData.energyUtilities, 'energy_utilities');
+                                    if (data) {
+                                        const latestPeriod = getLatestPeriod(benchmarkData.energyUtilities);
+                                        return (
+                                            <>
+                                                {formatValue(data.value, data.unit)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({latestPeriod || 'N/A'})
+                                                </span>
+                                            </>
+                                        );
+                                    }
                                     return (
                                         <>
-                                            {formatValue(data.value, data.unit)}{' '}
+                                            +46%{' '}
                                             <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                ({latestPeriod || 'N/A'})
+                                                (Demo)
                                             </span>
                                         </>
                                     );
-                                }
-                                return (
-                                    <>
-                                        +46%{' '}
-                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                            (Demo)
-                                        </span>
-                                    </>
-                                );
-                            })()}
-                        </div>
+                                })()}
+                            </div>
+                        )}
                     </div>
 
                     {/* Tax burden index */}
@@ -799,30 +966,36 @@ const Benchmark: React.FC = () => {
                                 <HelpCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
-                            {(() => {
-                                const data = getUserCountryData(benchmarkData.taxBurden, 'tax_burden');
-                                if (data) {
-                                    const latestPeriod = getLatestPeriod(benchmarkData.taxBurden);
+                        {isLoadingTaxBurden ? (
+                            <div className="flex items-center justify-center py-8">
+                                <LoadingSpinner size="md" />
+                            </div>
+                        ) : (
+                            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-3">
+                                {(() => {
+                                    const data = getUserCountryData(benchmarkData.taxBurden, 'tax_burden');
+                                    if (data) {
+                                        const latestPeriod = getLatestPeriod(benchmarkData.taxBurden);
+                                        return (
+                                            <>
+                                                {formatValue(data.value, data.unit)}{' '}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                                                    ({latestPeriod || 'N/A'})
+                                                </span>
+                                            </>
+                                        );
+                                    }
                                     return (
                                         <>
-                                            {formatValue(data.value, data.unit)}{' '}
+                                            34.3%{' '}
                                             <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                ({latestPeriod || 'N/A'})
+                                                (Demo)
                                             </span>
                                         </>
                                     );
-                                }
-                                return (
-                                    <>
-                                        34.3%{' '}
-                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                            (Demo)
-                                        </span>
-                                    </>
-                                );
-                            })()}
-                        </div>
+                                })()}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -1156,14 +1329,9 @@ const Benchmark: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <div className="flex items-center space-x-3">
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Benchmark</h1>
-                        {loading && (
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
-                        )}
-                    </div>
-                    <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400">
-                        {loading ? 'Loading benchmark data...' : 'Compare your performance against industry standards'}
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Benchmark</h1>
+                    <p className="text-gray-600 dark:text-gray-400">
+                        Compare your performance against industry standards
                         {user.oecd_country && (
                             <span className="ml-2 text-sm bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 px-2 py-1 rounded">
                                 {user.oecd_country}

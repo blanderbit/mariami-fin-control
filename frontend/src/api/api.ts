@@ -344,64 +344,6 @@ export interface IndustriesList {
   industries: string[];
 }
 
-export interface IndustryDetails {
-  /**
-   * Industry
-   * Industry name
-   * @minLength 1
-   * @maxLength 255
-   */
-  industry: string;
-  /**
-   * Gross margin range
-   * Gross margin range for the industry
-   * @maxLength 50
-   */
-  gross_margin_range?: string;
-  /**
-   * Operating margin range
-   * Operating margin range for the industry
-   * @maxLength 50
-   */
-  operating_margin_range?: string;
-  /**
-   * Cash buffer target months
-   * Recommended cash buffer in months
-   * @maxLength 50
-   */
-  cash_buffer_target_months?: string;
-  /**
-   * Dso range
-   * Days Sales Outstanding range
-   * @maxLength 50
-   */
-  dso_range?: string;
-  /**
-   * Inventory days range
-   * Inventory days range
-   * @maxLength 50
-   */
-  inventory_days_range?: string;
-  /**
-   * Expense mix notes
-   * Notes about expense mix for the industry
-   * @maxLength 500
-   */
-  expense_mix_notes?: string;
-  /**
-   * Notes
-   * Additional notes about the industry
-   * @maxLength 500
-   */
-  notes?: string;
-  /**
-   * Source refs
-   * Source references
-   * @maxLength 200
-   */
-  source_refs?: string;
-}
-
 /** Metrics for paid invoices */
 export interface InvoiceMetrics {
   /**
@@ -1471,26 +1413,6 @@ export class Api<
       }),
 
     /**
-     * @description Get detailed information for a specific industry including margins, cash buffer recommendations, and other financial metrics.
-     *
-     * @tags Industries
-     * @name UsersIndustriesRead
-     * @request GET:/users/industries/{industry_name}
-     * @secure
-     */
-    usersIndustriesRead: (
-      industryName: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<IndustryDetails, void>({
-        path: `/users/industries/${industryName}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
      * @description Analyze user's invoices data for a specific date range. Returns metrics for paid and overdue invoices with change calculations.
      *
      * @tags Invoices Analysis
@@ -1605,10 +1527,16 @@ export class Api<
          * @maxLength 100
          */
         pnl_date_column?: string;
-        /** List of expense column names */
-        pnl_expense_columns?: string[];
-        /** List of revenue column names */
-        pnl_revenue_columns?: string[];
+        /**
+         * Comma-separated expense columns (e.g., 'COGS,Payroll')
+         * @minLength 1
+         */
+        pnl_expense_columns?: string;
+        /**
+         * Comma-separated revenue columns (e.g., 'Revenue,Sales')
+         * @minLength 1
+         */
+        pnl_revenue_columns?: string;
       },
       params: RequestParams = {},
     ) =>

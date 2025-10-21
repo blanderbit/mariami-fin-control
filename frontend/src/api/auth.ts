@@ -114,8 +114,8 @@ export async function getProfileRequest(): Promise<AuthUser | null> {
             last_name: profileData.profile?.last_name || profileData.last_name,
             is_admin: profileData.is_admin,
             is_onboarded: profileData.is_onboarded,
-            country: profileData.profile.country,
-            oecd_country: profileData.profile.oecd_country,
+            country: profileData.profile?.country || null,
+            oecd_country: profileData.profile?.oecd_country || null,
         };
 
         return user;
