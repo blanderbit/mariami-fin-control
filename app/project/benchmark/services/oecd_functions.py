@@ -63,10 +63,10 @@ def fetch_latest_oecd_data(
         formatted_query = query.format(countries=settings.OECD_COUNTRIES_STRING)
         logger.info(f"Formatted query: {formatted_query}")
 
-        # Build URL to get only latest observation in JSON format
+        # Build URL to get 2 latest observations for comparison in JSON format
         url = (
             f"{BASE_URL}/{endpoint}/{formatted_query}"
-            f"?lastNObservations=1&format=jsondata"
+            f"?lastNObservations=2&format=jsondata"
         )
 
         logger.info(f"Fetching {indicator_key} from: {url}")
@@ -74,6 +74,10 @@ def fetch_latest_oecd_data(
         # Make request with timeout and JSON headers
         headers = {"Accept": "application/json", "User-Agent": "MariaMi-FinControl/1.0"}
         response = requests.get(url, timeout=30, headers=headers)
+        
+        # Log response status for debugging
+        logger.info(f"Response status for {indicator_key}: {response.status_code}")
+        
         response.raise_for_status()
 
         # Check content type
@@ -84,6 +88,8 @@ def fetch_latest_oecd_data(
 
         try:
             data = response.json()
+
+            logger.info(f'Successfully parsed JSON response {data}')
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse JSON for {indicator_key}: {e}")
             logger.debug(f"Response text: {response.text[:500]}")
@@ -113,6 +119,14 @@ def fetch_latest_oecd_data(
         datasets = data["data"]["dataSets"][0]
         if "series" not in datasets:
             logger.warning(f"No series data for {indicator_key}")
+            # Check if this is an empty response with only structure metadata
+            if ("dimensionGroupAttributes" in datasets and 
+                    not datasets.get("observations")):
+                logger.info(
+                    f"Empty dataset with only structure metadata for "
+                    f"{indicator_key}"
+                )
+                return []
             return []
 
         records = []
@@ -153,59 +167,77 @@ def fetch_latest_oecd_data(
                 continue
 
             if "observations" in series_val and series_val["observations"]:
-                # Get the latest observation (should be only one)
-                latest_obs_key = max(series_val["observations"].keys())
-                latest_obs_val = series_val["observations"][latest_obs_key]
-
-                if (
-                    latest_obs_val
-                    and len(latest_obs_val) > 0
-                    and latest_obs_val[0] is not None
-                ):
-                    value = float(latest_obs_val[0])
+                # Get the 2 latest observations (sorted by time)
+                obs_keys = sorted(series_val["observations"].keys(), key=int)
+                
+                # Process each observation
+                for obs_key in obs_keys:
+                    obs_val = series_val["observations"][obs_key]
                     
-                    record = {
-                        "country": country_code,
-                        "period": obs_time[int(latest_obs_key)],
-                        "value": value,
-                        "indicator": indicator_key,
-                        "unit": unit,
-                        "category": category,
-                        "series_key": series_key,  # Keep track of which series this is from
-                    }
-                    
-                    # Only keep one record per country
-                    if country_code not in country_records:
-                        country_records[country_code] = record
-                    else:
-                        existing_record = country_records[country_code]
-                        # Compare periods and keep the most recent one
-                        if record["period"] > existing_record["period"]:
-                            country_records[country_code] = record
-                        elif record["period"] == existing_record["period"]:
-                            # For same period, prefer the better value based on indicator type
-                            # For inflation-type indicators, prefer smaller absolute values
-                            if _is_better_value(indicator_key, record["value"], existing_record["value"]):
-                                country_records[country_code] = record
+                    if (
+                        obs_val
+                        and len(obs_val) > 0
+                        and obs_val[0] is not None
+                    ):
+                        value = float(obs_val[0])
+                        period = obs_time[int(obs_key)]
+                        
+                        record = {
+                            "country": country_code,
+                            "period": period,
+                            "value": value,
+                            "indicator": indicator_key,
+                            "unit": unit,
+                            "category": category,
+                            "series_key": series_key,
+                        }
+                        
+                        # Store all records by country and period
+                        if country_code not in country_records:
+                            country_records[country_code] = []
+                        country_records[country_code].append(record)
 
-        # Find the most recent period across all countries
+        # Process results and calculate growth between periods
         if country_records:
-            most_recent_period = max(record["period"] for record in country_records.values())
-            
-            # Filter to only keep records from the most recent period
-            # If a country doesn't have data for the most recent period, we'll keep their latest available
-            final_country_records = {}
-            for country_code, record in country_records.items():
-                final_country_records[country_code] = record
-            
-            logger.info(f"Most recent period found: {most_recent_period}")
-            
-            # Convert to list and remove series_key from final records
             records = []
-            for record in final_country_records.values():
-                final_record = record.copy()
-                final_record.pop("series_key", None)  # Remove helper field
-                records.append(final_record)
+            
+            for country_code, country_data in country_records.items():
+                # Sort records by period (newest first)
+                sorted_records = sorted(
+                    country_data,
+                    key=lambda x: x["period"],
+                    reverse=True
+                )
+                
+                # Get the latest record
+                latest_record = sorted_records[0].copy()
+                latest_record.pop("series_key", None)  # Remove helper field
+                
+                # Calculate growth if we have 2 periods
+                if len(sorted_records) >= 2:
+                    current_value = sorted_records[0]["value"]
+                    previous_value = sorted_records[1]["value"]
+                    
+                    # Calculate percentage growth
+                    if previous_value != 0:
+                        growth_rate = (
+                            (current_value - previous_value) / previous_value
+                        ) * 100
+                    else:
+                        growth_rate = None
+                    
+                    latest_record["growth_rate"] = growth_rate
+                    latest_record["previous_period"] = (
+                        sorted_records[1]["period"]
+                    )
+                    latest_record["previous_value"] = previous_value
+                else:
+                    # Only one period available
+                    latest_record["growth_rate"] = None
+                    latest_record["previous_period"] = None
+                    latest_record["previous_value"] = None
+                
+                records.append(latest_record)
         else:
             records = []
 
@@ -308,7 +340,7 @@ def fetch_oecd_short_term_rate() -> List[Dict[str, Any]]:
     """Fetch latest short-term interest rate data"""
     return fetch_latest_oecd_data(
         endpoint="OECD.SDD.STES,DSD_KEI@DF_KEI,4.0",
-        query="{countries}.M.IR3TIB.PA._T._Z._Z",
+        query="{countries}..IR3TIB....",
         indicator_key="short_term_rate",
         unit="%",
         category="macro_pulse"
@@ -330,7 +362,7 @@ def fetch_oecd_consumer_confidence() -> List[Dict[str, Any]]:
     """Fetch latest consumer confidence data"""
     return fetch_latest_oecd_data(
         endpoint="OECD.SDD.STES,DSD_KEI@DF_KEI,4.0",
-        query="{countries}.M.CCICP.IX._T.Y.",
+        query="{countries}..CCICP....",
         indicator_key="consumer_confidence",
         unit="index",
         category="macro_pulse"
@@ -343,7 +375,7 @@ def fetch_oecd_wage_growth() -> List[Dict[str, Any]]:
         endpoint="OECD.ECO.MAD,DSD_EO@DF_EO,1.3",
         query="{countries}.WAGE.A..GY+_Z",
         indicator_key="wage_growth",
-        unit="%",
+        unit="index",
         category="macro_pulse"
     )
 
