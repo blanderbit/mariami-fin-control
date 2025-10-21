@@ -866,18 +866,10 @@ const Benchmark: React.FC = () => {
                             <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-3">
                                 {(() => {
                                     const data = getUserCountryData(benchmarkData.wageGrowth, 'wage_growth');
-                                    if (data && data.previous_value && data.previous_period) {
+                                    if (data && data.previous_period && data.period && data.growth_rate) {
                                         return (
                                             <>
-                                                {data.previous_value.toFixed(1)}{' '}
-                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                    ({data.previous_period})
-                                                </span>
-                                                {' - '}
-                                                {data.value.toFixed(1)}{' '}
-                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                                                    ({data.period})
-                                                </span>
+                                                {data.previous_period} → {data.period} → {(data.growth_rate * 100).toFixed(1)}%
                                             </>
                                         );
                                     }
