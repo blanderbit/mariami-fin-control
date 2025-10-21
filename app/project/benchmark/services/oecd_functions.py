@@ -74,6 +74,10 @@ def fetch_latest_oecd_data(
         # Make request with timeout and JSON headers
         headers = {"Accept": "application/json", "User-Agent": "MariaMi-FinControl/1.0"}
         response = requests.get(url, timeout=30, headers=headers)
+        
+        # Log response status for debugging
+        logger.info(f"Response status for {indicator_key}: {response.status_code}")
+        
         response.raise_for_status()
 
         # Check content type
@@ -84,6 +88,8 @@ def fetch_latest_oecd_data(
 
         try:
             data = response.json()
+
+            logger.info(f'Successfully parsed JSON response {data}')
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse JSON for {indicator_key}: {e}")
             logger.debug(f"Response text: {response.text[:500]}")
@@ -113,6 +119,14 @@ def fetch_latest_oecd_data(
         datasets = data["data"]["dataSets"][0]
         if "series" not in datasets:
             logger.warning(f"No series data for {indicator_key}")
+            # Check if this is an empty response with only structure metadata
+            if ("dimensionGroupAttributes" in datasets and 
+                    not datasets.get("observations")):
+                logger.info(
+                    f"Empty dataset with only structure metadata for "
+                    f"{indicator_key}"
+                )
+                return []
             return []
 
         records = []
@@ -308,7 +322,7 @@ def fetch_oecd_short_term_rate() -> List[Dict[str, Any]]:
     """Fetch latest short-term interest rate data"""
     return fetch_latest_oecd_data(
         endpoint="OECD.SDD.STES,DSD_KEI@DF_KEI,4.0",
-        query="{countries}.M.IR3TIB.PA._T._Z._Z",
+        query="{countries}..IR3TIB....",
         indicator_key="short_term_rate",
         unit="%",
         category="macro_pulse"
@@ -330,7 +344,7 @@ def fetch_oecd_consumer_confidence() -> List[Dict[str, Any]]:
     """Fetch latest consumer confidence data"""
     return fetch_latest_oecd_data(
         endpoint="OECD.SDD.STES,DSD_KEI@DF_KEI,4.0",
-        query="{countries}.M.CCICP.IX._T.Y.",
+        query="{countries}..CCICP....",
         indicator_key="consumer_confidence",
         unit="index",
         category="macro_pulse"
@@ -343,7 +357,7 @@ def fetch_oecd_wage_growth() -> List[Dict[str, Any]]:
         endpoint="OECD.ECO.MAD,DSD_EO@DF_EO,1.3",
         query="{countries}.WAGE.A..GY+_Z",
         indicator_key="wage_growth",
-        unit="%",
+        unit="index",
         category="macro_pulse"
     )
 
