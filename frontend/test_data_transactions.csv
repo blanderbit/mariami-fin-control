@@ -1,0 +1,155 @@
+Date,Type,Category,Amount,Client_Supplier,Memo
+2024-01-05,Income,Sales,5000,Acme Corp,Invoice INV-001 payment
+2024-01-08,Expense,Payroll,1500,Staff,January payroll
+2024-01-10,Income,Sales,6400,Global Tech,Invoice INV-002 payment
+2024-01-12,Expense,Rent,2000,Office Building,Monthly office rent
+2024-01-15,Income,Sales,3600,StartupXYZ,Invoice INV-003 payment
+2024-01-18,Expense,Marketing,1000,Google Ads,January advertising
+2024-01-20,Income,Sales,9000,Enterprise Inc,Invoice INV-004 payment
+2024-01-22,Expense,Utilities,300,Electric Company,Monthly electricity
+2024-01-25,Income,Sales,4200,SmallBiz LLC,Invoice INV-005 payment
+2024-01-28,Expense,Software,200,Microsoft,Office 365 subscription
+2024-02-01,Income,Sales,7600,Innovation Co,Invoice INV-006 payment
+2024-02-03,Expense,Payroll,1500,Staff,February payroll
+2024-02-05,Income,Sales,5800,Digital Solutions,Invoice INV-007 payment
+2024-02-08,Expense,Rent,2000,Office Building,Monthly office rent
+2024-02-10,Income,Sales,10400,MegaCorp Ltd,Invoice INV-008 payment
+2024-02-12,Expense,Marketing,1200,Facebook Ads,February advertising
+2024-02-15,Income,Sales,6800,TechStart Inc,Invoice INV-009 payment
+2024-02-18,Expense,Utilities,350,Gas Company,Monthly gas bill
+2024-02-20,Income,Sales,8200,Cloud Systems,Invoice INV-010 payment
+2024-02-22,Expense,Software,150,Slack,Team communication
+2024-02-25,Expense,Insurance,400,Insurance Co,Monthly insurance
+2024-02-28,Expense,Equipment,800,Computer Store,New laptop
+2024-03-01,Income,Sales,7400,Data Analytics,Invoice INV-011 payment
+2024-03-03,Expense,Payroll,1500,Staff,March payroll
+2024-03-05,Income,Sales,5600,AI Solutions,Invoice INV-012 payment
+2024-03-08,Expense,Rent,2000,Office Building,Monthly office rent
+2024-03-10,Income,Sales,9800,Blockchain Co,Invoice INV-013 payment
+2024-03-12,Expense,Marketing,1400,LinkedIn Ads,March advertising
+2024-03-15,Income,Sales,6600,FinTech Corp,Invoice INV-014 payment
+2024-03-18,Expense,Utilities,320,Water Company,Monthly water bill
+2024-03-20,Income,Sales,5200,Green Energy,Invoice INV-015 payment
+2024-03-22,Expense,Software,300,Adobe,Creative suite subscription
+2024-03-25,Expense,Travel,500,Airline,Client meeting travel
+2024-03-28,Expense,Meals,200,Restaurant,Client dinner
+2024-04-01,Income,Sales,8400,Solar Power Inc,Invoice INV-016 payment
+2024-04-03,Expense,Payroll,1500,Staff,April payroll
+2024-04-05,Income,Sales,6200,Wind Energy LLC,Invoice INV-017 payment
+2024-04-08,Expense,Rent,2000,Office Building,Monthly office rent
+2024-04-10,Income,Sales,11600,Hydro Electric,Invoice INV-018 payment
+2024-04-12,Expense,Marketing,1600,YouTube Ads,April advertising
+2024-04-15,Income,Sales,5400,Nuclear Power,Invoice INV-019 payment
+2024-04-18,Expense,Utilities,380,Internet Provider,Monthly internet
+2024-04-20,Income,Sales,7200,Coal Mining Co,Invoice INV-020 payment
+2024-04-22,Expense,Software,250,GitHub,Code repository hosting
+2024-04-25,Expense,Legal,600,Law Firm,Contract review
+2024-04-28,Expense,Accounting,400,CPA,Monthly bookkeeping
+2024-05-01,Income,Sales,8800,Oil & Gas Corp,Invoice INV-021 payment
+2024-05-03,Expense,Payroll,1500,Staff,May payroll
+2024-05-05,Income,Sales,5800,Natural Gas Ltd,Invoice INV-022 payment
+2024-05-08,Expense,Rent,2000,Office Building,Monthly office rent
+2024-05-10,Income,Sales,10200,Petroleum Inc,Invoice INV-023 payment
+2024-05-12,Expense,Marketing,1800,TikTok Ads,May advertising
+2024-05-15,Income,Sales,7600,Chemical Corp,Invoice INV-024 payment
+2024-05-18,Expense,Utilities,420,Phone Company,Monthly phone bill
+2024-05-20,Income,Sales,6400,Pharma Co,Invoice INV-025 payment
+2024-05-22,Expense,Software,180,Zoom,Video conferencing
+2024-05-25,Expense,Training,800,Online Course,Staff training
+2024-05-28,Expense,Supplies,300,Office Depot,Office supplies
+2024-06-01,Income,Sales,9400,Medical Devices,Invoice INV-026 payment
+2024-06-03,Expense,Payroll,1500,Staff,June payroll
+2024-06-05,Income,Sales,6800,Healthcare Inc,Invoice INV-027 payment
+2024-06-08,Expense,Rent,2000,Office Building,Monthly office rent
+2024-06-10,Income,Sales,5800,Hospital Corp,Invoice INV-028 payment
+2024-06-12,Expense,Marketing,2000,Instagram Ads,June advertising
+2024-06-15,Income,Sales,8200,Clinic Group,Invoice INV-029 payment
+2024-06-18,Expense,Utilities,450,Trash Company,Monthly waste disposal
+2024-06-20,Income,Sales,7200,Diagnostic Lab,Invoice INV-030 payment
+2024-06-22,Expense,Software,350,CRM System,Customer management
+2024-06-25,Expense,Maintenance,600,IT Support,System maintenance
+2024-06-28,Expense,Repairs,400,Repair Shop,Equipment repair
+2024-07-01,Income,Sales,9600,Research Institute,Invoice INV-031 payment
+2024-07-03,Expense,Payroll,1500,Staff,July payroll
+2024-07-05,Income,Sales,6600,Biotech Corp,Invoice INV-032 payment
+2024-07-08,Expense,Rent,2000,Office Building,Monthly office rent
+2024-07-10,Income,Sales,11000,Genetics Ltd,Invoice INV-033 payment
+2024-07-12,Expense,Marketing,2200,Twitter Ads,July advertising
+2024-07-15,Income,Sales,5400,Vaccine Co,Invoice INV-034 payment
+2024-07-18,Expense,Utilities,380,Security Company,Monthly security
+2024-07-20,Income,Sales,7800,Therapy Inc,Invoice INV-035 payment
+2024-07-22,Expense,Software,280,Project Management,Task tracking
+2024-07-25,Expense,Consulting,1200,External Consultant,Strategy advice
+2024-07-28,Expense,Professional,500,Industry Association,Membership
+2024-08-01,Income,Sales,9200,Rehabilitation,Invoice INV-036 payment
+2024-08-03,Expense,Payroll,1500,Staff,August payroll
+2024-08-05,Income,Sales,6200,Physical Therapy,Invoice INV-037 payment
+2024-08-08,Expense,Rent,2000,Office Building,Monthly office rent
+2024-08-10,Income,Sales,10600,Mental Health,Invoice INV-038 payment
+2024-08-12,Expense,Marketing,2400,Snapchat Ads,August advertising
+2024-08-15,Income,Sales,5600,Addiction Center,Invoice INV-039 payment
+2024-08-18,Expense,Utilities,420,Cleaning Service,Monthly cleaning
+2024-08-20,Income,Sales,8400,Wellness Clinic,Invoice INV-040 payment
+2024-08-22,Expense,Software,320,Email Marketing,Newsletter service
+2024-08-25,Expense,Events,800,Conference,Industry conference
+2024-08-28,Expense,Networking,300,Meetup,Professional networking
+2024-09-01,Income,Sales,9800,Fitness Center,Invoice INV-041 payment
+2024-09-03,Expense,Payroll,1500,Staff,September payroll
+2024-09-05,Income,Sales,7000,Gym Chain,Invoice INV-042 payment
+2024-09-08,Expense,Rent,2000,Office Building,Monthly office rent
+2024-09-10,Income,Sales,5800,Yoga Studio,Invoice INV-043 payment
+2024-09-12,Expense,Marketing,2600,Pinterest Ads,September advertising
+2024-09-15,Income,Sales,8200,Pilates Inc,Invoice INV-044 payment
+2024-09-18,Expense,Utilities,480,Parking Garage,Monthly parking
+2024-09-20,Income,Sales,7400,CrossFit Box,Invoice INV-045 payment
+2024-09-22,Expense,Software,380,Analytics Tool,Website analytics
+2024-09-25,Expense,Design,600,Graphic Designer,Logo design
+2024-09-28,Expense,Content,400,Writer,Content creation
+2024-10-01,Income,Sales,10400,Martial Arts,Invoice INV-046 payment
+2024-10-03,Expense,Payroll,1500,Staff,October payroll
+2024-10-05,Income,Sales,7600,Dance Studio,Invoice INV-047 payment
+2024-10-08,Expense,Rent,2000,Office Building,Monthly office rent
+2024-10-10,Income,Sales,6400,Swimming Pool,Invoice INV-048 payment
+2024-10-12,Expense,Marketing,2800,Reddit Ads,October advertising
+2024-10-15,Income,Sales,9200,Tennis Club,Invoice INV-049 payment
+2024-10-18,Expense,Utilities,520,Storage Unit,Monthly storage
+2024-10-20,Income,Sales,6800,Golf Course,Invoice INV-050 payment
+2024-10-22,Expense,Software,450,Password Manager,Team password security
+2024-10-25,Expense,Research,700,Market Research,Industry analysis
+2024-10-28,Expense,Testing,500,QA Service,Product testing
+2024-11-01,Income,Sales,9600,Country Club,Invoice INV-051 payment
+2024-11-03,Expense,Payroll,1500,Staff,November payroll
+2024-11-05,Income,Sales,7200,Sports Complex,Invoice INV-052 payment
+2024-11-08,Expense,Rent,2000,Office Building,Monthly office rent
+2024-11-10,Income,Sales,5800,Recreation Center,Invoice INV-053 payment
+2024-11-12,Expense,Marketing,3000,Podcast Ads,November advertising
+2024-11-15,Income,Sales,8600,Community Pool,Invoice INV-054 payment
+2024-11-18,Expense,Utilities,580,Cloud Storage,Monthly data storage
+2024-11-20,Income,Sales,7600,Public Library,Invoice INV-055 payment
+2024-11-22,Expense,Software,520,Backup Service,Data backup
+2024-11-25,Expense,Licensing,800,Software Licenses,Annual licenses
+2024-11-28,Expense,Certification,600,Professional Cert,Staff certification
+2024-12-01,Income,Sales,10200,School District,Invoice INV-056 payment
+2024-12-03,Expense,Payroll,1500,Staff,December payroll
+2024-12-05,Income,Sales,6800,University,Invoice INV-057 payment
+2024-12-08,Expense,Rent,2000,Office Building,Monthly office rent
+2024-12-10,Income,Sales,5400,College,Invoice INV-058 payment
+2024-12-12,Expense,Marketing,3200,Newsletter Ads,December advertising
+2024-12-15,Income,Sales,9000,High School,Invoice INV-059 payment
+2024-12-18,Expense,Utilities,620,Fire Safety,Monthly fire safety
+2024-12-20,Income,Sales,7800,Middle School,Invoice INV-060 payment
+2024-12-22,Expense,Software,580,Time Tracking,Employee time tracking
+2024-12-25,Expense,Holiday,1000,Christmas Party,Company holiday party
+2024-12-28,Expense,Bonus,2000,Staff,Year-end bonuses
+2025-01-01,Income,Sales,6400,Elementary School,Invoice INV-061 payment
+2025-01-03,Expense,Payroll,1500,Staff,January payroll
+2025-01-05,Income,Sales,8200,Kindergarten,Invoice INV-062 payment
+2025-01-08,Expense,Rent,2000,Office Building,Monthly office rent
+2025-01-10,Income,Sales,9400,Daycare Center,Invoice INV-063 payment
+2025-01-12,Expense,Marketing,3400,New Year Campaign,January advertising
+2025-01-15,Income,Sales,6600,Preschool,Invoice INV-064 payment
+2025-01-18,Expense,Utilities,680,Janitorial Service,Monthly cleaning
+2025-01-20,Income,Sales,5600,After School,Invoice INV-065 payment
+2025-01-22,Expense,Software,620,Inventory System,Stock management
+2025-01-25,Expense,Equipment,1200,Printer,New office printer
+2025-01-28,Expense,Maintenance,800,AC Service,Monthly AC maintenance

@@ -263,15 +263,6 @@ const DataImport: React.FC = () => {
         return messages[fileType as keyof typeof messages] || '';
     };
 
-    const getAIConfirmation = (fileType: string) => {
-        const confirmations = {
-            pnl: "Got it — I see strong revenue growth in Q2. We'll visualize this on your dashboard.",
-            transactions: "Perfect — I've detected 247 transactions. Cash flow analysis is ready.",
-            invoices: "Excellent — 45 invoices processed. I'll track overdue payments for you."
-        };
-        return confirmations[fileType as keyof typeof confirmations] || 'Data uploaded successfully!';
-    };
-
     return (
         <motion.div
             initial={{y: 20, opacity: 0}}
@@ -345,10 +336,6 @@ const DataImport: React.FC = () => {
                                     <span className="text-sm font-medium text-green-800 dark:text-green-300">
                                         {uploadedFiles.pnl.name} ({formatFileSize(uploadedFiles.pnl.size)})
                                     </span>
-                                </div>
-                                <div className="flex items-start space-x-2 mt-3">
-                                    <Brain className="w-4 h-4 text-[#2561E5] mt-0.5 flex-shrink-0" />
-                                    <p className="text-sm text-[#12141A] dark:text-gray-200 font-medium">{getAIConfirmation('pnl')}</p>
                                 </div>
                             </div>
                         )}
@@ -425,10 +412,6 @@ const DataImport: React.FC = () => {
                                         {uploadedFiles.transactions.name} ({formatFileSize(uploadedFiles.transactions.size)})
                                     </span>
                                 </div>
-                                <div className="flex items-start space-x-2 mt-3">
-                                    <Brain className="w-4 h-4 text-[#2561E5] mt-0.5 flex-shrink-0" />
-                                    <p className="text-sm text-[#12141A] dark:text-gray-200 font-medium">{getAIConfirmation('transactions')}</p>
-                                </div>
                             </div>
                         )}
 
@@ -503,10 +486,6 @@ const DataImport: React.FC = () => {
                                     <span className="text-sm font-medium text-green-800 dark:text-green-300">
                                         {uploadedFiles.invoices.name} ({formatFileSize(uploadedFiles.invoices.size)})
                                     </span>
-                                </div>
-                                <div className="flex items-start space-x-2 mt-3">
-                                    <Brain className="w-4 h-4 text-[#2561E5] mt-0.5 flex-shrink-0" />
-                                    <p className="text-sm text-[#12141A] dark:text-gray-200 font-medium">{getAIConfirmation('invoices')}</p>
                                 </div>
                             </div>
                         )}

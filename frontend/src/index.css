@@ -145,3 +145,6 @@
     }
 }
 
+.space-y-8 > :not([hidden]) ~ :not([hidden]) {
+    margin: 0 !important;
+}
