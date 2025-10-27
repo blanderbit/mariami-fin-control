@@ -89,6 +89,13 @@ services:
             - "9001"
         labels:
             - 'traefik.enable=true'
+            # Console
+            - 'traefik.http.routers.minio-console.rule=Host(`storage-console.finclai.com`)'
+            - 'traefik.http.routers.minio-console.entrypoints=websecure'
+            - 'traefik.http.routers.minio-console.tls.certresolver=myresolver'
+            - 'traefik.http.routers.minio-console.service=minio-console'
+            - 'traefik.http.services.minio-console.loadbalancer.server.port=9001'
+            # APi
             - 'traefik.http.routers.mariami-minio-prod.rule=Host(`storage.finclai.com`)'
             - 'traefik.http.routers.mariami-minio-prod.entrypoints=websecure'
             - 'traefik.http.routers.mariami-minio-prod.tls.certresolver=myresolver'
