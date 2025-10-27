@@ -103,7 +103,7 @@ services:
             - "9001"
         labels:
             - 'traefik.enable=true'
-            - 'traefik.http.routers.mariami-minio-prod.rule=Host(`storge.finclai.com`)'
+            - 'traefik.http.routers.mariami-minio-prod.rule=Host(`storage.finclai.com`)'
             - 'traefik.http.routers.mariami-minio-prod.entrypoints=websecure'
             - 'traefik.http.routers.mariami-minio-prod.tls.certresolver=myresolver'
             - 'traefik.http.routers.mariami-minio-prod.service=mariami-minio-prod'
