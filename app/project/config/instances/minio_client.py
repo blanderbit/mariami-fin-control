@@ -27,6 +27,11 @@ class MinIOClient:
             return
 
         try:
+            print(f"🔧 Initializing MinIO with:")
+            print(f"   endpoint: {settings.MINIO_ENDPOINT}")
+            print(f"   secure: {settings.MINIO_USE_HTTPS}")
+            print(f"   access_key: {settings.MINIO_ACCESS_KEY[:10]}...")
+            
             self._client = Minio(
                 endpoint=settings.MINIO_ENDPOINT,
                 access_key=settings.MINIO_ACCESS_KEY,
@@ -38,6 +43,9 @@ class MinIOClient:
             print(f"✅ MinIO client initialized: {settings.MINIO_ENDPOINT}")
         except Exception as e:
             print(f"❌ Failed to initialize MinIO client: {e}")
+            print(f"   Settings used:")
+            print(f"   MINIO_ENDPOINT: {getattr(settings, 'MINIO_ENDPOINT', 'NOT SET')}")
+            print(f"   MINIO_USE_HTTPS: {getattr(settings, 'MINIO_USE_HTTPS', 'NOT SET')}")
             raise
 
     @property
