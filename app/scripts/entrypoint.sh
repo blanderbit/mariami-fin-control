@@ -3,6 +3,7 @@ cd project
 
 ApiDeploy()
 {
+    python manage.py collectstatic --noinput
     python manage.py migrate --noinput
     python manage.py loaddata */fixtures/*.json
     uwsgi --ini uwsgi.ini
