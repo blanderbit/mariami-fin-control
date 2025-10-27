@@ -1789,7 +1789,7 @@ const DashboardNew: React.FC = () => {
 
 
                 {/* Conversational AI Insights */}
-                {/* <ConversationalAI
+                <ConversationalAI
                     companyProfile={{
                         industry: company.profile?.industry || 'business',
                         country: company.profile?.country,
@@ -1802,7 +1802,7 @@ const DashboardNew: React.FC = () => {
                         cashBuffer: cashBufferMonths
                     }}
                     baseCurrency={baseCurrency}
-                /> */}
+                />
             </div>
 
             {/* Signals Panel */}

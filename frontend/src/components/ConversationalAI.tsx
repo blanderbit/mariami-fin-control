@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Brain, Calendar, TrendingUp, TrendingDown, DollarSign, CreditCard as Edit3 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 type MessageType = 'ai' | 'user';
 type ConversationStage = 'greeting' | 'period-selection' | 'analyzing' | 'analysis-shown' | 'asking-context' | 'confirmation' | 'recommendations' | 'closing';
@@ -38,6 +39,7 @@ const ConversationalAI: React.FC<ConversationalAIProps> = ({
                                                                financialData = { revenue: 47000, expenses: 42000, profit: 5000, cashBuffer: 1.6 },
                                                                baseCurrency = 'USD'
                                                            }) => {
+    const { theme } = useTheme();
     const [messages, setMessages] = useState<Message[]>([]);
     const [stage, setStage] = useState<ConversationStage>('greeting');
     const [isTyping, setIsTyping] = useState(false);
@@ -223,7 +225,7 @@ const ConversationalAI: React.FC<ConversationalAIProps> = ({
     const renderButtons = () => {
         if (stage === 'period-selection') {
             return (
-                <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-xl">
+                <div className="flex flex-wrap gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
                     {['This Month', 'Last Month', 'Last 3 Months', 'Quarter vs Previous'].map((period) => (
                         <button
                             key={period}
@@ -239,7 +241,7 @@ const ConversationalAI: React.FC<ConversationalAIProps> = ({
 
         if (stage === 'asking-context') {
             return (
-                <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-xl">
+                <div className="flex flex-wrap gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
                     {['Dividends', 'One-off Expense', 'New Client/Event', 'No Special Events'].map((option) => (
                         <button
                             key={option}
@@ -258,7 +260,7 @@ const ConversationalAI: React.FC<ConversationalAIProps> = ({
 
         if (stage === 'closing') {
             return (
-                <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-xl">
+                <div className="flex flex-wrap gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
                     {['Yes, show trend', 'Skip for now'].map((option) => (
                         <button
                             key={option}
@@ -278,20 +280,20 @@ const ConversationalAI: React.FC<ConversationalAIProps> = ({
     };
 
     return (
-        <div className="col-span-12 lg:col-span-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm flex flex-col" style={{ height: '600px' }}>
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="col-span-12 lg:col-span-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col" style={{ height: '600px' }}>
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center space-x-2">
                     <div className="p-2 bg-gradient-to-br from-[#3A75F2] to-[#2557C7] rounded-lg">
                         <Brain className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                        <h3 className="text-sm font-semibold text-[#0F1A2B]">FinCl AI Insights</h3>
-                        <p className="text-xs text-[#64748B]">Beta Dialog Mode</p>
+                        <h3 className="text-sm font-semibold text-[#0F1A2B] dark:text-gray-100">FinCl AI Insights</h3>
+                        <p className="text-xs text-[#64748B] dark:text-gray-400">Beta Dialog Mode</p>
                     </div>
                 </div>
                 <button
                     onClick={() => setShowNotesModal(true)}
-                    className="text-xs text-[#3A75F2] hover:text-[#2557C7] font-medium flex items-center space-x-1"
+                    className="text-xs text-[#3A75F2] hover:text-[#2557C7] dark:text-blue-400 dark:hover:text-blue-300 font-medium flex items-center space-x-1"
                 >
                     <span>Manage Notes</span>
                     <Edit3 className="w-3 h-3" />
@@ -307,17 +309,17 @@ const ConversationalAI: React.FC<ConversationalAIProps> = ({
                         <div
                             className={`max-w-[85%] rounded-2xl p-3 ${
                                 message.type === 'ai'
-                                    ? 'bg-gradient-to-r from-[#F8FAFF] to-[#EEF4FF] border border-[#3A75F2]/20 shadow-sm'
+                                    ? 'bg-gradient-to-r from-[#F8FAFF] to-[#EEF4FF] dark:from-gray-700 dark:to-gray-600 border border-[#3A75F2]/20 dark:border-blue-500/20 shadow-sm'
                                     : 'bg-gradient-to-r from-[#3A75F2] to-[#2557C7] text-white shadow-md'
                             }`}
                         >
                             {message.type === 'ai' && (
                                 <div className="flex items-start space-x-2 mb-1">
-                                    <Brain className="w-3 h-3 text-[#3A75F2] mt-0.5 flex-shrink-0" />
-                                    <p className="text-xs font-semibold text-[#3A75F2]">FinCl AI</p>
+                                    <Brain className="w-3 h-3 text-[#3A75F2] dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                                    <p className="text-xs font-semibold text-[#3A75F2] dark:text-blue-400">FinCl AI</p>
                                 </div>
                             )}
-                            <p className={`text-sm leading-relaxed ${message.type === 'ai' ? 'text-[#0F1A2B]' : 'text-white'}`}>
+                            <p className={`text-sm leading-relaxed ${message.type === 'ai' ? 'text-[#0F1A2B] dark:text-gray-100' : 'text-white'}`}>
                                 {message.text}
                             </p>
                         </div>
@@ -326,12 +328,12 @@ const ConversationalAI: React.FC<ConversationalAIProps> = ({
 
                 {isTyping && (
                     <div className="flex justify-start">
-                        <div className="max-w-[85%] rounded-2xl p-3 bg-gradient-to-r from-[#F8FAFF] to-[#EEF4FF] border border-[#3A75F2]/20">
+                        <div className="max-w-[85%] rounded-2xl p-3 bg-gradient-to-r from-[#F8FAFF] to-[#EEF4FF] dark:from-gray-700 dark:to-gray-600 border border-[#3A75F2]/20 dark:border-blue-500/20">
                             <div className="flex items-center space-x-2">
                                 <div className="flex space-x-1">
-                                    <div className="w-2 h-2 bg-[#3A75F2] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                    <div className="w-2 h-2 bg-[#3A75F2] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                    <div className="w-2 h-2 bg-[#3A75F2] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                    <div className="w-2 h-2 bg-[#3A75F2] dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                    <div className="w-2 h-2 bg-[#3A75F2] dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                    <div className="w-2 h-2 bg-[#3A75F2] dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                                 </div>
                             </div>
                         </div>
@@ -341,26 +343,26 @@ const ConversationalAI: React.FC<ConversationalAIProps> = ({
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 border-t border-gray-200">
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                 {renderButtons()}
             </div>
 
             {showNotesModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowNotesModal(false)}>
-                    <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-[#0F1A2B]">AI Notes</h3>
-                            <button onClick={() => setShowNotesModal(false)} className="text-[#64748B] hover:text-[#0F1A2B]">✕</button>
+                            <h3 className="text-lg font-semibold text-[#0F1A2B] dark:text-gray-100">AI Notes</h3>
+                            <button onClick={() => setShowNotesModal(false)} className="text-[#64748B] hover:text-[#0F1A2B] dark:hover:text-gray-100">✕</button>
                         </div>
                         {aiNotes.length === 0 ? (
-                            <p className="text-sm text-[#64748B] text-center py-8">No notes saved yet.</p>
+                            <p className="text-sm text-[#64748B] dark:text-gray-400 text-center py-8">No notes saved yet.</p>
                         ) : (
                             <div className="space-y-3">
                                 {aiNotes.map((note, idx) => (
-                                    <div key={idx} className="p-3 bg-gray-50 rounded-lg">
-                                        <p className="text-sm font-medium text-[#0F1A2B]">{note.month} - {note.type}</p>
-                                        <p className="text-xs text-[#64748B] mt-1">{note.comment}</p>
-                                        {note.amount && <p className="text-xs text-[#3A75F2] mt-1">{formatCurrency(note.amount)}</p>}
+                                    <div key={idx} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                        <p className="text-sm font-medium text-[#0F1A2B] dark:text-gray-100">{note.month} - {note.type}</p>
+                                        <p className="text-xs text-[#64748B] dark:text-gray-400 mt-1">{note.comment}</p>
+                                        {note.amount && <p className="text-xs text-[#3A75F2] dark:text-blue-400 mt-1">{formatCurrency(note.amount)}</p>}
                                     </div>
                                 ))}
                             </div>
