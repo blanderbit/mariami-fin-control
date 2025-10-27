@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Brain,
     ArrowLeft,
     ArrowRight,
     Check,
@@ -25,7 +24,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { updateOnboardingRequest, OnboardingData, getCurrenciesRequest, Currency, getIndustriesRequest, getAISummaryRequest, getCountriesRequest, Country } from '../api/auth';
 import { getStepData } from '../utils/onboardingUtils';
-import Logo from "../assets/FinclAI Logo Blue.png";
+import Logo from "../assets/Logo";
 
 interface ChatMessage {
     type: 'bot' | 'user';
@@ -807,7 +806,7 @@ const OnboardingStepper: React.FC<OnboardingStepperProps> = React.memo(({
                 <div className="max-w-2xl w-full space-y-8">
                     <div className="text-center">
                         <div className="flex justify-center">
-                            <img src={Logo} alt="FinclAI Logo" className="w-20 h-20 object-contain"/>
+                            <Logo width={80} height={80} />
                         </div>
                         <h2 className="mt-3 text-3xl font-bold text-gray-900 dark:text-gray-100">Setup Your Account</h2>
                         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Let's configure your financial AI assistant</p>

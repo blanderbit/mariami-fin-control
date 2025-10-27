@@ -6,14 +6,13 @@ import {
     BarChart3,
     Bot,
     Settings,
-    Brain,
     Database,
     ChevronLeft,
     ChevronRight
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
-import Logo from '../assets/FinclAI Logo Blue.png';
+import Logo from '../assets/Logo';
 
 const navigationItems = [
     { name: 'Business Overview', path: '/overview', icon: LayoutDashboard },
@@ -34,12 +33,9 @@ const Sidebar: React.FC = () => {
             }`}
         >
             <div className={`p-6 flex items-center justify-center transition-all duration-300`}>
-                <img
-                    src={Logo}
-                    alt="FinclAI Logo"
-                    className={`object-contain transition-all duration-300 ${
-                        isCollapsed ? 'w-12 h-12' : 'w-20 h-20'
-                    }`}
+                <Logo
+                    width={isCollapsed ? 48 : 80}
+                    height={isCollapsed ? 48 : 80}
                 />
             </div>
 

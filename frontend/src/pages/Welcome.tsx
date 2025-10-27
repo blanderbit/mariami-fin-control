@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-import Logo from '../assets/FinclAI Logo Blue.png';
+import Logo from '../assets/Logo';
 
 const Welcome: React.FC = () => {
     const navigate = useNavigate();
@@ -78,7 +78,7 @@ const Welcome: React.FC = () => {
                     >
                         <div className="flex justify-center mb-6">
                             <div className="flex items-center justify-center w-12 h-12">
-                                <img src={Logo} alt="FinclAI Logo" className="w-10 h-10 object-contain" />
+                                <Logo width={40} height={40} />
                             </div>
                         </div>
 
@@ -162,7 +162,7 @@ const Welcome: React.FC = () => {
 
                 <div className="text-center space-y-2">
                     <div className="flex items-center justify-center space-x-2">
-                        <img src={Logo} alt="FinclAI Logo" className="w-8 h-8 object-contain" />
+                        <Logo width={32} height={32} />
                         <span className="text-white text-lg font-medium">FinCl AI</span>
                     </div>
                     <p className="text-[#6F7D99] text-sm">Protecting profits. Driving growth.</p>

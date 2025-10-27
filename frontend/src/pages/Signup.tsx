@@ -1,12 +1,12 @@
 import React, {useState, useEffect} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
-import {Brain, Mail, Lock, Building, ArrowRight, AlertCircle, CheckCircle, Sun, Moon, ExternalLink} from 'lucide-react';
+import {Mail, Lock, Building, ArrowRight, AlertCircle, CheckCircle, Sun, Moon, ExternalLink} from 'lucide-react';
 import {useTheme} from "../contexts/ThemeContext.tsx";
 import {motion} from 'framer-motion';
 import {useAuth} from '../contexts/AuthContext';
 import {getDocumentsRequest, DocumentsData} from '../api/auth';
 
-import Logo from "../assets/FinclAI Logo Blue.png";
+import Logo from "../assets/Logo";
 
 const Signup: React.FC = () => {
     const navigate = useNavigate();
@@ -183,7 +183,7 @@ const Signup: React.FC = () => {
                             initial={{scale: 0.8, opacity: 0}}
                             animate={{scale: 1, opacity: 1}}
                             transition={{duration: 0.5}} className="flex justify-center">
-                            <img src={Logo} alt="FinclAI Logo" className="w-20 h-20 object-contain"/>
+                            <Logo width={80} height={80} />
                         </motion.div>
                         <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-gray-100">Create account</h2>
                         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Start your financial AI journey</p>

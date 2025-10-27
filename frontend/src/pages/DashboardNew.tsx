@@ -8,7 +8,6 @@ import {
     Users,
     Zap,
     Building,
-    Brain,
     ArrowRight,
     FileText,
     Clock,
@@ -22,6 +21,7 @@ import {
     XCircle,
     Info
 } from 'lucide-react';
+import LogoIcon from '../assets/LogoIcon';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -1706,7 +1706,7 @@ const DashboardNew: React.FC = () => {
                     {chartData.story && (
                         <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                             <div className="flex items-start space-x-2">
-                                <Brain className="w-4 h-4 text-[#3A75F2] mt-0.5 flex-shrink-0" />
+                                <LogoIcon className="w-4 h-4 text-[#3A75F2] mt-0.5 flex-shrink-0" />
                                 <p className="text-xs text-[#64748B] dark:text-gray-400 italic">
                                     {chartData.story}
                                 </p>
@@ -1947,7 +1947,7 @@ const DashboardNew: React.FC = () => {
                     {(invoicesData?.data?.average_days_outstanding || arHealthData.length > 0) && (
                         <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
                             <div className="flex items-start space-x-2">
-                                <Brain className="w-4 h-4 text-[#3A75F2] mt-0.5 flex-shrink-0" />
+                                <LogoIcon className="w-4 h-4 text-[#3A75F2] mt-0.5 flex-shrink-0" />
                                 <p className="text-xs text-[#64748B] dark:text-gray-400 italic">
                                     {invoicesData?.data?.average_days_outstanding 
                                         ? `Avg collection: ${Math.round(invoicesData.data.average_days_outstanding)} days`

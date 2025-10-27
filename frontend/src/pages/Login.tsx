@@ -5,7 +5,7 @@ import {motion} from 'framer-motion';
 import {useTheme} from "../contexts/ThemeContext.tsx";
 import {useAuth} from '../contexts/AuthContext';
 
-import Logo from '../assets/FinclAI Logo Blue.png';
+import Logo from '../assets/Logo';
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
@@ -124,7 +124,7 @@ const Login: React.FC = () => {
                             initial={{scale: 0.8, opacity: 0}}
                             animate={{scale: 1, opacity: 1}}
                             transition={{duration: 0.5}} className="flex justify-center">
-                            <img src={Logo} alt="FinclAI Logo" className="w-20 h-20 object-contain"/>
+                            <Logo width={80} height={80} />
                         </motion.div>
                         <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-gray-100">Welcome back</h2>
                         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Sign in to your FinCl AI

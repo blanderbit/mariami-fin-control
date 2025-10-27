@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Upload, TrendingUp, BarChart3, Sparkles } from 'lucide-react';
+import { Upload, TrendingUp, BarChart3, Sparkles } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
-import Logo from '../assets/FinclAI Logo Blue.png';
+import Logo from '../assets/Logo';
+import LogoIcon from '../assets/LogoIcon';
 import {motion} from "framer-motion";
 
 const WelcomeUser: React.FC = () => {
@@ -22,7 +23,7 @@ const WelcomeUser: React.FC = () => {
                     initial={{scale: 0.8, opacity: 0}}
                     animate={{scale: 1, opacity: 1}}
                     transition={{duration: 0.5}} className="flex justify-center">
-                    <img src={Logo} alt="FinclAI Logo" className="w-20 h-20 object-contain"/>
+                    <Logo width={80} height={80} />
                 </motion.div>
 
                 <h1 className="text-4xl font-bold text-[#12141A] dark:text-gray-100 mb-4">
@@ -91,7 +92,7 @@ const WelcomeUser: React.FC = () => {
                         className="bg-[#F8FAFF] dark:bg-gray-800 rounded-2xl card-glow p-6 border border-gray-100 dark:border-gray-700 text-left hover-lift group relative overflow-hidden"
                     >
                         <div className="w-12 h-12 bg-gradient-to-br from-[#2561E5] to-[#1e4db8] rounded-lg flex items-center justify-center mb-4 group-hover:royal-blue-glow transition-all">
-                            <Brain className="w-6 h-6 text-white" />
+                            <LogoIcon width={24} height={24} className="text-white" />
                         </div>
                         <h3 className="text-lg font-semibold text-[#12141A] dark:text-gray-100 mb-2">AI Assistant</h3>
                         <p className="text-sm text-[#6F7D99] dark:text-gray-400">

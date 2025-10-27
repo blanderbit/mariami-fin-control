@@ -19,9 +19,9 @@ import {
     Zap,
     Target,
     Clock,
-    Brain,
     ExternalLink
 } from 'lucide-react';
+import LogoIcon from '../assets/LogoIcon';
 import {motion} from 'framer-motion';
 import {
     ComposedChart,
@@ -1450,7 +1450,7 @@ const Dashboard: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                        <Brain className="w-6 h-6 mr-2 text-indigo-600"/>
+                        <LogoIcon className="w-6 h-6 mr-2 text-indigo-600"/>
                         Advisor Insights 🤖
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Short recommendations based on your data</p>
@@ -1474,7 +1474,7 @@ const Dashboard: React.FC = () => {
                         {insights.map((insight, index) => (
                             <div key={index}
                                  className="flex items-center space-x-3 p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border border-indigo-200 dark:border-indigo-700">
-                                <Brain className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0"/>
+                                <LogoIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0"/>
                                 <p className="text-sm text-indigo-800 dark:text-indigo-200">{insight}</p>
                             </div>
                         ))}

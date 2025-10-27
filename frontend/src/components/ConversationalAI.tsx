@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Brain, Calendar, TrendingUp, TrendingDown, DollarSign, CreditCard as Edit3 } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown, DollarSign, CreditCard as Edit3 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import LogoIcon from '../assets/LogoIcon';
 
 type MessageType = 'ai' | 'user';
 type ConversationStage = 'greeting' | 'period-selection' | 'analyzing' | 'analysis-shown' | 'asking-context' | 'confirmation' | 'recommendations' | 'closing';
@@ -284,7 +285,7 @@ const ConversationalAI: React.FC<ConversationalAIProps> = ({
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center space-x-2">
                     <div className="p-2 bg-gradient-to-br from-[#3A75F2] to-[#2557C7] rounded-lg">
-                        <Brain className="w-4 h-4 text-white" />
+                        <LogoIcon className="w-4 h-4 text-white" />
                     </div>
                     <div>
                         <h3 className="text-sm font-semibold text-[#0F1A2B] dark:text-gray-100">FinCl AI Insights</h3>
@@ -315,7 +316,7 @@ const ConversationalAI: React.FC<ConversationalAIProps> = ({
                         >
                             {message.type === 'ai' && (
                                 <div className="flex items-start space-x-2 mb-1">
-                                    <Brain className="w-3 h-3 text-[#3A75F2] dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                                    <LogoIcon className="w-3 h-3 text-[#3A75F2] dark:text-blue-400 mt-0.5 flex-shrink-0" />
                                     <p className="text-xs font-semibold text-[#3A75F2] dark:text-blue-400">FinCl AI</p>
                                 </div>
                             )}
