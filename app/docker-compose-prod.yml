@@ -57,7 +57,7 @@ services:
             - '8000'
         labels:
             - 'traefik.enable=true'
-            - 'traefik.http.routers.mariami-api-prod.rule=Host(`api.finclai.com`) && PathPrefix(`/`)'
+            - 'traefik.http.routers.mariami-api-prod.rule=Host(`api.finclai.com`)'
             - 'traefik.http.routers.mariami-api-prod.entrypoints=websecure'
             - 'traefik.http.routers.mariami-api-prod.tls.certresolver=myresolver'
             - 'traefik.http.routers.mariami-api-prod.service=mariami-api-prod'
