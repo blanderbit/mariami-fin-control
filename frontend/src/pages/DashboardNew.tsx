@@ -26,6 +26,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import ConversationalAI from '../components/ConversationalAI';
+import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import {
     PieChart,
     Pie,
@@ -504,7 +505,7 @@ const DashboardNew: React.FC = () => {
     const revenueExpenseData = useMemo(() => {
         if (pnlData?.data?.pnl_data && pnlData.data.pnl_data.length > 0) {
             return pnlData.data.pnl_data.map(item => {
-                const expenses = (item.COGS || 0) + (item.Payroll || 0) + (item.Rent || 0) + 
+                const expenses = (item.COGS || 0) + (item.Payroll || 0) + (item.Rent || 0) +
                                 (item.Marketing || 0) + (item.Other_Expenses || 0);
                 return {
                     month: format(parseISO(item.Month), 'MMM'),
@@ -610,6 +611,13 @@ const DashboardNew: React.FC = () => {
             cash_card_title: cashCardTitle
         };
     }, [pnlData, invoicesData, cashData, baseCurrency, calculatedEndingCash, cashCardTitle, cashBufferMonths]);
+
+    // Animated values for Business Pulse cards
+    const animatedRevenue = useAnimatedNumber(pulseKPIs.revenue, { duration: 1200, delay: 0 });
+    const animatedExpenses = useAnimatedNumber(pulseKPIs.expenses_total, { duration: 1200, delay: 200 });
+    const animatedNetProfit = useAnimatedNumber(pulseKPIs.net_profit, { duration: 1200, delay: 400 });
+    const animatedOverdue = useAnimatedNumber(pulseKPIs.overdue_invoices, { duration: 1200, delay: 600 });
+    const animatedCash = useAnimatedNumber(pulseKPIs.ending_cash, { duration: 1200, delay: 800 });
 
     // Chart data from Dashboard
     const chartData = useMemo((): ChartData => {
@@ -849,7 +857,7 @@ const DashboardNew: React.FC = () => {
         const revenueMoM = data.month_change?.revenue?.percentage_change || 0;
         const expensesMoM = data.month_change?.expenses?.percentage_change || 0;
         const profitMoM = data.month_change?.net_profit?.percentage_change || 0;
-        
+
         const overdueAmount = invoicesData?.data?.overdue_invoices?.total_amount || 0;
         const overdueCount = invoicesData?.data?.overdue_invoices?.total_count || 0;
 
@@ -905,12 +913,12 @@ const DashboardNew: React.FC = () => {
     // Signals from real data or fallback
     const signals = useMemo(() => {
         const alertsList = [];
-        
+
         // Cash gap signal
         if (cashData?.data) {
             const totalIncome = parseFloat(cashData.data.total_income) || 0;
             const totalExpense = parseFloat(cashData.data.total_expense) || 0;
-            
+
             if (totalExpense > totalIncome || calculatedEndingCash < 0) {
                 const topExpense = expenseData.length > 0 ? expenseData[0].name : 'expenses';
                 alertsList.push({
@@ -985,19 +993,37 @@ const DashboardNew: React.FC = () => {
             });
         }
 
-        // Return fallback if no signals
+        // Return fallback if no signals - using original Dashboard signals
         if (alertsList.length === 0) {
             return [
                 {
                     id: 1,
+                    severity: 'urgent' as const,
+                    icon: AlertTriangle,
+                    title: 'Cash flow shortage risk in 45 days',
+                    description: 'Current burn rate: $8K/mo. Consider reducing Opex by 15% or extending AR terms.',
+                    action: 'View Forecast',
+                    link: '/scenarios'
+                },
+                {
+                    id: 2,
+                    severity: 'watch' as const,
+                    icon: TrendingUp,
+                    title: 'Expense growth +25% MoM',
+                    description: 'Payroll increased $5K. Industry avg growth is 5%. Review headcount plan.',
+                    action: 'View Expenses',
+                    link: '/expenses'
+                },
+                {
+                    id: 3,
                     severity: 'positive' as const,
-            icon: CheckCircle,
-                    title: 'All metrics stable',
-                    description: 'No immediate issues detected. Keep monitoring.',
-                    action: 'View Dashboard',
-            link: '/overview'
-        }
-    ];
+                    icon: CheckCircle,
+                    title: 'Retention improved 12% vs last month',
+                    description: 'Customer lifetime value up. Strong product-market fit indicators.',
+                    action: 'View Metrics',
+                    link: '/overview'
+                }
+            ];
         }
 
         return alertsList;
@@ -1015,14 +1041,14 @@ const DashboardNew: React.FC = () => {
             // Return most recent 3 months if available
             const totalIncome = parseFloat(cashData.data.total_income) || 0;
             const totalExpense = parseFloat(cashData.data.total_expense) || 0;
-            
+
             // For now, show aggregate for the period
             // In future, could break down by month if API provides monthly data
             return [
-                { 
-                    month: 'Period Total', 
-                    inflow: totalIncome, 
-                    outflow: totalExpense 
+                {
+                    month: 'Period Total',
+                    inflow: totalIncome,
+                    outflow: totalExpense
                 }
             ];
         }
@@ -1040,33 +1066,33 @@ const DashboardNew: React.FC = () => {
         if (invoicesData?.data?.aging_buckets) {
             const buckets = invoicesData.data.aging_buckets;
             return [
-                { 
-                    range: '0-30 days', 
-                    invoices: buckets['0-30']?.count || 0, 
-                    amount: buckets['0-30']?.amount || 0, 
-                    color: '#10B981', 
-                    icon: Clock 
+                {
+                    range: '0-30 days',
+                    invoices: buckets['0-30']?.count || 0,
+                    amount: buckets['0-30']?.amount || 0,
+                    color: '#10B981',
+                    icon: Clock
                 },
-                { 
-                    range: '31-60 days', 
-                    invoices: buckets['31-60']?.count || 0, 
-                    amount: buckets['31-60']?.amount || 0, 
-                    color: '#F59E0B', 
-                    icon: Clock 
+                {
+                    range: '31-60 days',
+                    invoices: buckets['31-60']?.count || 0,
+                    amount: buckets['31-60']?.amount || 0,
+                    color: '#F59E0B',
+                    icon: Clock
                 },
-                { 
-                    range: '61-90 days', 
-                    invoices: buckets['61-90']?.count || 0, 
-                    amount: buckets['61-90']?.amount || 0, 
-                    color: '#EF4444', 
-                    icon: Clock 
+                {
+                    range: '61-90 days',
+                    invoices: buckets['61-90']?.count || 0,
+                    amount: buckets['61-90']?.amount || 0,
+                    color: '#EF4444',
+                    icon: Clock
                 },
-                { 
-                    range: '90+ days', 
-                    invoices: buckets['90+']?.count || 0, 
-                    amount: buckets['90+']?.amount || 0, 
-                    color: '#DC2626', 
-                    icon: AlertTriangle 
+                {
+                    range: '90+ days',
+                    invoices: buckets['90+']?.count || 0,
+                    amount: buckets['90+']?.amount || 0,
+                    color: '#DC2626',
+                    icon: AlertTriangle
                 }
             ].filter(item => item.amount > 0 || item.invoices > 0);
         }
@@ -1346,7 +1372,12 @@ const DashboardNew: React.FC = () => {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     {/* Revenue Card */}
-                    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0 }}
+                        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group"
+                    >
                         <div className="flex items-center justify-between mb-2">
                                 <div className="flex-1">
                                 <p className="text-xs text-[#64748B] dark:text-gray-400 font-medium uppercase tracking-wide">Revenue</p>
@@ -1356,16 +1387,21 @@ const DashboardNew: React.FC = () => {
                             </div>
                         </div>
                                     <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100 mb-1">
-                            {formatCurrency(pulseKPIs.revenue)}
+                            {formatCurrency(Math.round(animatedRevenue.currentValue))}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                             MoM: {pulseKPIs.revenue_mom > 0 ? '+' : ''}{pulseKPIs.revenue_mom}%,
                             YoY: {pulseKPIs.revenue_yoy > 0 ? '+' : ''}{pulseKPIs.revenue_yoy}%
                         </p>
-                    </div>
+                    </motion.div>
 
                     {/* Expenses Card */}
-                    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group"
+                    >
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex-1">
                                 <p className="text-xs text-[#64748B] dark:text-gray-400 font-medium uppercase tracking-wide">Expenses</p>
@@ -1375,15 +1411,20 @@ const DashboardNew: React.FC = () => {
                             </div>
                         </div>
                         <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100 mb-1">
-                            {formatCurrency(pulseKPIs.expenses_total)}
+                            {formatCurrency(Math.round(animatedExpenses.currentValue))}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                             Top category: {pulseKPIs.top_expense_category || 'No data'}
                         </p>
-                    </div>
+                    </motion.div>
 
                     {/* Operating Profit Card */}
-                    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group"
+                    >
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex-1">
                                 <p className="text-xs text-[#64748B] dark:text-gray-400 font-medium uppercase tracking-wide">Operating Profit</p>
@@ -1393,15 +1434,20 @@ const DashboardNew: React.FC = () => {
                             </div>
                         </div>
                         <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100 mb-1">
-                            {formatCurrency(pulseKPIs.net_profit)}
+                            {formatCurrency(Math.round(animatedNetProfit.currentValue))}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                             Margin: {pulseKPIs.profit_margin}%
                         </p>
-                    </div>
+                    </motion.div>
 
                     {/* Overdue Invoices Card */}
-                    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.3 }}
+                        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group"
+                    >
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex-1">
                                 <p className="text-xs text-[#64748B] dark:text-gray-400 font-medium uppercase tracking-wide">Overdue Invoices</p>
@@ -1478,7 +1524,7 @@ const DashboardNew: React.FC = () => {
 
                         <div className="flex items-center justify-between mb-2">
                             <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100">
-                                {formatCurrency(pulseKPIs.overdue_invoices)}
+                                {formatCurrency(Math.round(animatedOverdue.currentValue))}
                             </p>
                             <button
                                 onClick={() => {
@@ -1495,10 +1541,15 @@ const DashboardNew: React.FC = () => {
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                             Due: {pulseKPIs.overdue_count} invoices
                         </p>
-                    </div>
+                    </motion.div>
 
                     {/* Cash Card */}
-                    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.4 }}
+                        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group"
+                    >
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex-1">
                                 <p className="text-xs text-[#64748B] dark:text-gray-400 font-medium uppercase tracking-wide">{pulseKPIs.cash_card_title}</p>
@@ -1575,7 +1626,7 @@ const DashboardNew: React.FC = () => {
 
                         <div className="flex items-center justify-between mb-2">
                             <p className="text-2xl font-bold text-[#0F1A2B] dark:text-gray-100">
-                                {formatCurrency(pulseKPIs.ending_cash)}
+                                {formatCurrency(Math.round(animatedCash.currentValue))}
                             </p>
                             <button
                                 onClick={() => {
@@ -1593,7 +1644,7 @@ const DashboardNew: React.FC = () => {
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                             Buffer: {profileData?.current_cash ? `${pulseKPIs.cash_buffer_months} months` : 'N/A'}
                         </p>
-                        </div>
+                        </motion.div>
                 </div>
             </div>
 
@@ -1708,7 +1759,7 @@ const DashboardNew: React.FC = () => {
                                         borderRadius: '12px',
                                         color: theme === 'dark' ? '#F3F4F6' : '#0F1A2B'
                                     }}
-                                    labelStyle={{ 
+                                    labelStyle={{
                                         color: theme === 'dark' ? '#F3F4F6' : '#0F1A2B'
                                     }}
                                     itemStyle={{
@@ -1755,7 +1806,7 @@ const DashboardNew: React.FC = () => {
             </div>
 
             {/* Signals Panel */}
-            {/* <div>
+            <div>
                 <h2 className="text-lg font-semibold text-[#0F1A2B] dark:text-gray-100 mb-4">Signals</h2>
                 {isLoadingPnl || isLoadingCash || isLoadingInvoices ? (
                     <div className="flex items-center justify-center py-12">
@@ -1766,8 +1817,11 @@ const DashboardNew: React.FC = () => {
                     {signals.map((signal) => {
                         const styles = getSignalStyles(signal.severity);
                         return (
-                            <div
+                            <motion.div
                                 key={signal.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: signal.id * 0.1 }}
                                 className={`${styles.bg} rounded-2xl p-5 border ${styles.border} hover:shadow-md transition-all duration-200`}
                             >
                                 <div className="flex items-start space-x-3 mb-3">
@@ -1784,17 +1838,22 @@ const DashboardNew: React.FC = () => {
                                     <span>{signal.action}</span>
                                     <ArrowRight className="w-3 h-3" />
                                 </button>
-                            </div>
+                            </motion.div>
                         );
                     })}
                 </div>
                 )}
-            </div> */}
+            </div>
 
             {/* Cash Calendar and AR Health */}
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Cash Calendar */}
-                {/* <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm"
+                >
                     <div className="flex items-center space-x-2 mb-6">
                         <Calendar className="w-5 h-5 text-[#3A75F2]" />
                         <h3 className="text-lg font-semibold text-[#0F1A2B] dark:text-gray-100">Cash Calendar</h3>
@@ -1806,7 +1865,13 @@ const DashboardNew: React.FC = () => {
                     ) : (
                     <div className="space-y-6">
                         {cashCalendarData.map((item, idx) => (
-                            <div key={idx} className="space-y-2">
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.3, delay: idx * 0.1 }}
+                                className="space-y-2"
+                            >
                                 <div className="flex items-center justify-between">
                                     <h4 className="text-sm font-semibold text-[#64748B] dark:text-gray-400 uppercase tracking-wide">{item.month}</h4>
                                     <TrendingUp className="w-4 h-4 text-[#64748B] dark:text-gray-400" />
@@ -1830,14 +1895,19 @@ const DashboardNew: React.FC = () => {
                                 {idx < cashCalendarData.length - 1 && (
                                     <div className="border-b border-gray-200 dark:border-gray-700 pt-2"></div>
                                 )}
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                     )}
-                </div> */}
+                </motion.div>
 
                 {/* AR Health */}
-                {/* <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm"
+                >
                     <div className="flex items-center space-x-2 mb-6">
                         <FileText className="w-5 h-5 text-[#3A75F2]" />
                         <h3 className="text-lg font-semibold text-[#0F1A2B] dark:text-gray-100">AR Health</h3>
@@ -1854,7 +1924,13 @@ const DashboardNew: React.FC = () => {
                     <>
                     <div className="space-y-4">
                         {arHealthData.map((item, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.3, delay: idx * 0.1 }}
+                                className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            >
                                 <div className="flex items-center space-x-3">
                                     <div className="p-2 rounded-lg" style={{ backgroundColor: `${item.color}15` }}>
                                         <item.icon className="w-4 h-4" style={{ color: item.color }} />
@@ -1865,7 +1941,7 @@ const DashboardNew: React.FC = () => {
                                     </div>
                                 </div>
                                 <span className="text-base font-bold text-[#0F1A2B] dark:text-gray-100">{formatCurrency(item.amount)}</span>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                     {(invoicesData?.data?.average_days_outstanding || arHealthData.length > 0) && (
@@ -1883,8 +1959,8 @@ const DashboardNew: React.FC = () => {
                     )}
                     </>
                     )}
-                </div>
-            </div> */}
+                </motion.div>
+            </div>
 
             {/* Scenario Explorer */}
             {/* <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">

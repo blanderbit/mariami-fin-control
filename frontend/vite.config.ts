@@ -10,7 +10,7 @@ export default defineConfig({
     server: {
         proxy: {
             '/api/v1': {
-                target: 'http://0.0.0.0:8000',
+                target: 'https://api.finclai.com/',
                 changeOrigin: true,
             },
         },

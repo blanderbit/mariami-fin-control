@@ -621,7 +621,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || "http://0.0.0.0:8000/api/v1",
+      baseURL: axiosConfig.baseURL || "https://api.finclai.com/api/v1",
     });
     this.secure = secure;
     this.format = format;
@@ -735,7 +735,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title MariaMi
  * @version 0.0.1
- * @baseUrl http://0.0.0.0:8000/api/v1
+ * @baseUrl https://api.finclai.com/api/v1
  */
 export class Api<
   SecurityDataType extends unknown,
