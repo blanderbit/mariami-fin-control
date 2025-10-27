@@ -57,25 +57,25 @@ services:
             - '8000'
         labels:
             - 'traefik.enable=true'
-            - 'traefik.http.routers.mariami-api-prod.rule=Host(`mariami.net`) && PathPrefix(`/api`)'
+            - 'traefik.http.routers.mariami-api-prod.rule=Host(`api.finclai.com`) && PathPrefix(`/api`)'
             - 'traefik.http.routers.mariami-api-prod.entrypoints=websecure'
             - 'traefik.http.routers.mariami-api-prod.tls.certresolver=myresolver'
             - 'traefik.http.routers.mariami-api-prod.service=mariami-api-prod'
             - 'traefik.http.services.mariami-api-prod.loadbalancer.server.port=8000'
 
-    mariami-daphne-prod:
-        <<: *mariami-api-common-prod
-        container_name: mariami-daphne-prod
-        command: daphne
-        expose:
-            - '10000'
-        labels:
-            - 'traefik.enable=true'
-            - 'traefik.http.routers.mariami-daphne-prod.rule=Host(`mariami.net`) && PathPrefix(`/ws`)'
-            - 'traefik.http.routers.mariami-daphne-prod.entrypoints=websecure'
-            - 'traefik.http.routers.mariami-daphne-prod.tls.certresolver=myresolver'
-            - 'traefik.http.routers.mariami-daphne-prod.service=mariami-daphne-prod'
-            - 'traefik.http.services.mariami-daphne-prod.loadbalancer.server.port=10000'
+    # mariami-daphne-prod:
+    #     <<: *mariami-api-common-prod
+    #     container_name: mariami-daphne-prod
+    #     command: daphne
+    #     expose:
+    #         - '10000'
+    #     labels:
+    #         - 'traefik.enable=true'
+    #         - 'traefik.http.routers.mariami-daphne-prod.rule=Host(`mariami.net`) && PathPrefix(`/ws`)'
+    #         - 'traefik.http.routers.mariami-daphne-prod.entrypoints=websecure'
+    #         - 'traefik.http.routers.mariami-daphne-prod.tls.certresolver=myresolver'
+    #         - 'traefik.http.routers.mariami-daphne-prod.service=mariami-daphne-prod'
+    #         - 'traefik.http.services.mariami-daphne-prod.loadbalancer.server.port=10000'
 
     mariami-celery-worker-prod:
         <<: *mariami-api-common-prod
@@ -103,7 +103,7 @@ services:
             - "9001"
         labels:
             - 'traefik.enable=true'
-            - 'traefik.http.routers.mariami-minio-prod.rule=Host(`minio.mariami.net`)'
+            - 'traefik.http.routers.mariami-minio-prod.rule=Host(`storge.finclai.com`)'
             - 'traefik.http.routers.mariami-minio-prod.entrypoints=websecure'
             - 'traefik.http.routers.mariami-minio-prod.tls.certresolver=myresolver'
             - 'traefik.http.routers.mariami-minio-prod.service=mariami-minio-prod'
