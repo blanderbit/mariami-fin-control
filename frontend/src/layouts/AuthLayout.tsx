@@ -1,10 +1,46 @@
 import { Outlet } from 'react-router-dom';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, ExternalLink } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { getDocumentsRequest, DocumentsData } from '../api/auth';
 
 function AuthLayout() {
     const { theme, toggleTheme } = useTheme();
+    const [documents, setDocuments] = useState<DocumentsData | null>(null);
+    const [documentsLoading, setDocumentsLoading] = useState(true);
+
+    const loadDocuments = async () => {
+        try {
+            setDocumentsLoading(true);
+            const documentsData = await getDocumentsRequest();
+            setDocuments(documentsData);
+        } catch (error) {
+            console.error('Failed to load documents:', error);
+        } finally {
+            setDocumentsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadDocuments();
+    }, []);
+
+    const openDocument = (documentType: 'terms_of_service' | 'privacy_policy') => {
+        if (!documents) {
+            console.error('Documents not loaded yet');
+            return;
+        }
+
+        const url = documents[documentType];
+        if (!url) {
+            console.error(`Document URL not found for ${documentType}`);
+            return;
+        }
+
+        // Открываем документ в новом окне
+        window.open(url, '_blank', 'noopener,noreferrer');
+    };
 
     return (
         <div className="min-h-screen flex flex-col">
@@ -51,7 +87,32 @@ function AuthLayout() {
             </motion.div>
 
             <footer className="text-center py-6 text-sm text-gray-500 dark:text-gray-400">
-                &copy; {new Date().getFullYear()} Fin Control. All rights reserved.
+                <div className="mb-2">
+                    &copy; {new Date().getFullYear()} Fin Control. All rights reserved.
+                </div>
+                <div className="flex justify-center space-x-4">
+                    <button
+                        onClick={() => openDocument('terms_of_service')}
+                        disabled={documentsLoading || !documents}
+                        className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
+                    >
+                        Terms of Service
+                        {!documentsLoading && documents && (
+                            <ExternalLink className="w-3 h-3 ml-1" />
+                        )}
+                    </button>
+                    <span>•</span>
+                    <button
+                        onClick={() => openDocument('privacy_policy')}
+                        disabled={documentsLoading || !documents}
+                        className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
+                    >
+                        Privacy Policy
+                        {!documentsLoading && documents && (
+                            <ExternalLink className="w-3 h-3 ml-1" />
+                        )}
+                    </button>
+                </div>
             </footer>
         </div>
     );

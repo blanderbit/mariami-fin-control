@@ -1,9 +1,10 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-function ProtectedRoute() {
+function Home() {
     const { user, loading } = useAuth();
 
+    // Показываем индикатор загрузки пока проверяем авторизацию
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -12,16 +13,19 @@ function ProtectedRoute() {
         );
     }
 
+    // Если пользователь не залогинен - редирект на логин
     if (!user) {
         return <Navigate to="/login" replace />;
     }
 
-    // Если пользователь не прошел онбординг, перенаправляем на онбординг
+    // Если не прошел онбординг - на онбординг
     if (!user.is_onboarded) {
         return <Navigate to="/onboarding" replace />;
     }
 
-    return <Outlet />;
+    // Если залогинен и прошел онбординг - на overview
+    return <Navigate to="/overview" replace />;
 }
 
-export default ProtectedRoute;
+export default Home;
+

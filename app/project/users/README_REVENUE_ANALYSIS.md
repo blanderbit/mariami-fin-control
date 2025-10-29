@@ -23,11 +23,11 @@ GET /api/v1/users/revenue?period={period_type}
 ```bash
 # Анализ месяц к месяцу
 curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-     "http://localhost:8000/api/v1/users/revenue?period=month"
+     "https://api.finclai.com/api/v1/users/revenue?period=month"
 
 # Анализ год к году
 curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-     "http://localhost:8000/api/v1/users/revenue?period=year"
+     "https://api.finclai.com/api/v1/users/revenue?period=year"
 ```
 
 ### Пример ответа

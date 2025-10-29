@@ -19,13 +19,7 @@ export interface CodeConfirm {
   verify_code: string;
 }
 
-export interface ResetPassword {
-  /**
-   * New password
-   * @minLength 8
-   * @maxLength 68
-   */
-  new_password: string;
+export interface ValidateResetPasswordCode {
   /**
    * Verify code
    * @minLength 5
@@ -58,6 +52,46 @@ export interface Logout {
    * @minLength 1
    */
   refresh: string;
+}
+
+export interface RequestChangePassword {
+  /**
+   * New password
+   * @minLength 8
+   * @maxLength 68
+   */
+  new_password: string;
+  /**
+   * Old password
+   * @minLength 8
+   * @maxLength 68
+   */
+  old_password: string;
+}
+
+export interface RequestPasswordReset {
+  /**
+   * Email
+   * @format email
+   * @minLength 3
+   * @maxLength 255
+   */
+  email: string;
+}
+
+export interface ResetPassword {
+  /**
+   * New password
+   * @minLength 8
+   * @maxLength 68
+   */
+  new_password: string;
+  /**
+   * Verify code
+   * @minLength 5
+   * @maxLength 5
+   */
+  verify_code: string;
 }
 
 export interface TokenRefresh {
@@ -93,11 +127,9 @@ export interface Registration {
    * @maxLength 68
    */
   re_password: string;
-  /**
-   * Country
-   * @maxLength 255
-   */
-  country?: string | null;
+}
+
+export interface Onboarding {
   /**
    * Name
    * @maxLength 255
@@ -108,45 +140,89 @@ export interface Registration {
    * @maxLength 255
    */
   last_name?: string | null;
-}
-
-export interface RequestChangePassword {
   /**
-   * New password
-   * @minLength 8
-   * @maxLength 68
-   */
-  new_password: string;
-  /**
-   * Old password
-   * @minLength 8
-   * @maxLength 68
-   */
-  old_password: string;
-}
-
-export interface RequestPasswordReset {
-  /**
-   * Email
-   * @format email
-   * @minLength 3
+   * Country
    * @maxLength 255
    */
-  email: string;
-}
-
-export interface ValidateResetPasswordCode {
+  country?: string | null;
   /**
-   * Verify code
-   * @minLength 5
-   * @maxLength 5
+   * Company name
+   * @maxLength 255
    */
-  verify_code: string;
+  company_name?: string | null;
+  /**
+   * Employees count
+   * @min 0
+   * @max 2147483647
+   */
+  employees_count?: number | null;
+  /**
+   * Industry
+   * @maxLength 255
+   */
+  industry?: string | null;
+  /**
+   * Company info
+   * Detailed description of the business
+   */
+  company_info?: string | null;
+  /**
+   * Currency
+   * Primary business currency
+   */
+  currency?:
+    | "USD"
+    | "EUR"
+    | "GBP"
+    | "CAD"
+    | "AUD"
+    | "JPY"
+    | "CHF"
+    | "SEK"
+    | "NOK"
+    | "DKK"
+    | null;
+  /**
+   * Fiscal year start
+   * Fiscal year start date
+   * @format date
+   */
+  fiscal_year_start?: string | null;
+  /** Update frequency */
+  update_frequency?: "daily" | "weekly" | "monthly" | "other" | null;
+  /** Primary business focus areas (multi-select) */
+  primary_focus?: ("cash" | "profit" | "growth")[];
+  /** Business model types (multi-select) */
+  business_model?: (
+    | "subscription"
+    | "services"
+    | "hybrid"
+    | "one_time"
+    | "other"
+  )[];
+  /** Multicurrency */
+  multicurrency?: boolean;
+  /**
+   * Capital reserve target
+   * Target amount for capital reserves
+   * @format decimal
+   */
+  capital_reserve_target?: string | null;
+  /**
+   * Current cash
+   * Current cash available
+   * @format decimal
+   */
+  current_cash?: string | null;
 }
 
 export interface GetMyProfile {
   /** ID */
   id?: number;
+  /** Profile */
+  profile?: string;
+  /** Uploaded files */
+  uploaded_files?: string;
   /**
    * Last login
    * @format date-time
@@ -163,6 +239,8 @@ export interface GetMyProfile {
   is_verified?: boolean;
   /** Is admin */
   is_admin?: boolean;
+  /** Is onboarded */
+  is_onboarded?: boolean;
   /**
    * Created at
    * @format date-time
@@ -173,21 +251,6 @@ export interface GetMyProfile {
    * @format date-time
    */
   updated_at?: string;
-  /**
-   * Country
-   * @maxLength 255
-   */
-  country?: string | null;
-  /**
-   * Name
-   * @maxLength 255
-   */
-  name?: string | null;
-  /**
-   * Last name
-   * @maxLength 255
-   */
-  last_name?: string | null;
 }
 
 export interface UsersList {
@@ -209,6 +272,8 @@ export interface UsersList {
   is_verified?: boolean;
   /** Is admin */
   is_admin?: boolean;
+  /** Is onboarded */
+  is_onboarded?: boolean;
   /**
    * Created at
    * @format date-time
@@ -219,21 +284,277 @@ export interface UsersList {
    * @format date-time
    */
   updated_at?: string;
+  /** Profile */
+  profile?: number | null;
+}
+
+export interface AIInsightsResponse {
   /**
-   * Country
-   * @maxLength 255
+   * List of exactly 4 AI-generated business insights
+   * @maxItems 4
+   * @minItems 4
    */
-  country?: string | null;
+  insights: string[];
   /**
-   * Name
-   * @maxLength 255
+   * Period
+   * Analysis period information
    */
-  name?: string | null;
+  period: Record<string, string | null>;
   /**
-   * Last name
-   * @maxLength 255
+   * Data sources
+   * Available data sources used for analysis
    */
-  last_name?: string | null;
+  data_sources: Record<string, string | null>;
+}
+
+export interface CashAnalysisResponse {
+  /**
+   * Total income
+   * Total income from transactions
+   * @format decimal
+   */
+  total_income: string;
+  /**
+   * Total expense
+   * Total expense from transactions
+   * @format decimal
+   */
+  total_expense: string;
+}
+
+export interface DocumentsList {
+  /**
+   * Terms of service
+   * Public URL for Terms of Service document
+   * @format uri
+   * @minLength 1
+   */
+  terms_of_service?: string | null;
+  /**
+   * Privacy policy
+   * Public URL for Privacy Policy document
+   * @format uri
+   * @minLength 1
+   */
+  privacy_policy?: string | null;
+}
+
+export interface IndustriesList {
+  /** List of available industries from Industry_norms.csv */
+  industries: string[];
+}
+
+/** Metrics for paid invoices */
+export interface InvoiceMetrics {
+  /**
+   * Total count
+   * Total number of invoices
+   */
+  total_count: number;
+  /**
+   * Total amount
+   * Total amount of invoices
+   */
+  total_amount: number;
+}
+
+/** Change in total invoice count */
+export interface ChangeData {
+  /**
+   * Change
+   * Absolute change value
+   */
+  change: number;
+  /**
+   * Percentage change
+   * Percentage change value
+   */
+  percentage_change: number;
+}
+
+/** Changes in paid invoices metrics */
+export interface InvoiceChangeMetrics {
+  /** Change in total invoice count */
+  count_change: ChangeData;
+  /** Change in total invoice count */
+  amount_change: ChangeData;
+}
+
+/** Month-over-month changes */
+export interface PeriodChange {
+  /** Change in total invoice count */
+  total_count: ChangeData;
+  /** Changes in paid invoices metrics */
+  paid_invoices: InvoiceChangeMetrics;
+  /** Changes in paid invoices metrics */
+  overdue_invoices: InvoiceChangeMetrics;
+}
+
+/** Analysis period information */
+export interface PeriodInfo {
+  /**
+   * Start date
+   * Analysis period start date
+   * @format date
+   */
+  start_date: string;
+  /**
+   * End date
+   * Analysis period end date
+   * @format date
+   */
+  end_date: string;
+}
+
+export interface InvoicesAnalysisResponse {
+  /**
+   * Total count
+   * Total number of invoices in the period
+   */
+  total_count: number;
+  /** Metrics for paid invoices */
+  paid_invoices: InvoiceMetrics;
+  /** Metrics for paid invoices */
+  overdue_invoices: InvoiceMetrics;
+  /** Month-over-month changes */
+  month_change: PeriodChange;
+  /** Month-over-month changes */
+  year_change: PeriodChange;
+  /** Analysis period information */
+  period: PeriodInfo;
+}
+
+/** Month-over-month changes */
+export interface MonthChange {
+  /**
+   * Revenue
+   * Revenue change data
+   */
+  revenue: Record<string, string | null>;
+  /**
+   * Expenses
+   * Expenses change data
+   */
+  expenses: Record<string, string | null>;
+  /**
+   * Net profit
+   * Net profit change data
+   */
+  net_profit: Record<string, string | null>;
+}
+
+/** Year-over-year changes */
+export interface YearChange {
+  /**
+   * Revenue
+   * Revenue change data
+   */
+  revenue: Record<string, string | null>;
+  /**
+   * Expenses
+   * Expenses change data
+   */
+  expenses: Record<string, string | null>;
+  /**
+   * Net profit
+   * Net profit change data
+   */
+  net_profit: Record<string, string | null>;
+}
+
+/** Analysis period information */
+export interface Period {
+  /**
+   * Start date
+   * Analysis period start date
+   * @format date
+   */
+  start_date: string;
+  /**
+   * End date
+   * Analysis period end date
+   * @format date
+   */
+  end_date: string;
+}
+
+export interface PNLAnalysisResponse {
+  /** Raw P&L data for the period */
+  pnl_data: (string | null)[];
+  /**
+   * Total revenue
+   * Total revenue for the period
+   * @format decimal
+   */
+  total_revenue: string;
+  /**
+   * Total expenses
+   * Total expenses for the period
+   * @format decimal
+   */
+  total_expenses: string;
+  /**
+   * Net profit
+   * Net profit (revenue - expenses)
+   * @format decimal
+   */
+  net_profit: string;
+  /**
+   * Gross margin
+   * Gross margin percentage ((Revenue - COGS) / Revenue * 100)
+   * @format decimal
+   */
+  gross_margin: string;
+  /**
+   * Operating margin
+   * Operating margin range from industry standards
+   * @minLength 1
+   */
+  operating_margin?: string | null;
+  /** Month-over-month changes */
+  month_change: MonthChange;
+  /** Year-over-year changes */
+  year_change: YearChange;
+  /** Analysis period information */
+  period: Period;
+  /** AI-generated business insights */
+  ai_insights: string[];
+}
+
+export interface TemplateList {
+  /**
+   * Pnl
+   * Public URL for P&L template
+   * @format uri
+   * @minLength 1
+   */
+  pnl?: string | null;
+  /**
+   * Transactions
+   * Public URL for transactions template
+   * @format uri
+   * @minLength 1
+   */
+  transactions?: string | null;
+  /**
+   * Invoices
+   * Public URL for invoices template
+   * @format uri
+   * @minLength 1
+   */
+  invoices?: string | null;
+}
+
+export interface UploadUserDataResponse {
+  /** Success */
+  success: boolean;
+  /**
+   * Message
+   * @minLength 1
+   */
+  message: string;
+  uploaded_files?: Record<string, string | null>[];
+  errors?: string[];
 }
 
 import type {
@@ -300,7 +621,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || "http://0.0.0.0:8000/api/v1",
+      baseURL: axiosConfig.baseURL || "https://api.finclai.com/api/v1",
     });
     this.secure = secure;
     this.format = format;
@@ -414,7 +735,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title MariaMi
  * @version 0.0.1
- * @baseUrl http://0.0.0.0:8000/api/v1
+ * @baseUrl https://api.finclai.com/api/v1
  */
 export class Api<
   SecurityDataType extends unknown,
@@ -424,170 +745,14 @@ export class Api<
      * @description This endpoint allows the user to: confirm changing the password,, email, account verification, as well as deleting the account using the previously received code that comes to the mail
      *
      * @tags auth
-     * @name AuthClientCodeConfirmCreate
+     * @name AuthCodeConfirmCreate
      * @summary Сode confirmations
-     * @request POST:/auth/client/code/confirm
+     * @request POST:/auth/code/confirm
      * @secure
      */
-    authClientCodeConfirmCreate: (
-      data: CodeConfirm,
-      params: RequestParams = {},
-    ) =>
+    authCodeConfirmCreate: (data: CodeConfirm, params: RequestParams = {}) =>
       this.request<CodeConfirm, any>({
-        path: `/auth/client/code/confirm`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description This class makes it possible to confirm a password reset request using the code that was sent to the mail after the request was sent.
-     *
-     * @tags auth
-     * @name AuthClientConfirmPasswordResetCreate
-     * @summary Confirm password reset
-     * @request POST:/auth/client/confirm/password/reset
-     * @secure
-     */
-    authClientConfirmPasswordResetCreate: (
-      data: ResetPassword,
-      params: RequestParams = {},
-    ) =>
-      this.request<ResetPassword, any>({
-        path: `/auth/client/confirm/password/reset`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description This endpoint allows a previously registered user to log in to the system.
-     *
-     * @tags auth
-     * @name AuthClientLoginCreate
-     * @summary Login
-     * @request POST:/auth/client/login
-     * @secure
-     */
-    authClientLoginCreate: (data: Login, params: RequestParams = {}) =>
-      this.request<Login, any>({
-        path: `/auth/client/login`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description This endpoint allows a previously registered user to logout from the system
-     *
-     * @tags auth
-     * @name AuthClientLogoutCreate
-     * @summary Logout
-     * @request POST:/auth/client/logout
-     * @secure
-     */
-    authClientLogoutCreate: (data: Logout, params: RequestParams = {}) =>
-      this.request<Logout, any>({
-        path: `/auth/client/logout`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Refresh jwt tokens
-     *
-     * @tags auth
-     * @name AuthClientRefreshTokensCreate
-     * @request POST:/auth/client/refresh/tokens
-     * @secure
-     */
-    authClientRefreshTokensCreate: (
-      data: TokenRefresh,
-      params: RequestParams = {},
-    ) =>
-      this.request<TokenRefresh, any>({
-        path: `/auth/client/refresh/tokens`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Registration This endpoint allows any user to register on the site.
-     *
-     * @tags auth
-     * @name AuthClientRegistrationCreate
-     * @request POST:/auth/client/registration
-     * @secure
-     */
-    authClientRegistrationCreate: (
-      data: Registration,
-      params: RequestParams = {},
-    ) =>
-      this.request<Registration, any>({
-        path: `/auth/client/registration`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description This class allows an authorized user to request a password change. After submitting the application, a confirmation code will be sent. to the email address provided by the user.
-     *
-     * @tags auth
-     * @name AuthClientRequestPasswordChangeCreate
-     * @summary Request change password
-     * @request POST:/auth/client/request/password/change
-     * @secure
-     */
-    authClientRequestPasswordChangeCreate: (
-      data: RequestChangePassword,
-      params: RequestParams = {},
-    ) =>
-      this.request<RequestChangePassword, any>({
-        path: `/auth/client/request/password/change`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description This class allows an unauthorized user to request a password reset. After submitting the application, a confirmation code will be sent to the email specified by the user.
-     *
-     * @tags auth
-     * @name AuthClientRequestPasswordResetCreate
-     * @summary Request password reset
-     * @request POST:/auth/client/request/password/reset
-     * @secure
-     */
-    authClientRequestPasswordResetCreate: (
-      data: RequestPasswordReset,
-      params: RequestParams = {},
-    ) =>
-      this.request<RequestPasswordReset, any>({
-        path: `/auth/client/request/password/reset`,
+        path: `/auth/code/confirm`,
         method: "POST",
         body: data,
         secure: true,
@@ -600,17 +765,164 @@ export class Api<
      * @description This endpoint allows the user to check the password reset code for validity before using it
      *
      * @tags auth
-     * @name AuthClientValidateResetPasswordConfirmationCodeCreate
+     * @name AuthConfirmationCodeValidateCreate
      * @summary Validate reset password code
-     * @request POST:/auth/client/validate/reset/password/confirmation/code
+     * @request POST:/auth/confirmation/code/validate
      * @secure
      */
-    authClientValidateResetPasswordConfirmationCodeCreate: (
+    authConfirmationCodeValidateCreate: (
       data: ValidateResetPasswordCode,
       params: RequestParams = {},
     ) =>
       this.request<ValidateResetPasswordCode, any>({
-        path: `/auth/client/validate/reset/password/confirmation/code`,
+        path: `/auth/confirmation/code/validate`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description This endpoint allows a previously registered user to log in to the system.
+     *
+     * @tags auth
+     * @name AuthLoginCreate
+     * @summary Login
+     * @request POST:/auth/login
+     * @secure
+     */
+    authLoginCreate: (data: Login, params: RequestParams = {}) =>
+      this.request<Login, any>({
+        path: `/auth/login`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description This endpoint allows a previously registered user to logout from the system
+     *
+     * @tags auth
+     * @name AuthLogoutCreate
+     * @summary Logout
+     * @request POST:/auth/logout
+     * @secure
+     */
+    authLogoutCreate: (data: Logout, params: RequestParams = {}) =>
+      this.request<Logout, any>({
+        path: `/auth/logout`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description This class allows an authorized user to request a password change. After submitting the application, a confirmation code will be sent. to the email address provided by the user.
+     *
+     * @tags auth
+     * @name AuthPasswordChangeCreate
+     * @summary Request change password
+     * @request POST:/auth/password/change
+     * @secure
+     */
+    authPasswordChangeCreate: (
+      data: RequestChangePassword,
+      params: RequestParams = {},
+    ) =>
+      this.request<RequestChangePassword, any>({
+        path: `/auth/password/change`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description This class allows an unauthorized user to request a password reset. After submitting the application, a confirmation code will be sent to the email specified by the user.
+     *
+     * @tags auth
+     * @name AuthPasswordResetCreate
+     * @summary Request password reset
+     * @request POST:/auth/password/reset
+     * @secure
+     */
+    authPasswordResetCreate: (
+      data: RequestPasswordReset,
+      params: RequestParams = {},
+    ) =>
+      this.request<RequestPasswordReset, any>({
+        path: `/auth/password/reset`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description This class makes it possible to confirm a password reset request using the code that was sent to the mail after the request was sent.
+     *
+     * @tags auth
+     * @name AuthPasswordResetConfirmCreate
+     * @summary Confirm password reset
+     * @request POST:/auth/password/reset/confirm
+     * @secure
+     */
+    authPasswordResetConfirmCreate: (
+      data: ResetPassword,
+      params: RequestParams = {},
+    ) =>
+      this.request<ResetPassword, any>({
+        path: `/auth/password/reset/confirm`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Refresh jwt tokens
+     *
+     * @tags auth
+     * @name AuthRefreshCreate
+     * @request POST:/auth/refresh
+     * @secure
+     */
+    authRefreshCreate: (data: TokenRefresh, params: RequestParams = {}) =>
+      this.request<TokenRefresh, any>({
+        path: `/auth/refresh`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Registration This endpoint allows any user to register on the site.
+     *
+     * @tags auth
+     * @name AuthRegistrationCreate
+     * @request POST:/auth/registration
+     * @secure
+     */
+    authRegistrationCreate: (data: Registration, params: RequestParams = {}) =>
+      this.request<Registration, any>({
+        path: `/auth/registration`,
         method: "POST",
         body: data,
         secure: true,
@@ -619,17 +931,234 @@ export class Api<
         ...params,
       }),
   };
+  benchmark = {
+    /**
+     * @description Get consumer confidence data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkConsumerConfidenceList
+     * @request GET:/benchmark/consumer-confidence/
+     * @secure
+     */
+    benchmarkConsumerConfidenceList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/consumer-confidence/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get list of supported countries
+     *
+     * @tags benchmark
+     * @name BenchmarkCountriesList
+     * @request GET:/benchmark/countries/
+     * @secure
+     */
+    benchmarkCountriesList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/countries/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get energy utilities data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkEnergyUtilitiesList
+     * @request GET:/benchmark/energy-utilities/
+     * @secure
+     */
+    benchmarkEnergyUtilitiesList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/energy-utilities/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get inflation data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkInflationList
+     * @request GET:/benchmark/inflation/
+     * @secure
+     */
+    benchmarkInflationList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/inflation/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get long-term rate data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkLongTermRateList
+     * @request GET:/benchmark/long-term-rate/
+     * @secure
+     */
+    benchmarkLongTermRateList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/long-term-rate/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get rent index data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkRentIndexList
+     * @request GET:/benchmark/rent-index/
+     * @secure
+     */
+    benchmarkRentIndexList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/rent-index/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get short-term rate data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkShortTermRateList
+     * @request GET:/benchmark/short-term-rate/
+     * @secure
+     */
+    benchmarkShortTermRateList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/short-term-rate/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get tax burden data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkTaxBurdenList
+     * @request GET:/benchmark/tax-burden/
+     * @secure
+     */
+    benchmarkTaxBurdenList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/tax-burden/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get wage growth data from cache or fetch from OECD
+     *
+     * @tags benchmark
+     * @name BenchmarkWageGrowthList
+     * @request GET:/benchmark/wage-growth/
+     * @secure
+     */
+    benchmarkWageGrowthList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/benchmark/wage-growth/`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+  };
   profile = {
+    /**
+     * @description Get list of all supported currencies
+     *
+     * @tags profile
+     * @name ProfileCurrenciesList
+     * @request GET:/profile/currencies
+     * @secure
+     */
+    profileCurrenciesList: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/profile/currencies`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Update profile data during onboarding process
+     *
+     * @tags profile
+     * @name ProfileOnboardingPartialUpdate
+     * @request PATCH:/profile/onboarding
+     * @secure
+     */
+    profileOnboardingPartialUpdate: (
+      data: Onboarding,
+      params: RequestParams = {},
+    ) =>
+      this.request<Onboarding, any>({
+        path: `/profile/onboarding`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get current onboarding status and profile data
+     *
+     * @tags profile
+     * @name ProfileOnboardingStatusList
+     * @request GET:/profile/onboarding/status
+     * @secure
+     */
+    profileOnboardingStatusList: (
+      query?: {
+        /** A page number within the paginated result set. */
+        page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          count: number;
+          /** @format uri */
+          next?: string | null;
+          /** @format uri */
+          previous?: string | null;
+          results: Onboarding[];
+        },
+        any
+      >({
+        path: `/profile/onboarding/status`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * @description This endpoint allows an authorized user to get detailed information about their profile,
      *
      * @tags profile
-     * @name ProfileClientMyProfileList
+     * @name ProfileProfileList
      * @summary User personal profile
-     * @request GET:/profile/client/my/profile
+     * @request GET:/profile/profile
      * @secure
      */
-    profileClientMyProfileList: (
+    profileProfileList: (
       query?: {
         /** A page number within the paginated result set. */
         page?: number;
@@ -647,7 +1176,7 @@ export class Api<
         },
         any
       >({
-        path: `/profile/client/my/profile`,
+        path: `/profile/profile`,
         method: "GET",
         query: query,
         secure: true,
@@ -656,18 +1185,24 @@ export class Api<
       }),
 
     /**
-     * @description This endpoint allows the user to send a request to delete their account.
+     * @description Generate and return AI insight for the current user's profile
      *
      * @tags profile
-     * @name ProfileClientRequestDeleteMyProfileDelete
-     * @summary Request delete profile
-     * @request DELETE:/profile/client/request/delete/my/profile
+     * @name ProfileProfileAiSummaryList
+     * @request GET:/profile/profile-ai-summary
      * @secure
      */
-    profileClientRequestDeleteMyProfileDelete: (params: RequestParams = {}) =>
+    profileProfileAiSummaryList: (
+      query?: {
+        /** A page number within the paginated result set. */
+        page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
       this.request<void, any>({
-        path: `/profile/client/request/delete/my/profile`,
-        method: "DELETE",
+        path: `/profile/profile-ai-summary`,
+        method: "GET",
+        query: query,
         secure: true,
         ...params,
       }),
@@ -723,6 +1258,72 @@ export class Api<
       }),
 
     /**
+     * @description Generate AI insights by analyzing combined financial data from P&L, invoices, and cash analysis. Returns exactly 4 concise business insights with actionable recommendations. Requires uploaded data files (pnl_template, invoices_template, transactions_template) for comprehensive analysis.
+     *
+     * @tags AI Analysis
+     * @name UsersAiInsightsList
+     * @summary Get AI-powered business insights
+     * @request GET:/users/ai-insights
+     * @secure
+     */
+    usersAiInsightsList: (
+      query: {
+        /**
+         * Start date for analysis period (YYYY-MM-DD)
+         * @format date
+         */
+        start_date: string;
+        /**
+         * End date for analysis period (YYYY-MM-DD)
+         * @format date
+         */
+        end_date: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<AIInsightsResponse, void>({
+        path: `/users/ai-insights`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Analyze user's transaction data to calculate total income and total expense. Requires transactions_template file to be uploaded. Supports filtering by start_date and end_date.
+     *
+     * @tags Cash Analysis
+     * @name UsersCashAnalysisList
+     * @summary Get cash analysis
+     * @request GET:/users/cash-analysis
+     * @secure
+     */
+    usersCashAnalysisList: (
+      query?: {
+        /**
+         * Start date (YYYY-MM-DD) for filtering
+         * @example "2025-01-01"
+         */
+        start_date?: string;
+        /**
+         * End date (YYYY-MM-DD) for filtering transactions
+         * @example "2025-01-31"
+         */
+        end_date?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<CashAnalysisResponse, void>({
+        path: `/users/cash-analysis`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * No description
      *
      * @tags users
@@ -742,6 +1343,210 @@ export class Api<
         method: "GET",
         query: query,
         secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get public URLs for all document files. Returns cached URLs for optimal performance.
+     *
+     * @tags Documents
+     * @name UsersDocumentsList
+     * @request GET:/users/documents
+     * @secure
+     */
+    usersDocumentsList: (params: RequestParams = {}) =>
+      this.request<DocumentsList, void>({
+        path: `/users/documents`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Analyze user's expense data by category for a specific date range. Returns breakdown with total amounts, spike detection, and new category flags. Requires pnl_template file to be uploaded.
+     *
+     * @tags Expense Analysis
+     * @name UsersExpenseBreakdownList
+     * @summary Get expense breakdown analysis
+     * @request GET:/users/expense-breakdown
+     * @secure
+     */
+    usersExpenseBreakdownList: (
+      query: {
+        /**
+         * Start date for analysis period (YYYY-MM-DD)
+         * @format date
+         */
+        start_date: string;
+        /**
+         * End date for analysis period (YYYY-MM-DD)
+         * @format date
+         */
+        end_date: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<void, void>({
+        path: `/users/expense-breakdown`,
+        method: "GET",
+        query: query,
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Get list of all available industries from Industry_norms.csv file. Returns cached results for optimal performance (24 hours cache).
+     *
+     * @tags Industries
+     * @name UsersIndustriesList
+     * @request GET:/users/industries
+     * @secure
+     */
+    usersIndustriesList: (params: RequestParams = {}) =>
+      this.request<IndustriesList, void>({
+        path: `/users/industries`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Analyze user's invoices data for a specific date range. Returns metrics for paid and overdue invoices with change calculations.
+     *
+     * @tags Invoices Analysis
+     * @name UsersInvoicesAnalysisList
+     * @summary Get invoices analysis
+     * @request GET:/users/invoices-analysis
+     * @secure
+     */
+    usersInvoicesAnalysisList: (
+      query: {
+        /**
+         * Start date for analysis period (YYYY-MM-DD)
+         * @format date
+         */
+        start_date: string;
+        /**
+         * End date for analysis period (YYYY-MM-DD)
+         * @format date
+         */
+        end_date: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<InvoicesAnalysisResponse, void>({
+        path: `/users/invoices-analysis`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get P&L analysis for a specific date range. This endpoint: 1. Fetches user's P&L data for the specified period 2. Returns the filtered P&L data as a list 3. Calculates total revenue (sum of Revenue column) 4. Calculates total expenses (sum of all expenses fields) 5. Calculates net profit (revenue - expenses) 6. Provides 1-month and 1-year comparison with percentage changes The response includes: - pnl_data: Array of P&L records for the requested period - total_revenue: Sum of all revenue for the period - total_expenses: Sum of all expense categories for the period - net_profit: Total revenue minus total expenses - month_change: Comparison with same period 1 month ago - year_change: Comparison with same period 1 year ago
+     *
+     * @tags P&L Analysis
+     * @name GetPnlAnalysis
+     * @request GET:/users/pnl-analysis
+     * @secure
+     */
+    getPnlAnalysis: (
+      query: {
+        /**
+         * Start date for analysis period (YYYY-MM-DD format)
+         * @format date
+         * @example "2024-01-01"
+         */
+        start_date: string;
+        /**
+         * End date for analysis period (YYYY-MM-DD format)
+         * @format date
+         * @example "2024-12-31"
+         */
+        end_date: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PNLAnalysisResponse, void>({
+        path: `/users/pnl-analysis`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get public URLs for all template files (P&L, transactions, invoices). Returns cached URLs for optimal performance.
+     *
+     * @tags Templates
+     * @name UsersTemplatesList
+     * @request GET:/users/templates
+     * @secure
+     */
+    usersTemplatesList: (params: RequestParams = {}) =>
+      this.request<TemplateList, void>({
+        path: `/users/templates`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Upload user data files (P&L, Transactions, Invoices)
+     *
+     * @tags File Upload
+     * @name UsersUploadDataFilesCreate
+     * @request POST:/users/upload/data-files
+     * @secure
+     */
+    usersUploadDataFilesCreate: (
+      data: {
+        /**
+         * P&L template file
+         * @format binary
+         */
+        pnl_file?: File;
+        /**
+         * Transactions template file
+         * @format binary
+         */
+        transactions_file?: File;
+        /**
+         * Invoices template file
+         * @format binary
+         */
+        invoices_file?: File;
+        /**
+         * Column name for dates in PnL file
+         * @minLength 1
+         * @maxLength 100
+         */
+        pnl_date_column?: string;
+        /**
+         * Comma-separated expense columns (e.g., 'COGS,Payroll')
+         * @minLength 1
+         */
+        pnl_expense_columns?: string;
+        /**
+         * Comma-separated revenue columns (e.g., 'Revenue,Sales')
+         * @minLength 1
+         */
+        pnl_revenue_columns?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<UploadUserDataResponse, void>({
+        path: `/users/upload/data-files`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.FormData,
+        format: "json",
         ...params,
       }),
   };
