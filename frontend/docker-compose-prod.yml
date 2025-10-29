@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  mariami-fe-prod:
+    container_name: mariami-fe-prod
+    build: .
+    expose:
+      - "80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mariami-fe-prod.rule=Host(`finclai.com`) && PathPrefix(`/`)"
+      - "traefik.http.routers.mariami-fe-prod.entrypoints=websecure"
+      - "traefik.http.routers.mariami-fe-prod.tls.certresolver=myresolver"
+      - "traefik.http.routers.mariami-fe-prod.service=mariami-fe-prod"
+      - "traefik.http.services.mariami-fe-prod.loadbalancer.server.port=80"
+    networks:
+      - mariami_server
+networks:
+  mariami_server:
+    external: true

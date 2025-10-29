@@ -1,0 +1,53 @@
+# Ignore the python scripts
+scripts
+
+# Ignore the document files
+CNAME
+CODE_OF_CONDUCT
+LICENSE
+README.md
+
+# Ignore Node.js modules
+node_modules
+
+# Ignore development files
+.DS_Store
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.staging.local
+.env.production.local
+.env.example
+
+# Ignore editor-specific files
+.idea
+.vscode
+*.sublime-*
+
+# Ignore Docker-related files
+Dockerfile
+.dockerignore
+.docker
+
+# Ignore version control files
+.git
+.gitignore
+.github
+.gitattributes
+
+# Ignore log and cache files
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Ignore test and coverage files
+/coverage
+
+# Ignore miscellaneous files
+*.bak
+*.swp
+*~
