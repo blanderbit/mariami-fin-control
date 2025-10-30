@@ -1,5 +1,5 @@
 import React from 'react';
-import logoIcon from './most final.png';
+import logoIcon from './most final .png';
 
 interface LogoIconProps {
     className?: string;

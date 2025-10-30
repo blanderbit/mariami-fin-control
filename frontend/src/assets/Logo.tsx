@@ -1,5 +1,5 @@
 import React from 'react';
-import logoSvg from './most final.png';
+import logoSvg from './most final .png';
 
 interface LogoProps {
     className?: string;
