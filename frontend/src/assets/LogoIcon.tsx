@@ -1,5 +1,5 @@
 import React from 'react';
-import logoIcon from './most final .png';
+import logoIcon from './most final.png';
 
 interface LogoIconProps {
     className?: string;
@@ -9,9 +9,9 @@ interface LogoIconProps {
 
 const LogoIcon: React.FC<LogoIconProps> = ({ className, width = 24, height = 24 }) => {
     return (
-        <img 
-            src={logoIcon} 
-            alt="FinclAI Logo Icon" 
+        <img
+            src={logoIcon}
+            alt="FinclAI Logo Icon"
             width={width}
             height={height}
             className={className}

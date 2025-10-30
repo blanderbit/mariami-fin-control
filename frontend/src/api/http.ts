@@ -50,8 +50,13 @@ export const createHttpClient = (): AxiosInstance => {
     // initialize storage by sniffing existing tokens
     detectTokenStorage();
 
+    // In development, use relative path for Vite proxy
+    // In production, use absolute URL
+    const isDevelopment = import.meta.env.DEV;
+    const baseURL = isDevelopment ? '/api/v1' : 'https://api.finclai.com/api/v1';
+    
     const instance = axios.create({
-        baseURL: '/api/v1',
+        baseURL: baseURL,
     });
 
     // Attach access token
