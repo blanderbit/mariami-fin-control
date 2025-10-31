@@ -31,6 +31,42 @@
     p {
         @apply leading-relaxed;
     }
+
+    /* Fix select styling for Safari to match Chrome */
+    select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        /* Light theme arrow - dark gray color */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 1em 1em;
+        padding-right: 2.5rem;
+    }
+
+    /* Dark theme arrow - light gray color */
+    /* Support for system preference */
+    @media (prefers-color-scheme: dark) {
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23E5E7EB' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        }
+    }
+
+    /* Dark theme for Tailwind dark mode - class on html element */
+    html.dark select,
+    .dark select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23E5E7EB' d='M6 9L1 4h10z'/%3E%3C/svg%3E") !important;
+    }
+
+    /* Ensure consistent styling across browsers */
+    select::-ms-expand {
+        display: none; /* Remove default arrow in IE/Edge */
+    }
+
+    select:focus {
+        outline: none;
+    }
 }
 
 @layer components {
